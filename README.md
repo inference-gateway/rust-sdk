@@ -13,11 +13,11 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/edenreich/
 
 ## Installation
 
-Add this to your `Cargo.toml` or run `cargo add inference-gateway-rust-sdk`:
+Add this to your `Cargo.toml` or run `cargo add inference-gateway-sdk`:
 
 ```toml
 [dependencies]
-inference-gateway-rust-sdk = "0.1.0"
+inference-gateway-sdk = "0.1.0"
 ```
 
 ## Usage

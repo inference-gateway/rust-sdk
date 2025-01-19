@@ -567,7 +567,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "inference-gateway-rust-sdk"
+name = "inference-gateway-sdk"
 version = "0.1.0"
 dependencies = [
  "mockito",
