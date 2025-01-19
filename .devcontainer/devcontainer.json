@@ -14,6 +14,7 @@
         "coenraads.bracket-pair-colorizer-2",
         "esbenp.prettier-vscode",
         "42Crunch.vscode-openapi",
+        "ms-azuretools.vscode-docker",
         "github.vscode-github-actions",
         "github.vscode-pull-request-github",
         "yzhang.markdown-all-in-one"

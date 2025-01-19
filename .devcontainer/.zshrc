@@ -107,13 +107,3 @@ DISABLE_UPDATE_PROMPT=true
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
-
-# For cross-compiling and statically linking Rust binaries on linux
-export OPENSSL_DIR=/usr
-export OPENSSL_LIB_DIR=/usr/lib
-export OPENSSL_INCLUDE_DIR=/usr/include
-export CC_aarch64_unknown_linux_musl=aarch64-linux-musl-gcc
-export CXX_aarch64_unknown_linux_musl=aarch64-linux-musl-g++
-export CC_x86_64_unknown_linux_musl=x86_64-linux-musl-gcc
-export CXX_x86_64_unknown_linux_musl=x86_64-linux-musl-g++
-export PKG_CONFIG_ALLOW_CROSS=1
