@@ -39,10 +39,32 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Generate Release Notes
+        id: semantic_release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          semantic_version: 20
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+            conventional-changelog-conventionalcommits
+          branches: |
+            ['main']
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          body: ${{ steps.semantic_release.outputs.notes }}
           generate_release_notes: true
           draft: false
           prerelease: false
