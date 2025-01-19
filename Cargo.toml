@@ -2,6 +2,14 @@
 name = "inference-gateway-sdk"
 version = "0.1.0"
 edition = "2021"
+description = "Rust SDK for interacting with various language models through the Inference Gateway"
+license = "MIT"
+documentation = "https://docs.rs/inference-gateway-sdk"
+homepage = "https://github.com/edenreich/inference-gateway"
+repository = "https://github.com/edenreich/inference-gateway-rust-sdk"
+readme = "README.md"
+keywords = ["ai", "llm", "inference", "sdk", "gateway"]
+categories = ["api-bindings", "web-programming::http-client"]
 
 [dependencies]
 reqwest = { version = "0.12.12", features = ["blocking", "json"] }
