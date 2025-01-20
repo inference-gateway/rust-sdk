@@ -58,7 +58,7 @@ jobs:
 
       - name: Create a release if needed
         run: |
-          semantic-release --branches main,next
+          semantic-release
         env:
           CI: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
