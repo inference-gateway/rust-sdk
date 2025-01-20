@@ -1,3 +1,13 @@
+## [0.1.2](https://github.com/edenreich/inference-gateway-rust-sdk/compare/0.1.1...0.1.2) (2025-01-20)
+
+### 👷 CI
+
+* Enhance GitHub release configuration with asset management and custom release name ([da054cf](https://github.com/edenreich/inference-gateway-rust-sdk/commit/da054cf30788d6179336307e4f957f6051ba5d44))
+
+### 📚 Documentation
+
+* Keep it simple ([17d7b79](https://github.com/edenreich/inference-gateway-rust-sdk/commit/17d7b792201a3bfc735da913b60e3c23b7d0314c))
+
 ## [0.1.1](https://github.com/edenreich/inference-gateway-rust-sdk/compare/0.1.0...0.1.1) (2025-01-20)
 
 ### 👷 CI
