@@ -64,4 +64,4 @@ plugins:
       "@semantic-release/git",
       { "assets": ["CHANGELOG.md", "Cargo.lock", "Cargo.toml"] },
     ]
-repositoryUrl: "https://github.com/edenreich/inference-gateway-rust-sdk"
+repositoryUrl: "https://github.com/inference-gateway/rust-sdk"
