@@ -8,7 +8,7 @@ plugins:
         preset: "conventionalcommits",
         releaseRules:
           [
-            { type: "feat", release: "patch" },
+            { type: "feat", release: "minor" },
             { type: "impr", release: "patch" },
             { type: "refactor", release: "patch" },
             { type: "perf", release: "patch" },
@@ -52,7 +52,14 @@ plugins:
         "prepareCmd": 'sed -i ''s/^version = .*$/version = "${nextRelease.version}"/'' Cargo.toml && cargo check',
       },
     ]
-  - "@semantic-release/github"
+  - [
+      "@semantic-release/github",
+      {
+        "assets": ["CHANGELOG.md"],
+        "releasedLabels": ["released"],
+        "releaseNameTemplate": "🚀 Version ${nextRelease.version}",
+      },
+    ]
   - [
       "@semantic-release/git",
       { "assets": ["CHANGELOG.md", "Cargo.lock", "Cargo.toml"] },
