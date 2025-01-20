@@ -1,3 +1,9 @@
+## [0.1.4](https://github.com/inference-gateway/rust-sdk/compare/0.1.3...0.1.4) (2025-01-20)
+
+### 🐛 Bug Fixes
+
+* Correct launch.json path in devcontainer configuration ([86717c4](https://github.com/inference-gateway/rust-sdk/commit/86717c4f49c1b5b87cecfc33e19f62c5e93c58f0))
+
 ## [0.1.3](https://github.com/inference-gateway/rust-sdk/compare/0.1.2...0.1.3) (2025-01-20)
 
 ### ♻️ Improvements
