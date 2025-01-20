@@ -1,3 +1,9 @@
+## [0.1.3](https://github.com/inference-gateway/rust-sdk/compare/0.1.2...0.1.3) (2025-01-20)
+
+### ♻️ Improvements
+
+* Update repository URLs in configuration and changelog ([586febf](https://github.com/inference-gateway/rust-sdk/commit/586febf9cddf7268e87153de45e3f6a72bcb851d))
+
 ## [0.1.2](https://github.com/inference-gateway/rust-sdk/compare/0.1.1...0.1.2) (2025-01-20)
 
 ### 👷 CI
