@@ -16,6 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Lint
+        run: cargo fmt --all -- --check
+
+      - name: Static Analysis
+        run: cargo clippy -- -D warnings
+
       - name: Build
         run: cargo build --verbose
 
