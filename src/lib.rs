@@ -62,6 +62,7 @@ pub struct GenerateResponse {
 pub struct ResponseContent {
     pub role: String,
     pub model: String,
+    pub content: String,
 }
 
 pub struct InferenceGatewayClient {
@@ -137,7 +138,7 @@ mod tests {
             .mock("POST", "/llms/ollama/generate")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body(r#"{"provider":"ollama","response":{"role":"assistant","model":"llama2"}}"#)
+            .with_body(r#"{"provider":"ollama","response":{"role":"assistant","model":"llama2","content":"Hellloooo"}}"#)
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
@@ -152,6 +153,7 @@ mod tests {
         assert_eq!(response.provider, "ollama");
         assert_eq!(response.response.role, "assistant");
         assert_eq!(response.response.model, "llama2");
+        assert_eq!(response.response.content, "Hellloooo");
         mock.assert();
     }
 

@@ -20,8 +20,8 @@ Run `cargo add inference-gateway-sdk`.
 ### Creating a Client
 
 ```rust
-use inference_gateway_rust_sdk::{InferenceGatewayClient, Provider, Message};
-use log::{info, error};
+use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider};
+use log::info;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -41,12 +41,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let response = client.generate_content(
         Provider::Ollama,
         "llama2",
-        messages: vec![
-            Message {
-                role: "user".to_string(),
-                content: "Tell me a joke".to_string(),
-            }
-        ]
+        vec![Message {
+            role: "user".to_string(),
+            content: "Tell me a joke".to_string(),
+        }],
     )?;
 
     info!("Response: {:?}", response);
@@ -80,12 +78,10 @@ use log::info;
 let response = client.generate_content(
     Provider::Ollama,
     "llama2",
-    messages: vec![
-        Message {
-            role: "user".to_string(),
-            content: "Tell me a joke".to_string(),
-        }
-    ]
+    vec![Message {
+        role: "user".to_string(),
+        content: "Tell me a joke".to_string(),
+    }],
 )?;
 
 info!("Provider: {:?}", response.provider);
@@ -97,8 +93,10 @@ info!("Response: {:?}", response.response);
 To check if the Inference Gateway is running, use the `health_check` method:
 
 ```rust
+use log::info;
+
 let is_healthy = client.health_check()?;
-println!("API is healthy: {}", is_healthy);
+info!("API is healthy: {}", is_healthy);
 ```
 
 ## License
