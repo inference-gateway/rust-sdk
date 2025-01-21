@@ -1,3 +1,11 @@
+## [0.2.4](https://github.com/inference-gateway/rust-sdk/compare/0.2.3...0.2.4) (2025-01-21)
+
+### 👷 CI
+
+* Fix dry-run output handling in release workflow ([f822fda](https://github.com/inference-gateway/rust-sdk/commit/f822fda4b9948c91ea6850f6c948dd82eb415a02))
+* Refactor release workflow to improve dry-run output handling ([79999b4](https://github.com/inference-gateway/rust-sdk/commit/79999b4cf1a8bb76ca1e1f765b2b8f4305c4e998))
+* Update semantic-release version and improve release condition checks ([813a6ff](https://github.com/inference-gateway/rust-sdk/commit/813a6ff53288f208565ffeeaabf2f33e3a9af285))
+
 ## [0.2.3](https://github.com/inference-gateway/rust-sdk/compare/0.2.2...0.2.3) (2025-01-21)
 
 ### 👷 CI
