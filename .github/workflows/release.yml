@@ -58,8 +58,15 @@ jobs:
           fi
 
           echo "new_release_version=$version" >> $GITHUB_OUTPUT
-          semantic-release
-          echo "new_release_published=true" >> $GITHUB_OUTPUT
+
+          # Run actual release
+          if $(semantic-release); then
+            echo "Release successful"
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+          else
+            echo "Release failed"
+            exit 1
+          fi
         env:
           CI: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
