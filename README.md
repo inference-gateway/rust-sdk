@@ -20,29 +20,36 @@ Run `cargo add inference-gateway-sdk`.
 ### Creating a Client
 
 ```rust
-use inference_gateway_rust_sdk::{InferenceGatewayClient, Provider};
+use inference_gateway_rust_sdk::{InferenceGatewayClient, Provider, Message};
+use log::{info, error};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    env_logger::init();
+
     let client = InferenceGatewayClient::new("http://localhost:8080");
 
     // List available models
     let models = client.list_models()?;
     for provider_models in models {
-        println!("Provider: {}", provider_models.provider);
+        info!("Provider: {:?}", provider_models.provider);
         for model in provider_models.models {
-            println!("  Model: {}", model.id);
+            info!("Model: {:?}", model.id);
         }
     }
 
-    // Generate content
     let response = client.generate_content(
         Provider::Ollama,
         "llama2",
-        "Tell me a joke"
+        messages: vec![
+            Message {
+                role: "user".to_string(),
+                content: "Tell me a joke".to_string(),
+            }
+        ]
     )?;
-    println!("Response: {}", response.response);
 
+    info!("Response: {:?}", response);
     Ok(())
 }
 ```
@@ -52,11 +59,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 To list available models, use the `list_models` method:
 
 ```rust
+use log::info;
+
 let models = client.list_models()?;
 for provider_models in models {
-    println!("Provider: {}", provider_models.provider);
+    info!("Provider: {:?}", provider_models.provider);
     for model in provider_models.models {
-        println!("  Model: {}", model.id);
+        info!("Model: {:?}", model.id);
     }
 }
 ```
@@ -66,13 +75,21 @@ for provider_models in models {
 To generate content using a model, use the `generate_content` method:
 
 ```rust
+use log::info;
+
 let response = client.generate_content(
     Provider::Ollama,
     "llama2",
-    "Tell me a joke"
+    messages: vec![
+        Message {
+            role: "user".to_string(),
+            content: "Tell me a joke".to_string(),
+        }
+    ]
 )?;
-println!("Provider: {}", response.provider);
-println!("Response: {}", response.response);
+
+info!("Provider: {:?}", response.provider);
+info!("Response: {:?}", response.response);
 ```
 
 ### Health Check

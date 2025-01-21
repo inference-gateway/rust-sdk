@@ -40,16 +40,28 @@ impl fmt::Display for Provider {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Message {
+    pub role: String,
+    pub content: String,
+}
+
 #[derive(Debug, Serialize)]
 struct GenerateRequest {
     model: String,
-    prompt: String,
+    messages: Vec<Message>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct GenerateResponse {
     pub provider: String,
-    pub response: String,
+    pub response: ResponseContent,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ResponseContent {
+    pub role: String,
+    pub model: String,
 }
 
 pub struct InferenceGatewayClient {
@@ -76,16 +88,15 @@ impl InferenceGatewayClient {
         &self,
         provider: Provider,
         model: &str,
-        prompt: &str,
+        messages: Vec<Message>,
     ) -> Result<GenerateResponse, Box<dyn Error>> {
         let url = format!("{}/llms/{}/generate", self.base_url, provider);
         let request = GenerateRequest {
             model: model.to_string(),
-            prompt: prompt.to_string(),
+            messages,
         };
 
         let response = self.client.post(&url).json(&request).send()?.json()?;
-
         Ok(response)
     }
 
@@ -126,16 +137,21 @@ mod tests {
             .mock("POST", "/llms/ollama/generate")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body(r#"{"provider":"ollama","response":"Generated text"}"#)
+            .with_body(r#"{"provider":"ollama","response":{"role":"assistant","model":"llama2"}}"#)
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
+        let messages = vec![Message {
+            role: "user".to_string(),
+            content: "Hello".to_string(),
+        }];
         let response = client
-            .generate_content(Provider::Ollama, "llama2", "Hello")
+            .generate_content(Provider::Ollama, "llama2", messages)
             .unwrap();
 
         assert_eq!(response.provider, "ollama");
-        assert_eq!(response.response, "Generated text");
+        assert_eq!(response.response.role, "assistant");
+        assert_eq!(response.response.model, "llama2");
         mock.assert();
     }
 
