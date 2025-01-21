@@ -1,3 +1,9 @@
+## [0.2.3](https://github.com/inference-gateway/rust-sdk/compare/0.2.2...0.2.3) (2025-01-21)
+
+### 👷 CI
+
+* Add debug output to release workflow for better visibility ([2264a48](https://github.com/inference-gateway/rust-sdk/commit/2264a4845da865c605707e1b04c9d1377b140613))
+
 ## [0.2.2](https://github.com/inference-gateway/rust-sdk/compare/0.2.1...0.2.2) (2025-01-21)
 
 ### 👷 CI
