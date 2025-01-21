@@ -30,7 +30,7 @@ jobs:
 
       - name: Install semantic release and plugins
         run: |
-          npm install -g semantic-release \
+          npm install -g semantic-release@v24.2.1 \
             conventional-changelog-cli \
             conventional-changelog-conventionalcommits \
             @semantic-release/changelog \
@@ -41,9 +41,17 @@ jobs:
       - name: Create a release if needed
         id: semantic
         run: |
-          semantic-release --debug
-          echo "::set-output name=new_release_version::$(semantic-release --dry-run | grep 'next release version is' | awk '{print $5}')"
-          echo "::set-output name=new_release_published::true"
+          semantic-release --dry-run | grep -i 'there are no relevant changes, so no new version is released'
+          if [ $? -eq 0 ]; then
+            echo "No new release needed"
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "new_release_version=$(semantic-release --dry-run | grep -i 'published release' | awk '{print $5}')" >> $GITHUB_OUTPUT
+
+          semantic-release
+          echo "new_release_published=true" >> $GITHUB_OUTPUT
         env:
           CI: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
