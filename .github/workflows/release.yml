@@ -42,7 +42,6 @@ jobs:
         id: semantic
         run: |
           dry_run_output=$(semantic-release --dry-run 2>&1 || true)
-          echo "Dry run output: $dry_run_output"
 
           # Check if there are no changes
           if $(echo "$dry_run_output" | grep -q "no new version is released"); then
@@ -65,22 +64,12 @@ jobs:
           CI: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug Output
-        run: |
-          echo "New Release Version: ${{ steps.semantic.outputs.new_release_version }}"
-          echo "New Release Published: ${{ steps.semantic.outputs.new_release_published }}"
-
   publish:
     needs: github_release
     runs-on: ubuntu-24.04
     if: needs.github_release.outputs.new_release_published == 'true'
     name: Publish
     steps:
-      - name: Debug Condition
-        run: |
-          echo "new_release_published value: ${{ needs.github_release.outputs.new_release_published }}"
-          echo "new_release_version value: ${{ needs.github_release.outputs.new_release_version }}"
-
       - uses: actions/checkout@v4
         with:
           ref: main
