@@ -1,3 +1,9 @@
+## [0.2.1](https://github.com/inference-gateway/rust-sdk/compare/0.2.0...0.2.1) (2025-01-21)
+
+### 🐛 Bug Fixes
+
+* Update README and lib.rs to include content in response and improve logging ([97e2a29](https://github.com/inference-gateway/rust-sdk/commit/97e2a2941e6912339ac4c8bfb7c24457728088d9))
+
 ## [0.2.0](https://github.com/inference-gateway/rust-sdk/compare/0.1.4...0.2.0) (2025-01-21)
 
 ### ✨ Features
