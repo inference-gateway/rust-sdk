@@ -51,7 +51,14 @@ jobs:
             exit 0
           fi
 
-          echo "new_release_version=$(echo $dry_run_output | grep -i 'published release' | awk '{print $8}')" >> $GITHUB_OUTPUT
+          # Extract version from dry run output
+          version=$(echo "$dry_run_output" | grep -o "The next release version is [0-9]\+\.[0-9]\+\.[0-9]\+" | cut -d ' ' -f6)
+          if [ -z "$version" ]; then
+            echo "Error: Could not determine version"
+            exit 1
+          fi
+
+          echo "new_release_version=$version" >> $GITHUB_OUTPUT
           semantic-release
           echo "new_release_published=true" >> $GITHUB_OUTPUT
         env:
