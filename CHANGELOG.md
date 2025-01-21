@@ -1,3 +1,9 @@
+## [0.2.5](https://github.com/inference-gateway/rust-sdk/compare/0.2.4...0.2.5) (2025-01-21)
+
+### 👷 CI
+
+* Improve version extraction from dry run output in release workflow ([728b100](https://github.com/inference-gateway/rust-sdk/commit/728b100a26bd7de70f0ed86d5a754eede1b68161))
+
 ## [0.2.4](https://github.com/inference-gateway/rust-sdk/compare/0.2.3...0.2.4) (2025-01-21)
 
 ### 👷 CI
