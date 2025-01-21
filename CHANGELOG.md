@@ -1,3 +1,9 @@
+## [0.2.2](https://github.com/inference-gateway/rust-sdk/compare/0.2.1...0.2.2) (2025-01-21)
+
+### 👷 CI
+
+* Enhance release workflow to output new version and publish conditionally ([424b92d](https://github.com/inference-gateway/rust-sdk/commit/424b92dc805d0fd507fb4465f1be9bd3b2af6054))
+
 ## [0.2.1](https://github.com/inference-gateway/rust-sdk/compare/0.2.0...0.2.1) (2025-01-21)
 
 ### 🐛 Bug Fixes
