@@ -1,3 +1,14 @@
+## [0.2.0](https://github.com/inference-gateway/rust-sdk/compare/0.1.4...0.2.0) (2025-01-21)
+
+### ✨ Features
+
+* Add Taskfile for OpenAPI specification download and update devcontainer configuration ([7ea7473](https://github.com/inference-gateway/rust-sdk/commit/7ea7473e557405a3e856b77deaebe3096d30c613))
+* Enhance content generation with structured messages and logging ([de4e8a7](https://github.com/inference-gateway/rust-sdk/commit/de4e8a74fb128f961854954785c462dd0db05bb6))
+
+### 🔧 Miscellaneous
+
+* Update OpenAPI specification from main repo ([c9c92f6](https://github.com/inference-gateway/rust-sdk/commit/c9c92f6b56afefa5de237752265f083c9be6c159))
+
 ## [0.1.4](https://github.com/inference-gateway/rust-sdk/compare/0.1.3...0.1.4) (2025-01-20)
 
 ### 🐛 Bug Fixes
