@@ -41,10 +41,17 @@ jobs:
       - name: Create a release if needed
         id: semantic
         run: |
-          semantic-release
+          semantic-release --debug
+          echo "::set-output name=new_release_version::$(semantic-release --dry-run | grep 'next release version is' | awk '{print $5}')"
+          echo "::set-output name=new_release_published::true"
         env:
           CI: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Debug Output
+        run: |
+          echo "New Release Version: ${{ steps.semantic.outputs.new_release_version }}"
+          echo "New Release Published: ${{ steps.semantic.outputs.new_release_published }}"
 
   publish:
     needs: github_release
@@ -52,6 +59,11 @@ jobs:
     if: needs.github_release.outputs.new_release_published == 'true'
     name: Publish
     steps:
+      - name: Debug Condition
+        run: |
+          echo "new_release_published value: ${{ needs.github_release.outputs.new_release_published }}"
+          echo "new_release_version value: ${{ needs.github_release.outputs.new_release_version }}"
+
       - uses: actions/checkout@v4
         with:
           ref: main
