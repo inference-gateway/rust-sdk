@@ -41,8 +41,11 @@ jobs:
       - name: Create a release if needed
         id: semantic
         run: |
-          dry_run_output=$(semantic-release --dry-run | grep -i 'there are no relevant changes, so no new version is released')
-          if [ $? -eq 0 ]; then
+          dry_run_output=$(semantic-release --dry-run 2>&1 || true)
+          echo "Dry run output: $dry_run_output"
+
+          # Check if there are no changes
+          if $(echo "$dry_run_output" | grep -q "no new version is released"); then
             echo "No new release needed"
             echo "new_release_published=false" >> $GITHUB_OUTPUT
             exit 0
