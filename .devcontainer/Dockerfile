@@ -1,9 +1,13 @@
 FROM mcr.microsoft.com/devcontainers/rust:1.0.20-bookworm 
 
-ENV ZSH_CUSTOM=/home/vscode/.oh-my-zsh/custom
+ENV ZSH_CUSTOM=/home/vscode/.oh-my-zsh/custom \
+    TASK_VERSION=v3.41.0
 
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    apt-get update && \    
+RUN apt-get update && \
+    # Install nodejs and npm
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+     # Install Task
+    curl -s https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin ${TASK_VERSION} && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
