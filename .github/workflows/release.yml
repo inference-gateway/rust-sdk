@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+    outputs:
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,6 +39,7 @@ jobs:
             @semantic-release/github
 
       - name: Create a release if needed
+        id: semantic
         run: |
           semantic-release
         env:
@@ -45,15 +49,23 @@ jobs:
   publish:
     needs: github_release
     runs-on: ubuntu-24.04
+    if: needs.github_release.outputs.new_release_published == 'true'
     name: Publish
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
+
+      - name: Update Cargo.toml version
+        run: |
+          echo "Updating to version ${{ needs.github_release.outputs.new_release_version }}"
+          sed -i "s/^version = .*/version = \"${{ needs.github_release.outputs.new_release_version }}\"/" Cargo.toml
 
       - name: Build
         run: cargo build --verbose --release
