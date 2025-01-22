@@ -39,6 +39,7 @@ pub enum Provider {
     Google,
     Cloudflare,
     Cohere,
+    Anthropic,
 }
 
 impl fmt::Display for Provider {
@@ -50,6 +51,7 @@ impl fmt::Display for Provider {
             Provider::Google => write!(f, "google"),
             Provider::Cloudflare => write!(f, "cloudflare"),
             Provider::Cohere => write!(f, "cohere"),
+            Provider::Anthropic => write!(f, "anthropic"),
         }
     }
 }
