@@ -1,3 +1,21 @@
+## [0.3.0](https://github.com/inference-gateway/rust-sdk/compare/0.2.5...0.3.0) (2025-01-22)
+
+### ✨ Features
+
+* Add Anthropic provider to the Provider enum ([30004a5](https://github.com/inference-gateway/rust-sdk/commit/30004a591815f06b6c56a1c3f647d5504ac6bcfa))
+* Add optional token support for InferenceGatewayClient requests ([9145eb7](https://github.com/inference-gateway/rust-sdk/commit/9145eb785bb4ea51ddcb31e33b233c6a0f585d62))
+* Implement InferenceGatewayAPI trait for InferenceGatewayClient ([dc47832](https://github.com/inference-gateway/rust-sdk/commit/dc47832afcb50181b4c6f547e7aeb1a8062d6638))
+
+### 👷 CI
+
+* Enhance release workflow with error handling for actual run of semantic-release ([34279b8](https://github.com/inference-gateway/rust-sdk/commit/34279b8931ddf5e00fb7721d6bcf91811c154261))
+* Fix syntax in release workflow for semantic-release execution ([3b94bbc](https://github.com/inference-gateway/rust-sdk/commit/3b94bbc6b07d876567395bc5c5699e9b9a2f581a))
+* Remove debug output from release workflow ([a7d03ad](https://github.com/inference-gateway/rust-sdk/commit/a7d03ad97962e68afaf38ba4ed73d1a05f2f6cf8))
+
+### 📚 Documentation
+
+* Enhance InferenceGatewayAPI with health check and detailed documentation ([c70a9e1](https://github.com/inference-gateway/rust-sdk/commit/c70a9e178dae7fd311f100e41fc0b0e98cfd12c4))
+
 ## [0.2.5](https://github.com/inference-gateway/rust-sdk/compare/0.2.4...0.2.5) (2025-01-21)
 
 ### 👷 CI
