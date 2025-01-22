@@ -71,6 +71,19 @@ pub struct InferenceGatewayClient {
     token: Option<String>,
 }
 
+pub trait InferenceGatewayAPI {
+    fn list_models(&self) -> Result<Vec<ProviderModels>, Box<dyn Error>>;
+
+    fn generate_content(
+        &self,
+        provider: Provider,
+        model: &str,
+        messages: Vec<Message>,
+    ) -> Result<GenerateResponse, Box<dyn Error>>;
+
+    fn health_check(&self) -> Result<bool, Box<dyn Error>>;
+}
+
 impl InferenceGatewayClient {
     pub fn new(base_url: &str) -> Self {
         Self {
@@ -84,8 +97,10 @@ impl InferenceGatewayClient {
         self.token = Some(token.into());
         self
     }
+}
 
-    pub fn list_models(&self) -> Result<Vec<ProviderModels>, Box<dyn Error>> {
+impl InferenceGatewayAPI for InferenceGatewayClient {
+    fn list_models(&self) -> Result<Vec<ProviderModels>, Box<dyn Error>> {
         let url = format!("{}/llms", self.base_url);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
@@ -97,7 +112,7 @@ impl InferenceGatewayClient {
         Ok(models)
     }
 
-    pub fn generate_content(
+    fn generate_content(
         &self,
         provider: Provider,
         model: &str,
@@ -118,7 +133,7 @@ impl InferenceGatewayClient {
         Ok(response)
     }
 
-    pub fn health_check(&self) -> Result<bool, Box<dyn Error>> {
+    fn health_check(&self) -> Result<bool, Box<dyn Error>> {
         let url = format!("{}/health", self.base_url);
         let response = self.client.get(&url).send()?;
         Ok(response.status().is_success())
