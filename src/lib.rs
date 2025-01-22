@@ -68,19 +68,31 @@ pub struct ResponseContent {
 pub struct InferenceGatewayClient {
     base_url: String,
     client: Client,
+    token: Option<String>,
 }
 
 impl InferenceGatewayClient {
     pub fn new(base_url: &str) -> Self {
-        InferenceGatewayClient {
+        Self {
             base_url: base_url.to_string(),
             client: Client::new(),
+            token: None,
         }
+    }
+
+    pub fn with_token(mut self, token: impl Into<String>) -> Self {
+        self.token = Some(token.into());
+        self
     }
 
     pub fn list_models(&self) -> Result<Vec<ProviderModels>, Box<dyn Error>> {
         let url = format!("{}/llms", self.base_url);
-        let response = self.client.get(&url).send()?;
+        let mut request = self.client.get(&url);
+        if let Some(token) = &self.token {
+            request = self.client.get(&url).bearer_auth(token);
+        }
+
+        let response = request.send()?;
         let models = response.json()?;
         Ok(models)
     }
@@ -92,12 +104,17 @@ impl InferenceGatewayClient {
         messages: Vec<Message>,
     ) -> Result<GenerateResponse, Box<dyn Error>> {
         let url = format!("{}/llms/{}/generate", self.base_url, provider);
-        let request = GenerateRequest {
+        let mut request = self.client.post(&url);
+        if let Some(token) = &self.token {
+            request = self.client.post(&url).bearer_auth(token);
+        }
+
+        let request_payload = GenerateRequest {
             model: model.to_string(),
             messages,
         };
 
-        let response = self.client.post(&url).json(&request).send()?.json()?;
+        let response = request.json(&request_payload).send()?.json()?;
         Ok(response)
     }
 
@@ -111,7 +128,40 @@ impl InferenceGatewayClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::Server;
+    use mockito::{Matcher, Server};
+
+    #[test]
+    fn test_authentication_header() {
+        let mut server = Server::new();
+
+        // Test with token
+        let mock_with_auth = server
+            .mock("GET", "/llms")
+            .match_header("authorization", "Bearer test-token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body("[]")
+            .expect(1)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url()).with_token("test-token");
+        client.list_models().unwrap();
+        mock_with_auth.assert();
+
+        // Test without token
+        let mock_without_auth = server
+            .mock("GET", "/llms")
+            .match_header("authorization", Matcher::Missing)
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body("[]")
+            .expect(1)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url());
+        client.list_models().unwrap();
+        mock_without_auth.assert();
+    }
 
     #[test]
     fn test_list_models() {
