@@ -1,3 +1,25 @@
+## [0.4.0](https://github.com/inference-gateway/rust-sdk/compare/0.3.0...0.4.0) (2025-01-28)
+
+### ✨ Features
+
+* Add get_provider_models method to InferenceGatewayAPI and implement it in InferenceGatewayClient ([92565a7](https://github.com/inference-gateway/rust-sdk/commit/92565a73d8842eb7cfd6a323166bd24699f6ea1d))
+* Introduce Role enum for message roles and update usage in README and Message struct ([6bcfa81](https://github.com/inference-gateway/rust-sdk/commit/6bcfa8175a973b7747338a6d2ff36a68d9e276d1))
+
+### 🐛 Bug Fixes
+
+* Simplify provider string formatting in get_provider_models method ([e069fad](https://github.com/inference-gateway/rust-sdk/commit/e069fada1405091462f627fd7e555e4e2efe1d8d))
+
+### 📚 Documentation
+
+* Add CONTRIBUTING.md with guidelines for contributing to the Inference Gateway Rust SDK ([e649871](https://github.com/inference-gateway/rust-sdk/commit/e6498711fdf2f9c018359ba1a7151efc36957934))
+* **fix:** Update homepage link in Cargo.toml and README.md to reflect new repository URL ([b93424a](https://github.com/inference-gateway/rust-sdk/commit/b93424a0b116ff59de51709893207b3d34e5ea85))
+* **openapi:** Download the latest OpenAPI specification ([fa1edf6](https://github.com/inference-gateway/rust-sdk/commit/fa1edf62598d3192f9d69dae90819bf6da27a5f6))
+* Update README.md to include examples for listing models and models by provider ([7d44bb3](https://github.com/inference-gateway/rust-sdk/commit/7d44bb3463be959465c1a1c3226f7615af3b0dbf))
+
+### 📦 Miscellaneous
+
+* Add lint, analyse, and test tasks to Taskfile for improved code quality ([50461a3](https://github.com/inference-gateway/rust-sdk/commit/50461a3d7b3f3769a26fef1e4c0c1d0f283d7fda))
+
 ## [0.3.0](https://github.com/inference-gateway/rust-sdk/compare/0.2.5...0.3.0) (2025-01-22)
 
 ### ✨ Features
