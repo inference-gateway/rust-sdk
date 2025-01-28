@@ -1,3 +1,19 @@
+## [0.5.0](https://github.com/inference-gateway/rust-sdk/compare/0.4.0...0.5.0) (2025-01-28)
+
+### ✨ Features
+
+* Implement custom error handling for Inference Gateway API ([ab8c732](https://github.com/inference-gateway/rust-sdk/commit/ab8c732921f7da799e673f529575f24e7e809135))
+
+### 📚 Documentation
+
+* Add static analysis step to CONTRIBUTING.md ([8000794](https://github.com/inference-gateway/rust-sdk/commit/8000794e8ba98f5f1c92060e11467e1d983adb79))
+* **openapi:** Download the latest openapi spec from inference-gateway ([c49a9e6](https://github.com/inference-gateway/rust-sdk/commit/c49a9e6fab6293bc025ff10a2eaeddc66d4b1d38))
+* Update CONTRIBUTING.md to reflect new branch naming and task commands ([0196eef](https://github.com/inference-gateway/rust-sdk/commit/0196eefba4f050e17861c71212bb0022619115b3))
+
+### 🔧 Miscellaneous
+
+* Rename Role to MessageRole enum for consistency with openapi ([f97d44b](https://github.com/inference-gateway/rust-sdk/commit/f97d44bdc26348518561551285872fc22af6a065))
+
 ## [0.4.0](https://github.com/inference-gateway/rust-sdk/compare/0.3.0...0.4.0) (2025-01-28)
 
 ### ✨ Features
