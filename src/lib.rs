@@ -56,20 +56,20 @@ impl fmt::Display for Provider {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
-pub enum Role {
+pub enum MessageRole {
     System,
     User,
     Assistant,
 }
 
-impl fmt::Display for Role {
+impl fmt::Display for MessageRole {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Role::System => write!(f, "system"),
-            Role::User => write!(f, "user"),
-            Role::Assistant => write!(f, "assistant"),
+            MessageRole::System => write!(f, "system"),
+            MessageRole::User => write!(f, "user"),
+            MessageRole::Assistant => write!(f, "assistant"),
         }
     }
 }
@@ -78,7 +78,7 @@ impl fmt::Display for Role {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Message {
     /// Role of the message sender ("system", "user" or "assistant")
-    pub role: Role,
+    pub role: MessageRole,
     /// Content of the message
     pub content: String,
 }
@@ -95,7 +95,7 @@ struct GenerateRequest {
 #[derive(Debug, Deserialize)]
 pub struct GenerateResponse {
     /// Provider that generated the response
-    pub provider: String,
+    pub provider: Provider,
     /// Content of the response
     pub response: ResponseContent,
 }
@@ -103,7 +103,7 @@ pub struct GenerateResponse {
 #[derive(Debug, Deserialize)]
 pub struct ResponseContent {
     /// Role of the responder (typically "assistant")
-    pub role: String,
+    pub role: MessageRole,
     /// Model that generated the response
     pub model: String,
     /// Generated content
@@ -122,8 +122,9 @@ pub trait InferenceGatewayAPI {
     /// Lists available models from all providers
     fn list_models(&self) -> Result<Vec<ProviderModels>, Box<dyn Error>>;
 
-    /// Lists available models from a specific provider
-    fn get_provider_models(&self, provider: Provider) -> Result<ProviderModels, Box<dyn Error>>;
+    /// Lists available models by a specific provider
+    fn list_models_by_provider(&self, provider: Provider)
+        -> Result<ProviderModels, Box<dyn Error>>;
 
     /// Generates content using a specified model
     ///
@@ -178,7 +179,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         Ok(models)
     }
 
-    fn get_provider_models(&self, provider: Provider) -> Result<ProviderModels, Box<dyn Error>> {
+    fn list_models_by_provider(
+        &self,
+        provider: Provider,
+    ) -> Result<ProviderModels, Box<dyn Error>> {
         let url = format!("{}/llms/{}", self.base_url, provider);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
@@ -285,7 +289,7 @@ mod tests {
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
-        let models = client.get_provider_models(Provider::Ollama).unwrap();
+        let models = client.list_models_by_provider(Provider::Ollama).unwrap();
 
         assert_eq!(models.provider, Provider::Ollama);
         assert_eq!(models.models[0].id, "llama2");
@@ -304,15 +308,15 @@ mod tests {
 
         let client = InferenceGatewayClient::new(&server.url());
         let messages = vec![Message {
-            role: Role::User,
+            role: MessageRole::User,
             content: "Hello".to_string(),
         }];
         let response = client
             .generate_content(Provider::Ollama, "llama2", messages)
             .unwrap();
 
-        assert_eq!(response.provider, "ollama");
-        assert_eq!(response.response.role, "assistant");
+        assert_eq!(response.provider, Provider::Ollama);
+        assert_eq!(response.response.role, MessageRole::Assistant);
         assert_eq!(response.response.model, "llama2");
         assert_eq!(response.response.content, "Hellloooo");
         mock.assert();

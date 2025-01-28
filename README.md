@@ -7,6 +7,7 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
   - [Usage](#usage)
     - [Creating a Client](#creating-a-client)
     - [Listing Models](#listing-models)
+    - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
     - [Generating Content](#generating-content)
     - [Health Check](#health-check)
   - [Contributing](#contributing)
@@ -43,7 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Provider::Ollama,
         "llama2",
         vec![Message {
-            role: Role::User,
+            role: MessageRole::User,
             content: "Tell me a joke".to_string(),
         }],
     )?;
@@ -55,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### Listing Models
 
-To list available models, use the `list_models` method:
+To list all available models from all configured providers, use the `list_models` method:
 
 ```rust
 use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, Role};
@@ -74,10 +75,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // List models for a specific provider
-    let models = client.get_provider_models(Provider::Ollama)?;
+    let resp = client.list_models_by_provider(Provider::Ollama)?;
+    let models = resp.models;
+    info!("Provider: {:?}", resp.provider);
     for model in models {
         info!("Model: {:?}", model.id);
     }
+}
+```
+
+### Listing Models from a specific provider
+
+To list all available models from a specific provider, use the `list_models_by_provider` method:
+
+```rust
+use log::info;
+
+let resp = client.list_models_by_provider(Provider::Ollama)?;
+let models = resp.models;
+info!("Provider: {:?}", resp.provider);
+for model in models {
+    info!("Model: {:?}", model.id);
 }
 ```
 
@@ -92,7 +110,7 @@ let response = client.generate_content(
     Provider::Ollama,
     "llama2",
     vec![Message {
-        role: Role::User,
+        role: MessageRole::User,
         content: "Tell me a joke".to_string(),
     }],
 )?;
