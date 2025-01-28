@@ -21,7 +21,7 @@ Run `cargo add inference-gateway-sdk`.
 ### Creating a Client
 
 ```rust
-use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider};
+use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, Role};
 use log::info;
 use std::error::Error;
 
@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Provider::Ollama,
         "llama2",
         vec![Message {
-            role: "user".to_string(),
+            role: Role::User,
             content: "Tell me a joke".to_string(),
         }],
     )?;
@@ -58,21 +58,26 @@ fn main() -> Result<(), Box<dyn Error>> {
 To list available models, use the `list_models` method:
 
 ```rust
+use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, Role};
 use log::info;
 
-// List all providers and models
-let models = client.list_models()?;
-for provider_models in models {
-    info!("Provider: {:?}", provider_models.provider);
-    for model in provider_models.models {
+fn main() -> Result<(), Box<dyn Error>> {
+    // ...create a client
+
+    // List all providers and models
+    let models = client.list_models()?;
+    for provider_models in models {
+        info!("Provider: {:?}", provider_models.provider);
+        for model in provider_models.models {
+            info!("Model: {:?}", model.id);
+        }
+    }
+
+    // List models for a specific provider
+    let models = client.get_provider_models(Provider::Ollama)?;
+    for model in models {
         info!("Model: {:?}", model.id);
     }
-}
-
-// List models for a specific provider
-let models = client.list_models_for_provider(Provider::Ollama)?;
-for model in models {
-    info!("Model: {:?}", model.id);
 }
 ```
 
@@ -87,7 +92,7 @@ let response = client.generate_content(
     Provider::Ollama,
     "llama2",
     vec![Message {
-        role: "user".to_string(),
+        role: Role::User,
         content: "Tell me a joke".to_string(),
     }],
 )?;

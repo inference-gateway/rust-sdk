@@ -56,11 +56,29 @@ impl fmt::Display for Provider {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Role {
+    System,
+    User,
+    Assistant,
+}
+
+impl fmt::Display for Role {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Role::System => write!(f, "system"),
+            Role::User => write!(f, "user"),
+            Role::Assistant => write!(f, "assistant"),
+        }
+    }
+}
+
 /// A message in a conversation with an LLM
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Message {
     /// Role of the message sender ("system", "user" or "assistant")
-    pub role: String,
+    pub role: Role,
     /// Content of the message
     pub content: String,
 }
@@ -286,7 +304,7 @@ mod tests {
 
         let client = InferenceGatewayClient::new(&server.url());
         let messages = vec![Message {
-            role: "user".to_string(),
+            role: Role::User,
             content: "Hello".to_string(),
         }];
         let response = client
