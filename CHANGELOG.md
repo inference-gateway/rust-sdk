@@ -1,3 +1,17 @@
+## [0.5.3](https://github.com/inference-gateway/rust-sdk/compare/0.5.2...0.5.3) (2025-01-28)
+
+### 📚 Documentation
+
+* Update README to include InferenceGatewayAPI in import statements for clarity ([b6aba41](https://github.com/inference-gateway/rust-sdk/commit/b6aba41fd1beee192bf746a32de4b281b247d8fa))
+
+### 🔧 Miscellaneous
+
+* Update error handling to use thiserror crate and improve GatewayError structure ([fe85dcb](https://github.com/inference-gateway/rust-sdk/commit/fe85dcbfacdf5737f9c03ec23341a7254202e18f))
+
+### ✅ Miscellaneous
+
+* Add unit tests for GatewayError handling in InferenceGatewayClient ([6b7e6d4](https://github.com/inference-gateway/rust-sdk/commit/6b7e6d49494c08884e3dd93ff50406eda3e8cae5))
+
 ## [0.5.2](https://github.com/inference-gateway/rust-sdk/compare/0.5.1...0.5.2) (2025-01-28)
 
 ### 🐛 Bug Fixes
