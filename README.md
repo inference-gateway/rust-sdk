@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     for provider_models in models {
         info!("Provider: {:?}", provider_models.provider);
         for model in provider_models.models {
-            info!("Model: {:?}", model.id);
+            info!("Model: {:?}", model.name);
         }
     }
 
@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     for provider_models in models {
         info!("Provider: {:?}", provider_models.provider);
         for model in provider_models.models {
-            info!("Model: {:?}", model.id);
+            info!("Model: {:?}", model.name);
         }
     }
 
@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let models = resp.models;
     info!("Provider: {:?}", resp.provider);
     for model in models {
-        info!("Model: {:?}", model.id);
+        info!("Model: {:?}", model.name);
     }
 }
 ```
@@ -95,7 +95,7 @@ let resp = client.list_models_by_provider(Provider::Ollama)?;
 let models = resp.models;
 info!("Provider: {:?}", resp.provider);
 for model in models {
-    info!("Model: {:?}", model.id);
+    info!("Model: {:?}", model.name);
 }
 ```
 
