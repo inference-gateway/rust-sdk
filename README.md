@@ -22,7 +22,13 @@ Run `cargo add inference-gateway-sdk`.
 ### Creating a Client
 
 ```rust
-use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, MessageRole};
+use inference_gateway_sdk::{
+    InferenceGatewayAPI,
+    InferenceGatewayClient,
+    Message,
+    Provider,
+    MessageRole
+};
 use log::info;
 use std::error::Error;
 
@@ -59,7 +65,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 To list all available models from all configured providers, use the `list_models` method:
 
 ```rust
-use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, MessageRole};
+use inference_gateway_sdk::{
+    InferenceGatewayAPI,
+    InferenceGatewayClient,
+    Message,
+    Provider,
+    MessageRole
+};
 use log::info;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -89,8 +101,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 To list all available models from a specific provider, use the `list_models_by_provider` method:
 
 ```rust
+// ...rest of the imports
 use log::info;
 
+// ...main function
 let resp = client.list_models_by_provider(Provider::Ollama)?;
 let models = resp.models;
 info!("Provider: {:?}", resp.provider);
@@ -104,8 +118,10 @@ for model in models {
 To generate content using a model, use the `generate_content` method:
 
 ```rust
+// ...rest of the imports
 use log::info;
 
+// ...main function
 let response = client.generate_content(
     Provider::Ollama,
     "llama2",
@@ -124,8 +140,10 @@ info!("Response: {:?}", response.response);
 To check if the Inference Gateway is running, use the `health_check` method:
 
 ```rust
+// ...rest of the imports
 use log::info;
 
+// ...main function
 let is_healthy = client.health_check()?;
 info!("API is healthy: {}", is_healthy);
 ```
