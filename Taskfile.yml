@@ -5,3 +5,18 @@ tasks:
     desc: Download OpenAPI specification
     cmds:
       - curl -o openapi.yaml https://raw.githubusercontent.com/inference-gateway/inference-gateway/refs/heads/main/openapi.yaml
+
+  lint:
+    desc: Run linter
+    cmds:
+      - cargo fmt --all -- --check
+
+  analyse:
+    desc: Run static analysis
+    cmds:
+      - cargo clippy --all-targets --all-features -- -D warnings
+
+  test:
+    desc: Run tests
+    cmds:
+      - cargo test --all-targets --all-features
