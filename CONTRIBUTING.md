@@ -32,13 +32,13 @@ code sdk
 1. Create a new branch:
 
 ```sh
-git checkout -b my-feature
+git checkout -b feature/my-feature
 ```
 
 2. Make changes and test:
 
 ```sh
-cargo test
+task test
 ```
 
 3. Add tests for new features or fix tests for refactoring and bug fixes.
@@ -46,7 +46,7 @@ cargo test
 4. Run linter:
 
 ```sh
-cargo fmt
+task lint
 ```
 
 ## Pull Request Process
@@ -55,7 +55,7 @@ cargo fmt
 
 ```sh
 git add .
-git commit -m "Add my feature"
+git commit -m "feat: Add my feature"
 ```
 
 Types:
