@@ -60,12 +60,19 @@ To list available models, use the `list_models` method:
 ```rust
 use log::info;
 
+// List all providers and models
 let models = client.list_models()?;
 for provider_models in models {
     info!("Provider: {:?}", provider_models.provider);
     for model in provider_models.models {
         info!("Model: {:?}", model.id);
     }
+}
+
+// List models for a specific provider
+let models = client.list_models_for_provider(Provider::Ollama)?;
+for model in models {
+    info!("Model: {:?}", model.id);
 }
 ```
 
