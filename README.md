@@ -22,7 +22,7 @@ Run `cargo add inference-gateway-sdk`.
 ### Creating a Client
 
 ```rust
-use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, Role};
+use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, MessageRole};
 use log::info;
 use std::error::Error;
 
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 To list all available models from all configured providers, use the `list_models` method:
 
 ```rust
-use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, Role};
+use inference_gateway_sdk::{InferenceGatewayClient, Message, Provider, MessageRole};
 use log::info;
 
 fn main() -> Result<(), Box<dyn Error>> {
