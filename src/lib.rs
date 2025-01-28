@@ -179,7 +179,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
     }
 
     fn get_provider_models(&self, provider: Provider) -> Result<ProviderModels, Box<dyn Error>> {
-        let url = format!("{}/llms/{}", self.base_url, provider.to_string());
+        let url = format!("{}/llms/{}", self.base_url, provider);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = self.client.get(&url).bearer_auth(token);
