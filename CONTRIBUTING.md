@@ -49,6 +49,12 @@ task test
 task lint
 ```
 
+5. Run static analysis:
+
+```sh
+task analyze
+```
+
 ## Pull Request Process
 
 1. Commit changes:
