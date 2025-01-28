@@ -30,7 +30,7 @@ pub struct ProviderModels {
 }
 
 /// Supported LLM providers
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Provider {
     Ollama,
@@ -104,6 +104,9 @@ pub trait InferenceGatewayAPI {
     /// Lists available models from all providers
     fn list_models(&self) -> Result<Vec<ProviderModels>, Box<dyn Error>>;
 
+    /// Lists available models from a specific provider
+    fn get_provider_models(&self, provider: Provider) -> Result<ProviderModels, Box<dyn Error>>;
+
     /// Generates content using a specified model
     ///
     /// # Arguments
@@ -154,6 +157,18 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 
         let response = request.send()?;
         let models = response.json()?;
+        Ok(models)
+    }
+
+    fn get_provider_models(&self, provider: Provider) -> Result<ProviderModels, Box<dyn Error>> {
+        let url = format!("{}/llms/{}", self.base_url, provider.to_string());
+        let mut request = self.client.get(&url);
+        if let Some(token) = &self.token {
+            request = self.client.get(&url).bearer_auth(token);
+        }
+
+        let response = request.send()?;
+        let models: ProviderModels = response.json()?;
         Ok(models)
     }
 
@@ -238,6 +253,24 @@ mod tests {
 
         assert_eq!(models.len(), 1);
         assert_eq!(models[0].models[0].id, "llama2");
+        mock.assert();
+    }
+
+    #[test]
+    fn test_get_provider_models() {
+        let mut server = Server::new();
+        let mock = server
+            .mock("GET", "/llms/ollama")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"provider":"ollama","models":[{"id":"llama2","object":"model","owned_by":"meta","created":1600000000}]}"#)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url());
+        let models = client.get_provider_models(Provider::Ollama).unwrap();
+
+        assert_eq!(models.provider, Provider::Ollama);
+        assert_eq!(models.models[0].id, "llama2");
         mock.assert();
     }
 
