@@ -59,13 +59,7 @@ struct ErrorResponse {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Model {
     /// Unique identifier of the model
-    pub id: String,
-    /// Type of the object (always "model")
-    pub object: String,
-    /// Organization that owns the model
-    pub owned_by: String,
-    /// Unix timestamp of when the model was created
-    pub created: i64,
+    pub name: String,
 }
 
 /// Collection of models available from a specific provider
@@ -386,14 +380,14 @@ mod tests {
             .mock("GET", "/llms")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body(r#"[{"provider":"ollama","models":[{"id":"llama2","object":"model","owned_by":"meta","created":1600000000}]}]"#)
+            .with_body(r#"[{"provider":"ollama","models":[{"name":"llama2"}]}]"#)
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
         let models = client.list_models().unwrap();
 
         assert_eq!(models.len(), 1);
-        assert_eq!(models[0].models[0].id, "llama2");
+        assert_eq!(models[0].models[0].name, "llama2");
         mock.assert();
     }
 
@@ -404,14 +398,14 @@ mod tests {
             .mock("GET", "/llms/ollama")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body(r#"{"provider":"ollama","models":[{"id":"llama2","object":"model","owned_by":"meta","created":1600000000}]}"#)
+            .with_body(r#"{"provider":"ollama","models":[{"name":"llama2"}]}"#)
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
         let models = client.list_models_by_provider(Provider::Ollama).unwrap();
 
         assert_eq!(models.provider, Provider::Ollama);
-        assert_eq!(models.models[0].id, "llama2");
+        assert_eq!(models.models[0].name, "llama2");
         mock.assert();
     }
 
