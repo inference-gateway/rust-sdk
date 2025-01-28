@@ -1,3 +1,9 @@
+## [0.5.1](https://github.com/inference-gateway/rust-sdk/compare/0.5.0...0.5.1) (2025-01-28)
+
+### 🔧 Miscellaneous
+
+* Update README to replace Role with MessageRole for consistency ([f491774](https://github.com/inference-gateway/rust-sdk/commit/f4917745d9e8e993fa3b2a6b2475453f99eb999a))
+
 ## [0.5.0](https://github.com/inference-gateway/rust-sdk/compare/0.4.0...0.5.0) (2025-01-28)
 
 ### ✨ Features
