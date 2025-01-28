@@ -1,6 +1,6 @@
 # Inference Gateway Rust SDK
 
-An SDK written in Rust for the [Inference Gateway](https://github.com/edenreich/inference-gateway).
+An SDK written in Rust for the [Inference Gateway](https://github.com/inference-gateway/inference-gateway).
 
 - [Inference Gateway Rust SDK](#inference-gateway-rust-sdk)
   - [Installation](#installation)
