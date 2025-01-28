@@ -3,51 +3,29 @@
 //! This crate provides a Rust client for the Inference Gateway API, allowing interaction
 //! with various LLM providers through a unified interface.
 
+use core::fmt;
+
 use reqwest::{blocking::Client, StatusCode};
 use serde::{Deserialize, Serialize};
-use std::{error::Error, fmt};
+use thiserror::Error;
 
 /// Custom error types for the Inference Gateway SDK
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum GatewayError {
-    /// Authentication error (401)
+    #[error("Unauthorized: {0}")]
     Unauthorized(String),
-    /// Bad request error (400)
+
+    #[error("Bad request: {0}")]
     BadRequest(String),
-    /// Internal server error (500)
+
+    #[error("Internal server error: {0}")]
     InternalError(String),
-    /// Network or reqwest-related error
-    RequestError(reqwest::Error),
-    /// Other unexpected errors
-    Other(Box<dyn Error + Send + Sync>),
-}
 
-impl fmt::Display for GatewayError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Unauthorized(msg) => write!(f, "Unauthorized: {}", msg),
-            Self::BadRequest(msg) => write!(f, "Bad request: {}", msg),
-            Self::InternalError(msg) => write!(f, "Internal server error: {}", msg),
-            Self::RequestError(e) => write!(f, "Request error: {}", e),
-            Self::Other(e) => write!(f, "Other error: {}", e),
-        }
-    }
-}
+    #[error("Request error: {0}")]
+    RequestError(#[from] reqwest::Error),
 
-impl Error for GatewayError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::RequestError(e) => Some(e),
-            Self::Other(e) => Some(e.as_ref()),
-            _ => None,
-        }
-    }
-}
-
-impl From<reqwest::Error> for GatewayError {
-    fn from(err: reqwest::Error) -> Self {
-        Self::RequestError(err)
-    }
+    #[error("Other error: {0}")]
+    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 #[derive(Debug, Deserialize)]
@@ -181,7 +159,7 @@ pub trait InferenceGatewayAPI {
     ) -> Result<GenerateResponse, GatewayError>;
 
     /// Checks if the API is available
-    fn health_check(&self) -> Result<bool, Box<dyn Error>>;
+    fn health_check(&self) -> Result<bool, GatewayError>;
 }
 
 impl InferenceGatewayClient {
@@ -308,7 +286,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
-    fn health_check(&self) -> Result<bool, Box<dyn Error>> {
+    fn health_check(&self) -> Result<bool, GatewayError> {
         let url = format!("{}/health", self.base_url);
         let response = self.client.get(&url).send()?;
         Ok(response.status().is_success())
@@ -319,6 +297,59 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 mod tests {
     use super::*;
     use mockito::{Matcher, Server};
+
+    #[test]
+    fn test_provider_serialization() {
+        let providers = vec![
+            (Provider::Ollama, "ollama"),
+            (Provider::Groq, "groq"),
+            (Provider::OpenAI, "openai"),
+            (Provider::Google, "google"),
+            (Provider::Cloudflare, "cloudflare"),
+            (Provider::Cohere, "cohere"),
+            (Provider::Anthropic, "anthropic"),
+        ];
+
+        for (provider, expected) in providers {
+            let json = serde_json::to_string(&provider).unwrap();
+            assert_eq!(json, format!("\"{}\"", expected));
+        }
+    }
+
+    #[test]
+    fn test_provider_deserialization() {
+        let test_cases = vec![
+            ("\"ollama\"", Provider::Ollama),
+            ("\"groq\"", Provider::Groq),
+            ("\"openai\"", Provider::OpenAI),
+            ("\"google\"", Provider::Google),
+            ("\"cloudflare\"", Provider::Cloudflare),
+            ("\"cohere\"", Provider::Cohere),
+            ("\"anthropic\"", Provider::Anthropic),
+        ];
+
+        for (json, expected) in test_cases {
+            let provider: Provider = serde_json::from_str(json).unwrap();
+            assert_eq!(provider, expected);
+        }
+    }
+
+    #[test]
+    fn test_provider_display() {
+        let providers = vec![
+            (Provider::Ollama, "ollama"),
+            (Provider::Groq, "groq"),
+            (Provider::OpenAI, "openai"),
+            (Provider::Google, "google"),
+            (Provider::Cloudflare, "cloudflare"),
+            (Provider::Cohere, "cohere"),
+            (Provider::Anthropic, "anthropic"),
+        ];
+
+        for (provider, expected) in providers {
+            assert_eq!(provider.to_string(), expected);
+        }
+    }
 
     #[test]
     fn test_authentication_header() {
