@@ -9,6 +9,7 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Listing Models](#listing-models)
     - [Generating Content](#generating-content)
     - [Health Check](#health-check)
+  - [Contributing](#contributing)
   - [License](#license)
 
 ## Installation
@@ -98,6 +99,10 @@ use log::info;
 let is_healthy = client.health_check()?;
 info!("API is healthy: {}", is_healthy);
 ```
+
+## Contributing
+
+Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for information about how to get involved. We welcome issues, questions, and pull requests.
 
 ## License
 
