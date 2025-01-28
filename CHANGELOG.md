@@ -1,3 +1,13 @@
+## [0.5.2](https://github.com/inference-gateway/rust-sdk/compare/0.5.1...0.5.2) (2025-01-28)
+
+### 🐛 Bug Fixes
+
+* Update model structure to use 'name' instead of 'id' for consistency ([3e0ea86](https://github.com/inference-gateway/rust-sdk/commit/3e0ea86fb9f9daedb6f256c149adf0f7fbf27349))
+
+### 📚 Documentation
+
+* **fix:** Update README to log model 'name' instead of 'id' for consistency ([4dba8fe](https://github.com/inference-gateway/rust-sdk/commit/4dba8fe7391226d3b0b33a70393b86f00a4c867d))
+
 ## [0.5.1](https://github.com/inference-gateway/rust-sdk/compare/0.5.0...0.5.1) (2025-01-28)
 
 ### 🔧 Miscellaneous
