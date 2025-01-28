@@ -299,6 +299,56 @@ mod tests {
     use mockito::{Matcher, Server};
 
     #[test]
+    fn test_gateway_errors() {
+        let mut server = Server::new();
+
+        // Test unauthorized error
+        let unauthorized_mock = server
+            .mock("GET", "/llms")
+            .with_status(401)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error":"Invalid token"}"#)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url());
+        match client.list_models() {
+            Err(GatewayError::Unauthorized(msg)) => assert_eq!(msg, "Invalid token"),
+            _ => panic!("Expected Unauthorized error"),
+        }
+        unauthorized_mock.assert();
+
+        // Test bad request error
+        let bad_request_mock = server
+            .mock("GET", "/llms")
+            .with_status(400)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error":"Invalid provider"}"#)
+            .create();
+
+        match client.list_models() {
+            Err(GatewayError::BadRequest(msg)) => assert_eq!(msg, "Invalid provider"),
+            _ => panic!("Expected BadRequest error"),
+        }
+        bad_request_mock.assert();
+
+        // Test internal server error
+        let internal_error_mock = server
+            .mock("GET", "/llms")
+            .with_status(500)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error":"Internal server error occurred"}"#)
+            .create();
+
+        match client.list_models() {
+            Err(GatewayError::InternalError(msg)) => {
+                assert_eq!(msg, "Internal server error occurred")
+            }
+            _ => panic!("Expected InternalError error"),
+        }
+        internal_error_mock.assert();
+    }
+
+    #[test]
     fn test_provider_serialization() {
         let providers = vec![
             (Provider::Ollama, "ollama"),
