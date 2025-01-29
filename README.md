@@ -21,6 +21,8 @@ Run `cargo add inference-gateway-sdk`.
 
 ### Creating a Client
 
+Here is a full example of how to create a client and interact with the Inference Gateway API:
+
 ```rust
 use inference_gateway_sdk::{
     GatewayError,
@@ -28,17 +30,23 @@ use inference_gateway_sdk::{
     InferenceGatewayClient,
     Message,
     Provider,
-    MessageRole,
+    MessageRole
 };
 use log::info;
+use std::env;
 
-fn main() -> Result<(), GatewayError> {
+#[tokio::main]
+async fn main() -> Result<(), GatewayError> {
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info");
+    }
     env_logger::init();
 
+    // Create a client
     let client = InferenceGatewayClient::new("http://localhost:8080");
 
-    // List available models
-    let models = client.list_models()?;
+    // List all models and all providers
+    let models = client.list_models().await?;
     for provider_models in models {
         info!("Provider: {:?}", provider_models.provider);
         for model in provider_models.models {
@@ -46,16 +54,30 @@ fn main() -> Result<(), GatewayError> {
         }
     }
 
-    let response = client.generate_content(
-        Provider::Ollama,
-        "llama2",
-        vec![Message {
-            role: MessageRole::User,
-            content: "Tell me a joke".to_string(),
-        }],
-    )?;
+    // List models for a specific provider
+    let resp = client.list_models_by_provider(Provider::Groq).await?;
+    let models = resp.models;
+    info!("Provider: {:?}", resp.provider);
+    for model in models {
+        info!("Model: {:?}", model.name);
+    }
 
-    info!("Response: {:?}", response);
+    // Generate content - choose from available providers and models
+    let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+    Message{
+        role: MessageRole::System,
+        content: "You are an helpful assistent.".to_string()
+    },
+    Message{
+        role: MessageRole::User,
+        content: "Tell me a funny joke".to_string()
+    }
+    ]).await?;
+
+    log::info!("Generated from provider: {:?}", resp.provider);
+    log::info!("Generated response: {:?}", resp.response.role);
+    log::info!("Generated content: {:?}", resp.response.content);
+
     Ok(())
 }
 ```
@@ -70,16 +92,14 @@ use inference_gateway_sdk::{
     InferenceGatewayAPI,
     InferenceGatewayClient,
     Message,
-    Provider,
-    MessageRole
 };
 use log::info;
 
 #[tokio::main]
 fn main() -> Result<(), GatewayError> {
-    // ...create a client
+    // ...Create a client
 
-    // List all providers and models
+    // List all models and all providers
     let models = client.list_models().await?;
     for provider_models in models {
         info!("Provider: {:?}", provider_models.provider);
@@ -88,13 +108,7 @@ fn main() -> Result<(), GatewayError> {
         }
     }
 
-    // List models for a specific provider
-    let resp = client.list_models_by_provider(Provider::Ollama).await?;
-    let models = resp.models;
-    info!("Provider: {:?}", resp.provider);
-    for model in models {
-        info!("Model: {:?}", model.name);
-    }
+    // ...
 }
 ```
 
@@ -103,16 +117,25 @@ fn main() -> Result<(), GatewayError> {
 To list all available models from a specific provider, use the `list_models_by_provider` method:
 
 ```rust
-// ...rest of the imports
+use inference_gateway_sdk::{
+    GatewayError
+    InferenceGatewayAPI,
+    InferenceGatewayClient,
+    Provider,
+};
 use log::info;
 
-// ...main function
+// ...Open main function
+
+// List models for a specific provider
 let resp = client.list_models_by_provider(Provider::Ollama).await?;
 let models = resp.models;
 info!("Provider: {:?}", resp.provider);
 for model in models {
     info!("Model: {:?}", model.name);
 }
+
+// ...Rest of the main function
 ```
 
 ### Generating Content
@@ -120,21 +143,30 @@ for model in models {
 To generate content using a model, use the `generate_content` method:
 
 ```rust
-// ...rest of the imports
-use log::info;
+use inference_gateway_sdk::{
+    GatewayError,
+    InferenceGatewayAPI,
+    InferenceGatewayClient,
+    Message,
+    Provider,
+    MessageRole
+};
 
-// ...main function
-let response = client.generate_content(
-    Provider::Ollama,
-    "llama2",
-    vec![Message {
-        role: MessageRole::User,
-        content: "Tell me a joke".to_string(),
-    }],
-).await?;
+// Generate content - choose from available providers and models
+let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+Message{
+    role: MessageRole::System,
+    content: "You are an helpful assistent.".to_string()
+},
+Message{
+    role: MessageRole::User,
+    content: "Tell me a funny joke".to_string()
+}
+]).await?;
 
-info!("Provider: {:?}", response.provider);
-info!("Response: {:?}", response.response);
+log::info!("Generated from provider: {:?}", resp.provider);
+log::info!("Generated response: {:?}", resp.response.role);
+log::info!("Generated content: {:?}", resp.response.content);
 ```
 
 ### Health Check
