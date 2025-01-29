@@ -4,8 +4,10 @@
 //! with various LLM providers through a unified interface.
 
 use core::fmt;
+use std::future::Future;
 
-use reqwest::{blocking::Client, StatusCode};
+use reqwest::Client;
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -172,7 +174,8 @@ pub trait InferenceGatewayAPI {
     /// - Returns [`GatewayError::Unauthorized`] if authentication fails
     /// - Returns [`GatewayError::BadRequest`] if the request is malformed
     /// - Returns [`GatewayError::InternalError`] if the server has an error
-    fn list_models(&self) -> Result<Vec<ProviderModels>, GatewayError>;
+    fn list_models(&self)
+        -> impl Future<Output = Result<Vec<ProviderModels>, GatewayError>> + Send;
 
     /// Lists available models by a specific provider
     ///
@@ -183,7 +186,10 @@ pub trait InferenceGatewayAPI {
     /// - Returns [`GatewayError::Unauthorized`] if authentication fails
     /// - Returns [`GatewayError::BadRequest`] if the request is malformed
     /// - Returns [`GatewayError::InternalError`] if the server has an error
-    fn list_models_by_provider(&self, provider: Provider) -> Result<ProviderModels, GatewayError>;
+    fn list_models_by_provider(
+        &self,
+        provider: Provider,
+    ) -> impl Future<Output = Result<ProviderModels, GatewayError>> + Send;
 
     /// Generates content using a specified model
     ///
@@ -196,10 +202,10 @@ pub trait InferenceGatewayAPI {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-    ) -> Result<GenerateResponse, GatewayError>;
+    ) -> impl Future<Output = Result<GenerateResponse, GatewayError>> + Send;
 
     /// Checks if the API is available
-    fn health_check(&self) -> Result<bool, GatewayError>;
+    fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
 }
 
 impl InferenceGatewayClient {
@@ -226,27 +232,26 @@ impl InferenceGatewayClient {
 }
 
 impl InferenceGatewayAPI for InferenceGatewayClient {
-    fn list_models(&self) -> Result<Vec<ProviderModels>, GatewayError> {
+    async fn list_models(&self) -> Result<Vec<ProviderModels>, GatewayError> {
         let url = format!("{}/llms", self.base_url);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
         }
 
-        let response = request.send()?;
-
+        let response = request.send().await?;
         match response.status() {
-            StatusCode::OK => Ok(response.json()?),
+            StatusCode::OK => Ok(response.json().await?),
             StatusCode::UNAUTHORIZED => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::Unauthorized(error.error))
             }
             StatusCode::BAD_REQUEST => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::BadRequest(error.error))
             }
             StatusCode::INTERNAL_SERVER_ERROR => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
             _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
@@ -256,27 +261,29 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
-    fn list_models_by_provider(&self, provider: Provider) -> Result<ProviderModels, GatewayError> {
+    async fn list_models_by_provider(
+        &self,
+        provider: Provider,
+    ) -> Result<ProviderModels, GatewayError> {
         let url = format!("{}/llms/{}", self.base_url, provider);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = self.client.get(&url).bearer_auth(token);
         }
 
-        let response = request.send()?;
-
+        let response = request.send().await?;
         match response.status() {
-            StatusCode::OK => Ok(response.json()?),
+            StatusCode::OK => Ok(response.json().await?),
             StatusCode::UNAUTHORIZED => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::Unauthorized(error.error))
             }
             StatusCode::BAD_REQUEST => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::BadRequest(error.error))
             }
             StatusCode::INTERNAL_SERVER_ERROR => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
             _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
@@ -286,7 +293,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
-    fn generate_content(
+    async fn generate_content(
         &self,
         provider: Provider,
         model: &str,
@@ -303,20 +310,19 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             messages,
         };
 
-        let response = request.json(&request_payload).send()?;
-
+        let response = request.json(&request_payload).send().await?;
         match response.status() {
-            StatusCode::OK => Ok(response.json()?),
+            StatusCode::OK => Ok(response.json().await?),
             StatusCode::UNAUTHORIZED => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::Unauthorized(error.error))
             }
             StatusCode::BAD_REQUEST => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::BadRequest(error.error))
             }
             StatusCode::INTERNAL_SERVER_ERROR => {
-                let error: ErrorResponse = response.json()?;
+                let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
             _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
@@ -326,10 +332,14 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
-    fn health_check(&self) -> Result<bool, GatewayError> {
+    async fn health_check(&self) -> Result<bool, GatewayError> {
         let url = format!("{}/health", self.base_url);
-        let response = self.client.get(&url).send()?;
-        Ok(response.status().is_success())
+
+        let response = self.client.get(&url).send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(true),
+            _ => Ok(false),
+        }
     }
 }
 
@@ -338,9 +348,9 @@ mod tests {
     use super::*;
     use mockito::{Matcher, Server};
 
-    #[test]
-    fn test_gateway_errors() {
-        let mut server = Server::new();
+    #[tokio::test]
+    async fn test_gateway_errors() -> Result<(), GatewayError> {
+        let mut server: mockito::ServerGuard = Server::new_async().await;
 
         // Test unauthorized error
         let unauthorized_mock = server
@@ -351,7 +361,7 @@ mod tests {
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
-        match client.list_models() {
+        match client.list_models().await {
             Err(GatewayError::Unauthorized(msg)) => assert_eq!(msg, "Invalid token"),
             _ => panic!("Expected Unauthorized error"),
         }
@@ -365,7 +375,7 @@ mod tests {
             .with_body(r#"{"error":"Invalid provider"}"#)
             .create();
 
-        match client.list_models() {
+        match client.list_models().await {
             Err(GatewayError::BadRequest(msg)) => assert_eq!(msg, "Invalid provider"),
             _ => panic!("Expected BadRequest error"),
         }
@@ -379,13 +389,15 @@ mod tests {
             .with_body(r#"{"error":"Internal server error occurred"}"#)
             .create();
 
-        match client.list_models() {
+        match client.list_models().await {
             Err(GatewayError::InternalError(msg)) => {
                 assert_eq!(msg, "Internal server error occurred")
             }
             _ => panic!("Expected InternalError error"),
         }
         internal_error_mock.assert();
+
+        Ok(())
     }
 
     #[test]
@@ -441,9 +453,9 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_authentication_header() {
-        let mut server = Server::new();
+    #[tokio::test]
+    async fn test_authentication_header() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
 
         // Test with token
         let mock_with_auth = server
@@ -456,7 +468,7 @@ mod tests {
             .create();
 
         let client = InferenceGatewayClient::new(&server.url()).with_token("test-token");
-        client.list_models().unwrap();
+        client.list_models().await?;
         mock_with_auth.assert();
 
         // Test without token
@@ -470,13 +482,15 @@ mod tests {
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
-        client.list_models().unwrap();
+        client.list_models().await?;
         mock_without_auth.assert();
+
+        Ok(())
     }
 
-    #[test]
-    fn test_unauthorized_error() {
-        let mut server = Server::new();
+    #[tokio::test]
+    async fn test_unauthorized_error() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
         let mock = server
             .mock("GET", "/llms")
             .with_status(401)
@@ -485,18 +499,20 @@ mod tests {
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
-        let error = client.list_models().unwrap_err();
+        let error = client.list_models().await.unwrap_err();
 
         assert!(matches!(error, GatewayError::Unauthorized(_)));
         if let GatewayError::Unauthorized(msg) = error {
             assert_eq!(msg, "Invalid token");
         }
         mock.assert();
+
+        Ok(())
     }
 
-    #[test]
-    fn test_list_models() {
-        let mut server = Server::new();
+    #[tokio::test]
+    async fn test_list_models() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
         let mock = server
             .mock("GET", "/llms")
             .with_status(200)
@@ -505,16 +521,18 @@ mod tests {
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
-        let models = client.list_models().unwrap();
+        let models = client.list_models().await?;
 
         assert_eq!(models.len(), 1);
         assert_eq!(models[0].models[0].name, "llama2");
         mock.assert();
+
+        Ok(())
     }
 
-    #[test]
-    fn test_get_provider_models() {
-        let mut server = Server::new();
+    #[tokio::test]
+    async fn test_list_models_by_provider() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
         let mock = server
             .mock("GET", "/llms/ollama")
             .with_status(200)
@@ -523,16 +541,18 @@ mod tests {
             .create();
 
         let client = InferenceGatewayClient::new(&server.url());
-        let models = client.list_models_by_provider(Provider::Ollama).unwrap();
+        let models = client.list_models_by_provider(Provider::Ollama).await?;
 
         assert_eq!(models.provider, Provider::Ollama);
         assert_eq!(models.models[0].name, "llama2");
         mock.assert();
+
+        Ok(())
     }
 
-    #[test]
-    fn test_generate_content() {
-        let mut server = Server::new();
+    #[tokio::test]
+    async fn test_generate_content() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
         let mock = server
             .mock("POST", "/llms/ollama/generate")
             .with_status(200)
@@ -547,24 +567,28 @@ mod tests {
         }];
         let response = client
             .generate_content(Provider::Ollama, "llama2", messages)
-            .unwrap();
+            .await?;
 
         assert_eq!(response.provider, Provider::Ollama);
         assert_eq!(response.response.role, MessageRole::Assistant);
         assert_eq!(response.response.model, "llama2");
         assert_eq!(response.response.content, "Hellloooo");
         mock.assert();
+
+        Ok(())
     }
 
-    #[test]
-    fn test_health_check() {
-        let mut server = Server::new();
+    #[tokio::test]
+    async fn test_health_check() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
         let mock = server.mock("GET", "/health").with_status(200).create();
 
         let client = InferenceGatewayClient::new(&server.url());
-        let is_healthy = client.health_check().unwrap();
+        let is_healthy = client.health_check().await?;
 
         assert!(is_healthy);
         mock.assert();
+
+        Ok(())
     }
 }

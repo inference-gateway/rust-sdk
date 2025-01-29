@@ -75,11 +75,12 @@ use inference_gateway_sdk::{
 };
 use log::info;
 
+#[tokio::main]
 fn main() -> Result<(), GatewayError> {
     // ...create a client
 
     // List all providers and models
-    let models = client.list_models()?;
+    let models = client.list_models().await?;
     for provider_models in models {
         info!("Provider: {:?}", provider_models.provider);
         for model in provider_models.models {
@@ -88,7 +89,7 @@ fn main() -> Result<(), GatewayError> {
     }
 
     // List models for a specific provider
-    let resp = client.list_models_by_provider(Provider::Ollama)?;
+    let resp = client.list_models_by_provider(Provider::Ollama).await?;
     let models = resp.models;
     info!("Provider: {:?}", resp.provider);
     for model in models {
@@ -106,7 +107,7 @@ To list all available models from a specific provider, use the `list_models_by_p
 use log::info;
 
 // ...main function
-let resp = client.list_models_by_provider(Provider::Ollama)?;
+let resp = client.list_models_by_provider(Provider::Ollama).await?;
 let models = resp.models;
 info!("Provider: {:?}", resp.provider);
 for model in models {
@@ -130,7 +131,7 @@ let response = client.generate_content(
         role: MessageRole::User,
         content: "Tell me a joke".to_string(),
     }],
-)?;
+).await?;
 
 info!("Provider: {:?}", response.provider);
 info!("Response: {:?}", response.response);
