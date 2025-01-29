@@ -1,3 +1,9 @@
+## [0.5.6](https://github.com/inference-gateway/rust-sdk/compare/0.5.5...0.5.6) (2025-01-29)
+
+### ✅ Miscellaneous
+
+* Remove unnecessary lowercase conversion for provider string and enhance error handling in API responses ([cdeb27c](https://github.com/inference-gateway/rust-sdk/commit/cdeb27caebe9fda6c5b3165492eae939be23a581))
+
 ## [0.5.5](https://github.com/inference-gateway/rust-sdk/compare/0.5.4...0.5.5) (2025-01-29)
 
 ### 🐛 Bug Fixes
