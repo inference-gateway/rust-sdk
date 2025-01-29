@@ -1,3 +1,9 @@
+## [0.5.7](https://github.com/inference-gateway/rust-sdk/compare/0.5.6...0.5.7) (2025-01-29)
+
+### 🔧 Miscellaneous
+
+* Add case-insensitive provider aliases and update URL generation ([0715d11](https://github.com/inference-gateway/rust-sdk/commit/0715d113a2a5ffbf243f8bb2fae331a8c115228a))
+
 ## [0.5.6](https://github.com/inference-gateway/rust-sdk/compare/0.5.5...0.5.6) (2025-01-29)
 
 ### ✅ Miscellaneous
