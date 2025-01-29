@@ -178,7 +178,7 @@ To check if the Inference Gateway is running, use the `health_check` method:
 use log::info;
 
 // ...main function
-let is_healthy = client.health_check()?;
+let is_healthy = client.health_check().await?;
 info!("API is healthy: {}", is_healthy);
 ```
 
