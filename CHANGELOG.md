@@ -1,3 +1,10 @@
+## [0.5.8](https://github.com/inference-gateway/rust-sdk/compare/0.5.7...0.5.8) (2025-01-29)
+
+### 📚 Documentation
+
+* Update health check method to use async/await for improved API responsiveness ([0e5d245](https://github.com/inference-gateway/rust-sdk/commit/0e5d2453d5cc8ff06f9e2940902948334b2acde1))
+* Update README with client usage examples and enhance API interaction details ([4d86541](https://github.com/inference-gateway/rust-sdk/commit/4d865419c9576173ff30c9b77123fe2976e80abd))
+
 ## [0.5.7](https://github.com/inference-gateway/rust-sdk/compare/0.5.6...0.5.7) (2025-01-29)
 
 ### 🔧 Miscellaneous
