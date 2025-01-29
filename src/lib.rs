@@ -55,12 +55,19 @@ pub struct ProviderModels {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Provider {
+    #[serde(alias = "Ollama", alias = "OLLAMA")]
     Ollama,
+    #[serde(alias = "Groq", alias = "GROQ")]
     Groq,
+    #[serde(alias = "OpenAI", alias = "OPENAI")]
     OpenAI,
+    #[serde(alias = "Google", alias = "GOOGLE")]
     Google,
+    #[serde(alias = "Cloudflare", alias = "CLOUDFLARE")]
     Cloudflare,
+    #[serde(alias = "Cohere", alias = "COHERE")]
     Cohere,
+    #[serde(alias = "Anthropic", alias = "ANTHROPIC")]
     Anthropic,
 }
 
@@ -299,8 +306,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         model: &str,
         messages: Vec<Message>,
     ) -> Result<GenerateResponse, GatewayError> {
-        let provider_str = provider.to_string();
-        let url = format!("{}/llms/{}/generate", self.base_url, provider_str);
+        let url = format!("{}/llms/{}/generate", self.base_url, provider);
         let mut request = self.client.post(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
@@ -384,18 +390,6 @@ mod tests {
             let provider: Provider = serde_json::from_str(json).unwrap();
             assert_eq!(provider, expected);
         }
-    }
-
-    #[test]
-    fn test_provider_case_serialization() {
-        // Test that Provider::Groq serializes to lowercase
-        let provider = Provider::Groq;
-        let json = serde_json::to_string(&provider).unwrap();
-        assert_eq!(json, r#""groq""#);
-
-        // Test that uppercase fails to deserialize
-        let result: Result<Provider, _> = serde_json::from_str(r#""Groq""#);
-        assert!(result.is_err());
     }
 
     #[test]
@@ -707,6 +701,43 @@ mod tests {
             _ => panic!("Expected InternalError error"),
         }
         internal_error_mock.assert();
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_content_case_insensitive() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_json = r#"{
+            "provider": "Groq",
+            "response": {
+                "role": "assistant",
+                "model": "mixtral-8x7b",
+                "content": "Hello"
+            }
+        }"#;
+
+        let mock = server
+            .mock("POST", "/llms/groq/generate")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(raw_json)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url());
+        let messages = vec![Message {
+            role: MessageRole::User,
+            content: "Hello".to_string(),
+        }];
+
+        let response = client
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
+            .await?;
+
+        assert_eq!(response.provider, Provider::Groq);
+        assert_eq!(response.response.content, "Hello");
+        mock.assert();
 
         Ok(())
     }
