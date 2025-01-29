@@ -299,7 +299,8 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         model: &str,
         messages: Vec<Message>,
     ) -> Result<GenerateResponse, GatewayError> {
-        let url = format!("{}/llms/{}/generate", self.base_url, provider);
+        let provider_str = provider.to_string().to_lowercase(); // force lowercase - TODO - fix the serialization
+        let url = format!("{}/llms/{}/generate", self.base_url, provider_str);
         let mut request = self.client.post(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
