@@ -1,3 +1,9 @@
+## [0.5.5](https://github.com/inference-gateway/rust-sdk/compare/0.5.4...0.5.5) (2025-01-29)
+
+### 🐛 Bug Fixes
+
+* Ensure provider string is lowercase in URL generation for consistency ([f84314c](https://github.com/inference-gateway/rust-sdk/commit/f84314c76286ddfa46b01b269f07b039a17c064d))
+
 ## [0.5.4](https://github.com/inference-gateway/rust-sdk/compare/0.5.3...0.5.4) (2025-01-29)
 
 ### 📚 Documentation
