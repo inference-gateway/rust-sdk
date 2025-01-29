@@ -76,6 +76,23 @@ impl fmt::Display for Provider {
     }
 }
 
+impl TryFrom<&str> for Provider {
+    type Error = GatewayError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        match s.to_lowercase().as_str() {
+            "ollama" => Ok(Self::Ollama),
+            "groq" => Ok(Self::Groq),
+            "openai" => Ok(Self::OpenAI),
+            "google" => Ok(Self::Google),
+            "cloudflare" => Ok(Self::Cloudflare),
+            "cohere" => Ok(Self::Cohere),
+            "anthropic" => Ok(Self::Anthropic),
+            _ => Err(GatewayError::BadRequest(format!("Unknown provider: {}", s))),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum MessageRole {
@@ -137,12 +154,35 @@ pub struct InferenceGatewayClient {
     token: Option<String>,
 }
 
+/// Implement Debug for InferenceGatewayClient
+impl std::fmt::Debug for InferenceGatewayClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InferenceGatewayClient")
+            .field("base_url", &self.base_url)
+            .field("token", &self.token.as_ref().map(|_| "*****"))
+            .finish()
+    }
+}
+
 /// Core API interface for the Inference Gateway
 pub trait InferenceGatewayAPI {
     /// Lists available models from all providers
+    ///
+    /// # Errors
+    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
+    /// - Returns [`GatewayError::BadRequest`] if the request is malformed
+    /// - Returns [`GatewayError::InternalError`] if the server has an error
     fn list_models(&self) -> Result<Vec<ProviderModels>, GatewayError>;
 
     /// Lists available models by a specific provider
+    ///
+    /// # Arguments
+    /// * `provider` - The LLM provider to list models for
+    ///
+    /// # Errors
+    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
+    /// - Returns [`GatewayError::BadRequest`] if the request is malformed
+    /// - Returns [`GatewayError::InternalError`] if the server has an error
     fn list_models_by_provider(&self, provider: Provider) -> Result<ProviderModels, GatewayError>;
 
     /// Generates content using a specified model
