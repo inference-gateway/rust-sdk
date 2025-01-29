@@ -1,3 +1,14 @@
+## [0.5.4](https://github.com/inference-gateway/rust-sdk/compare/0.5.3...0.5.4) (2025-01-29)
+
+### 📚 Documentation
+
+* Update main function to return GatewayError instead of Box<dyn Error> ([9c8bbc3](https://github.com/inference-gateway/rust-sdk/commit/9c8bbc3d7b341184568aea5f06fe22ee1cf441a2))
+
+### 🔧 Miscellaneous
+
+* Implement TryFrom for Provider just in case users want to convert the string to an enum ([3da7e50](https://github.com/inference-gateway/rust-sdk/commit/3da7e50619fbd8dc0ae803b52ec935d07251cacd))
+* Update dependencies and refactor main function for async support ([b99d520](https://github.com/inference-gateway/rust-sdk/commit/b99d5205a8457cc99b37f4a8adf20e46604d3b53))
+
 ## [0.5.3](https://github.com/inference-gateway/rust-sdk/compare/0.5.2...0.5.3) (2025-01-28)
 
 ### 📚 Documentation
