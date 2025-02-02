@@ -6,10 +6,19 @@
 use core::fmt;
 use std::future::Future;
 
-use reqwest::Client;
-use reqwest::StatusCode;
+use futures_util::{Stream, StreamExt};
+use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
+
 use thiserror::Error;
+
+/// Stream of Server-Sent Events (SSE) from the Inference Gateway API
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SSEvents {
+    pub data: String,
+    pub event: Option<String>,
+    pub retry: Option<u64>,
+}
 
 /// Custom error types for the Inference Gateway SDK
 #[derive(Error, Debug)]
@@ -23,8 +32,20 @@ pub enum GatewayError {
     #[error("Internal server error: {0}")]
     InternalError(String),
 
+    #[error("Stream error: {0}")]
+    StreamError(reqwest::Error),
+
+    #[error("Decoding error: {0}")]
+    DecodingError(std::string::FromUtf8Error),
+
     #[error("Request error: {0}")]
     RequestError(#[from] reqwest::Error),
+
+    #[error("Deserialization error: {0}")]
+    DeserializationError(serde_json::Error),
+
+    #[error("Serialization error: {0}")]
+    SerializationError(#[from] serde_json::Error),
 
     #[error("Other error: {0}")]
     Other(#[from] Box<dyn std::error::Error + Send + Sync>),
@@ -52,7 +73,7 @@ pub struct ProviderModels {
 }
 
 /// Supported LLM providers
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum Provider {
     #[serde(alias = "Ollama", alias = "OLLAMA")]
@@ -136,9 +157,13 @@ struct GenerateRequest {
     model: String,
     /// Conversation history and prompt
     messages: Vec<Message>,
+    /// Enable Server-Sent Events (SSE) streaming
+    ssevents: bool,
+    /// Enable streaming of responses
+    stream: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct GenerateResponse {
     /// Provider that generated the response
     pub provider: Provider,
@@ -146,7 +171,7 @@ pub struct GenerateResponse {
     pub response: ResponseContent,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ResponseContent {
     /// Role of the responder (typically "assistant")
     pub role: MessageRole,
@@ -210,6 +235,13 @@ pub trait InferenceGatewayAPI {
         model: &str,
         messages: Vec<Message>,
     ) -> impl Future<Output = Result<GenerateResponse, GatewayError>> + Send;
+
+    fn generate_content_stream(
+        &self,
+        provider: Provider,
+        model: &str,
+        messages: Vec<Message>,
+    ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send;
 
     /// Checks if the API is available
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
@@ -315,6 +347,8 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         let request_payload = GenerateRequest {
             model: model.to_string(),
             messages,
+            stream: false,
+            ssevents: false,
         };
 
         let response = request.json(&request_payload).send().await?;
@@ -340,6 +374,59 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
+    /// Stream content generation directly using the backend SSE stream.
+    fn generate_content_stream(
+        &self,
+        provider: Provider,
+        model: &str,
+        messages: Vec<Message>,
+    ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send {
+        let client = self.client.clone();
+        let base_url = self.base_url.clone();
+        let url = format!(
+            "{}/llms/{}/generate",
+            base_url,
+            provider.to_string().to_lowercase()
+        );
+
+        let request = GenerateRequest {
+            model: model.to_string(),
+            messages,
+            stream: true,
+            ssevents: true,
+        };
+
+        async_stream::try_stream! {
+            let response = client.post(&url).json(&request).send().await?;
+            let mut stream = response.bytes_stream();
+            let mut current_event: Option<String> = None;
+            let mut current_data: Option<String> = None;
+
+            while let Some(chunk) = stream.next().await {
+                let chunk = chunk?;
+                let chunk_str = String::from_utf8_lossy(&chunk);
+
+                for line in chunk_str.lines() {
+                    if line.is_empty() && current_data.is_some() {
+                        yield SSEvents {
+                            data: current_data.take().unwrap(),
+                            event: current_event.take(),
+                            retry: None, // TODO - implement this, for now it's not implemented in the backend
+                        };
+                        continue;
+                    }
+
+                    if let Some(event) = line.strip_prefix("event:") {
+                        current_event = Some(event.trim().to_string());
+                    } else if let Some(data) = line.strip_prefix("data:") {
+                        let processed_data = data.strip_suffix('\n').unwrap_or(data);
+                        current_data = Some(processed_data.trim().to_string());
+                    }
+                }
+            }
+        }
+    }
+
     async fn health_check(&self) -> Result<bool, GatewayError> {
         let url = format!("{}/health", self.base_url);
 
@@ -354,6 +441,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures_util::pin_mut;
     use mockito::{Matcher, Server};
 
     #[test]
@@ -739,6 +827,101 @@ mod tests {
         assert_eq!(response.response.content, "Hello");
         mock.assert();
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_content_stream() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let mock = server
+            .mock("POST", "/llms/groq/generate")
+            .with_status(200)
+            .with_header("content-type", "text/event-stream")
+            .with_chunked_body(move |writer| -> std::io::Result<()> {
+                let events = vec![
+                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"Hello"}}"#),
+                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"World"}}"#),
+                ];
+                for event in events {
+                    writer.write_all(event.as_bytes())?;
+                }
+                Ok(())
+            })
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url());
+        let messages = vec![Message {
+            role: MessageRole::User,
+            content: "Test message".to_string(),
+        }];
+
+        let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
+        pin_mut!(stream);
+        while let Some(result) = stream.next().await {
+            let result = result?;
+            let generate_response: GenerateResponse =
+                serde_json::from_str(&result.data).expect("Failed to parse GenerateResponse");
+
+            assert_eq!(result.event, Some("message".to_string()));
+            assert_eq!(generate_response.provider, Provider::Groq);
+            assert!(matches!(
+                generate_response.response.role,
+                MessageRole::Assistant
+            ));
+            assert!(matches!(
+                generate_response.response.model.as_str(),
+                "mixtral-8x7b"
+            ));
+            assert!(matches!(
+                generate_response.response.content.as_str(),
+                "Hello" | "World"
+            ));
+        }
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_content_stream_error() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let mock = server
+            .mock("POST", "/llms/groq/generate")
+            .with_status(400)
+            .with_header("content-type", "application/json")
+            .with_chunked_body(move |writer| -> std::io::Result<()> {
+                let events = vec![format!(
+                    "event: {}\ndata: {}\nretry: {}\n\n",
+                    r#"error"#, r#"{"error":"Invalid request"}"#, r#"1000"#,
+                )];
+                for event in events {
+                    writer.write_all(event.as_bytes())?;
+                }
+                Ok(())
+            })
+            .expect_at_least(1)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url());
+        let messages = vec![Message {
+            role: MessageRole::User,
+            content: "Test message".to_string(),
+        }];
+
+        let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
+
+        pin_mut!(stream);
+        while let Some(result) = stream.next().await {
+            let result = result?;
+            assert!(result.event.is_some());
+            assert_eq!(result.event.unwrap(), "error");
+            assert!(result.data.contains("Invalid request"));
+            assert!(result.retry.is_none());
+        }
+
+        mock.assert();
         Ok(())
     }
 
