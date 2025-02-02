@@ -857,7 +857,6 @@ mod tests {
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
-
         pin_mut!(stream);
         while let Some(result) = stream.next().await {
             let result = result?;
