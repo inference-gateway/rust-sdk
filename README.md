@@ -9,6 +9,7 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Listing Models](#listing-models)
     - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
     - [Generating Content](#generating-content)
+    - [Streaming Content](#streaming-content)
     - [Health Check](#health-check)
   - [Contributing](#contributing)
   - [License](#license)
@@ -167,6 +168,58 @@ Message{
 log::info!("Generated from provider: {:?}", resp.provider);
 log::info!("Generated response: {:?}", resp.response.role);
 log::info!("Generated content: {:?}", resp.response.content);
+```
+
+### Streaming Content
+
+You need to add the following tiny dependencies:
+
+- `futures-util` for the `StreamExt` trait
+
+```rust
+use inference_gateway_sdk::{
+    InferenceGatewayAPI,
+    InferenceGatewayClient, Message, MessageRole, Provider, ResponseContent
+};
+use futures_util::{StreamExt, pin_mut};
+// ...rest of the imports
+
+// ...main function
+    let system_message = "You are an helpful assistent.".to_string();
+    let model = "deepseek-r1-distill-llama-70b";
+    let messages = vec![
+        Message {
+            role: MessageRole::System,
+            content: system_message,
+        },
+        Message {
+            role: MessageRole::User,
+            content: "Write a poem".to_string(),
+        },
+    ];
+    let client = InferenceGatewayClient::new("http://localhost:8080");
+    let stream = client.generate_content_stream(Provider::Groq, model, messages);
+    pin_mut!(stream);
+    let content_delta = Some("content-delta".to_string());
+    // Iterate over the stream of Server Sent Events
+    while let Some(ssevent) = stream.next().await {
+        let resp = ssevent?;
+
+        // Only content-delta events contains the actual tokens
+        // There are also events like:
+        // - content-start
+        // - content-end
+        // - etc..
+        if resp.event != content_delta {
+            continue;
+        }
+
+        // Deserialize the event response
+        let generate_response: ResponseContent = serde_json::from_str(&resp.data)?;
+        // Print the token out as it's being sent from the server
+        print!("{}", generate_response.content);
+    }
+// ...rest of the main function
 ```
 
 ### Health Check
