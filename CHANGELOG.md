@@ -1,3 +1,20 @@
+## [0.6.0](https://github.com/inference-gateway/rust-sdk/compare/0.5.8...0.6.0) (2025-02-02)
+
+### ✨ Features
+
+* Add streaming support for content generation and enhance error handling ([5c574c3](https://github.com/inference-gateway/rust-sdk/commit/5c574c313a6839d538bc65de28fb5264f3e9e006))
+* Implement streaming API so the client can receive Server Sent Events ([32060e0](https://github.com/inference-gateway/rust-sdk/commit/32060e0c30c68211a9cea5c3c34f53f382ec15f5))
+
+### ♻️ Improvements
+
+* Refactor content generation stream to use SSEvents struct for improved event handling ([1411d15](https://github.com/inference-gateway/rust-sdk/commit/1411d15fce253aaed53fffa97f145e947c1f435c))
+
+### 🔧 Miscellaneous
+
+* Add TODO to enhance the error handling of streaming with retries ([4162ad7](https://github.com/inference-gateway/rust-sdk/commit/4162ad7aada9ed86295b330c9af7fdb3b8d2d8a6))
+* Remove unnecessary blank line in content generation stream ([b4698b8](https://github.com/inference-gateway/rust-sdk/commit/b4698b8930b9d1570e2565e562027b0b431f5dbb))
+* Update openapi - removed google AI Studio and Implemented Streaming ([924e23e](https://github.com/inference-gateway/rust-sdk/commit/924e23eb6214f417549db30822aca40f56ba68d8))
+
 ## [0.5.8](https://github.com/inference-gateway/rust-sdk/compare/0.5.7...0.5.8) (2025-01-29)
 
 ### 📚 Documentation
