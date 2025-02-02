@@ -175,6 +175,7 @@ log::info!("Generated content: {:?}", resp.response.content);
 You need to add the following tiny dependencies:
 
 - `futures-util` for the `StreamExt` trait
+- `serde` with feature `derive` and `serde_json` for serialization and deserialization of the response content
 
 ```rust
 use inference_gateway_sdk::{
