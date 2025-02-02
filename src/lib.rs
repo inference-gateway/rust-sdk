@@ -17,6 +17,7 @@ use thiserror::Error;
 pub struct SSEvents {
     pub data: String,
     pub event: Option<String>,
+    pub retry: Option<u64>,
 }
 
 /// Custom error types for the Inference Gateway SDK
@@ -407,10 +408,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 
                 for line in chunk_str.lines() {
                     if line.is_empty() && current_data.is_some() {
-                        // Empty line marks end of event, yield if we have data
                         yield SSEvents {
                             data: current_data.take().unwrap(),
                             event: current_event.take(),
+                            retry: None, // TODO - implement this, for now it's not implemented in the backend
                         };
                         continue;
                     }
@@ -418,7 +419,8 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                     if let Some(event) = line.strip_prefix("event:") {
                         current_event = Some(event.trim().to_string());
                     } else if let Some(data) = line.strip_prefix("data:") {
-                        current_data = Some(data.trim().to_string());
+                        let processed_data = data.strip_suffix('\n').unwrap_or(data);
+                        current_data = Some(processed_data.trim().to_string());
                     }
                 }
             }
@@ -882,55 +884,47 @@ mod tests {
         Ok(())
     }
 
-    // #[tokio::test]
-    // async fn test_generate_content_stream_error() -> Result<(), GatewayError> {
-    //     let mut server = Server::new_async().await;
+    #[tokio::test]
+    async fn test_generate_content_stream_error() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
 
-    //     let mock = server
-    //         .mock("POST", "/llms/groq/generate")
-    //         .with_status(400)
-    //         .with_header("content-type", "application/json")
-    //         .with_chunked_body(move |writer| -> std::io::Result<()> {
-    //             let events = vec!["event: error".to_string(), "retry: 1000".to_string()];
-    //             for event in events {
-    //                 writer.write_all(event.as_bytes())?;
-    //             }
-    //             Ok(())
-    //         })
-    //         .expect_at_least(1)
-    //         .create();
+        let mock = server
+            .mock("POST", "/llms/groq/generate")
+            .with_status(400)
+            .with_header("content-type", "application/json")
+            .with_chunked_body(move |writer| -> std::io::Result<()> {
+                let events = vec![format!(
+                    "event: {}\ndata: {}\nretry: {}\n\n",
+                    r#"error"#, r#"{"error":"Invalid request"}"#, r#"1000"#,
+                )];
+                for event in events {
+                    writer.write_all(event.as_bytes())?;
+                }
+                Ok(())
+            })
+            .expect_at_least(1)
+            .create();
 
-    //     let client = InferenceGatewayClient::new(&server.url());
-    //     let messages = vec![Message {
-    //         role: MessageRole::User,
-    //         content: "Test message".to_string(),
-    //     }];
+        let client = InferenceGatewayClient::new(&server.url());
+        let messages = vec![Message {
+            role: MessageRole::User,
+            content: "Test message".to_string(),
+        }];
 
-    //     let stream =
-    //         client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages, false);
+        let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
 
-    //     pin_mut!(stream);
-    //     // Get first item from stream which should be the error
-    //     let result = stream.next().await;
+        pin_mut!(stream);
+        while let Some(result) = stream.next().await {
+            let result = result?;
+            assert!(result.event.is_some());
+            assert_eq!(result.event.unwrap(), "error");
+            assert!(result.data.contains("Invalid request"));
+            assert!(result.retry.is_none());
+        }
 
-    //     // Verify we got an error result
-    //     assert!(result.is_some(), "Expected error result from stream");
-
-    //     match result.unwrap() {
-    //         Err(err) => {
-    //             assert!(
-    //                 matches!(err, GatewayError::RequestError(_)),
-    //                 "Expected RequestError, got {:?}",
-    //                 err
-    //             );
-    //         }
-    //         Ok(item) => panic!("Expected error, got successful response: {:?}", item),
-    //     }
-
-    //     // Verify mock was called
-    //     mock.assert();
-    //     Ok(())
-    // }
+        mock.assert();
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_health_check() -> Result<(), GatewayError> {
