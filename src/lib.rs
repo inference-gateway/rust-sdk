@@ -12,6 +12,13 @@ use serde::{Deserialize, Serialize};
 
 use thiserror::Error;
 
+/// Stream of Server-Sent Events (SSE) from the Inference Gateway API
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SSEvents {
+    pub data: String,
+    pub event: Option<String>,
+}
+
 /// Custom error types for the Inference Gateway SDK
 #[derive(Error, Debug)]
 pub enum GatewayError {
@@ -233,8 +240,7 @@ pub trait InferenceGatewayAPI {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-        ss_events: bool,
-    ) -> impl Stream<Item = Result<GenerateResponse, GatewayError>> + Send;
+    ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send;
 
     /// Checks if the API is available
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
@@ -373,61 +379,46 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-        ssevents: bool,
-    ) -> impl Stream<Item = Result<GenerateResponse, GatewayError>> + Send {
+    ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send {
         let client = self.client.clone();
         let base_url = self.base_url.clone();
+        let url = format!(
+            "{}/llms/{}/generate",
+            base_url,
+            provider.to_string().to_lowercase()
+        );
+
+        let request = GenerateRequest {
+            model: model.to_string(),
+            messages,
+            stream: true,
+            ssevents: true,
+        };
 
         async_stream::try_stream! {
-            let url = format!("{}/llms/{}/generate", base_url, provider.to_string().to_lowercase());
-
-            let request = GenerateRequest {
-                model: model.to_string(),
-                messages,
-                stream: true,
-                ssevents,
-            };
-
-            let response = client
-                .post(&url)
-                .json(&request)
-                .send()
-                .await
-                .map_err(GatewayError::RequestError)?;
-
+            let response = client.post(&url).json(&request).send().await?;
             let mut stream = response.bytes_stream();
+            let mut current_event: Option<String> = None;
+            let mut current_data: Option<String> = None;
 
-            let mut buffer = String::new();
             while let Some(chunk) = stream.next().await {
-                let chunk = chunk.map_err(GatewayError::RequestError)?;
+                let chunk = chunk?;
                 let chunk_str = String::from_utf8_lossy(&chunk);
 
-                if chunk_str.contains("event: error") {
-                    // read the next line to get the error message
-                    let error_line = stream.next().await;
-                    if let Some(Ok(error_chunk)) = error_line {
-                        let error_chunk_str = String::from_utf8_lossy(&error_chunk);
-                        error_chunk_str.strip_prefix("data: ")
-                            .map(|s| s.to_string())
-                            .ok_or(GatewayError::Other(Box::new(std::io::Error::new(
-                                std::io::ErrorKind::Other,
-                                "Error message not found in SSE stream",
-                            ))))?;
+                for line in chunk_str.lines() {
+                    if line.is_empty() && current_data.is_some() {
+                        // Empty line marks end of event, yield if we have data
+                        yield SSEvents {
+                            data: current_data.take().unwrap(),
+                            event: current_event.take(),
+                        };
+                        continue;
                     }
-                }
 
-                buffer.push_str(&chunk_str);
-
-                while let Some(pos) = buffer.find("\n\n") {
-                    let event = buffer[..pos].to_string();
-                    buffer = buffer[pos + 2..].to_string();
-
-                    if let Some(data) = event.strip_prefix("data: ") {
-                        if !data.trim().is_empty() {
-                            let response: GenerateResponse = serde_json::from_str(data)
-                                .map_err(GatewayError::SerializationError)?;
-                            yield response;
-                        }
+                    if let Some(event) = line.strip_prefix("event:") {
+                        current_event = Some(event.trim().to_string());
+                    } else if let Some(data) = line.strip_prefix("data:") {
+                        current_data = Some(data.trim().to_string());
                     }
                 }
             }
@@ -847,8 +838,8 @@ mod tests {
             .with_header("content-type", "text/event-stream")
             .with_chunked_body(move |writer| -> std::io::Result<()> {
                 let events = vec![
-                    format!("data: {}\n\n", r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"Hello"}}"#),
-                    format!("data: {}\n\n", r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"World"}}"#),
+                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"Hello"}}"#),
+                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"World"}}"#),
                 ];
                 for event in events {
                     writer.write_all(event.as_bytes())?;
@@ -863,19 +854,29 @@ mod tests {
             content: "Test message".to_string(),
         }];
 
-        let stream =
-            client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages, false);
+        let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
 
-        let mut responses = Vec::new();
         pin_mut!(stream);
         while let Some(result) = stream.next().await {
-            responses.push(result?);
-        }
+            let result = result?;
+            let generate_response: GenerateResponse =
+                serde_json::from_str(&result.data).expect("Failed to parse GenerateResponse");
 
-        assert_eq!(responses.len(), 2);
-        assert_eq!(responses[0].provider, Provider::Groq);
-        assert_eq!(responses[0].response.content, "Hello");
-        assert_eq!(responses[1].response.content, "World");
+            assert_eq!(result.event, Some("message".to_string()));
+            assert_eq!(generate_response.provider, Provider::Groq);
+            assert!(matches!(
+                generate_response.response.role,
+                MessageRole::Assistant
+            ));
+            assert!(matches!(
+                generate_response.response.model.as_str(),
+                "mixtral-8x7b"
+            ));
+            assert!(matches!(
+                generate_response.response.content.as_str(),
+                "Hello" | "World"
+            ));
+        }
 
         mock.assert();
         Ok(())
