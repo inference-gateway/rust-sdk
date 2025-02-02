@@ -1,3 +1,9 @@
+## [0.6.1](https://github.com/inference-gateway/rust-sdk/compare/0.6.0...0.6.1) (2025-02-02)
+
+### 📚 Documentation
+
+* Add Streaming Content section to README with usage examples ([4e135a4](https://github.com/inference-gateway/rust-sdk/commit/4e135a43d779d30424148bf4c4b80c65b7af7fdf))
+
 ## [0.6.0](https://github.com/inference-gateway/rust-sdk/compare/0.5.8...0.6.0) (2025-02-02)
 
 ### ✨ Features
