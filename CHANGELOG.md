@@ -1,3 +1,9 @@
+## [0.6.2](https://github.com/inference-gateway/rust-sdk/compare/0.6.1...0.6.2) (2025-02-02)
+
+### 📚 Documentation
+
+* Update README to include serde dependencies for stream response content deserialization ([b9d2fa7](https://github.com/inference-gateway/rust-sdk/commit/b9d2fa7e28e089d57b83a6f7baf7aae8087bf224))
+
 ## [0.6.1](https://github.com/inference-gateway/rust-sdk/compare/0.6.0...0.6.1) (2025-02-02)
 
 ### 📚 Documentation

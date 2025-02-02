@@ -601,7 +601,7 @@ dependencies = [
 
 [[package]]
 name = "inference-gateway-sdk"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "async-stream",
  "futures-util",
