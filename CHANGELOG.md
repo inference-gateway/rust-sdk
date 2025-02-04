@@ -1,3 +1,9 @@
+## [0.6.3](https://github.com/inference-gateway/rust-sdk/compare/0.6.2...0.6.3) (2025-02-04)
+
+### 🔧 Miscellaneous
+
+* Add Clone trait to Message struct for improved usability ([e5ebd50](https://github.com/inference-gateway/rust-sdk/commit/e5ebd50874138a8a5a7cc30a154929bca4244929))
+
 ## [0.6.2](https://github.com/inference-gateway/rust-sdk/compare/0.6.1...0.6.2) (2025-02-02)
 
 ### 📚 Documentation
