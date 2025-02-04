@@ -142,7 +142,7 @@ impl fmt::Display for MessageRole {
 }
 
 /// A message in a conversation with an LLM
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Message {
     /// Role of the message sender ("system", "user" or "assistant")
     pub role: MessageRole,
