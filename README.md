@@ -11,6 +11,7 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
     - [Health Check](#health-check)
+    - [Tool-Use](#tool-use)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -236,6 +237,48 @@ let is_healthy = client.health_check().await?;
 info!("API is healthy: {}", is_healthy);
 ```
 
+### Tool-Use
+
+You can pass to the generate_content function also tools, which will be available for the LLM to use:
+
+```rust
+use inference_gateway_sdk::{
+    GatewayError,
+    InferenceGatewayAPI,
+    InferenceGatewayClient,
+    Message,
+    Provider,
+    MessageRole,
+    Tool,
+    ToolType,
+    ToolParameters,
+    ToolParameterType,
+};
+
+let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+Message{
+    role: MessageRole::System,
+    content: "You are an helpful assistent.".to_string()
+},
+Message{
+    role: MessageRole::User,
+    content: "What is the current weather in Berlin?".to_string()
+}
+], vec![
+    Tool {
+        r#type: ToolType::Function,
+        name: "get_current_weather".to_string(),
+        description: "Get the weather for a location".to_string(),
+        parameters: ToolParameters {
+            name: "location".to_string(),
+            r#type: ToolParameterType::String,
+            default: None,
+            description: "The city name".to_string(),
+        },
+    },
+]).await?;
+```
+
 ## Contributing
 
 Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for information about how to get involved. We welcome issues, questions, and pull requests.
@@ -243,3 +286,7 @@ Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for information abou
 ## License
 
 This SDK is distributed under the MIT License, see [LICENSE](LICENSE) for more information.
+
+```
+
+```
