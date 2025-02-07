@@ -151,8 +151,6 @@ pub struct Message {
     pub role: MessageRole,
     /// Content of the message
     pub content: String,
-    /// Optional tool calls to include in the message
-    pub tool_calls: Option<Vec<ToolCall>>,
 }
 
 /// Tool to use for generation
@@ -208,18 +206,18 @@ impl std::fmt::Display for ToolParameterType {
     }
 }
 
-/// Tool to use for generation
+/// Tool to use for the LLM toolbox
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Tool {
     pub r#type: ToolType,
     pub name: String,
     pub description: String,
-    pub parameters: ToolParameters,
+    pub parameters: Vec<ToolParameter>,
 }
 
 /// Parameters for a tool
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ToolParameters {
+pub struct ToolParameter {
     pub name: String,
     pub r#type: ToolParameterType,
     pub default: Option<String>,
@@ -744,7 +742,6 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_calls: None,
         }];
         let response = client
             .generate_content(Provider::Ollama, "llama2", messages, None)
@@ -795,7 +792,6 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_calls: None,
         }];
 
         let response = client
@@ -831,7 +827,6 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_calls: None,
         }];
         let error = client
             .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
@@ -923,7 +918,6 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_calls: None,
         }];
 
         let response = client
@@ -961,7 +955,6 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
-            tool_calls: None,
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -1016,7 +1009,6 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
-            tool_calls: None,
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -1068,19 +1060,18 @@ mod tests {
             r#type: ToolType::Function,
             name: "get_weather".to_string(),
             description: "Get the weather for a location".to_string(),
-            parameters: ToolParameters {
+            parameters: vec![ToolParameter {
                 name: "location".to_string(),
                 r#type: ToolParameterType::String,
                 default: None,
                 description: "The city name".to_string(),
-            },
+            }],
         }];
 
         let client = InferenceGatewayClient::new(&server.url());
         let messages = vec![Message {
             role: MessageRole::User,
             content: "What's the weather in London?".to_string(),
-            tool_calls: None,
         }];
 
         let response = client
@@ -1135,7 +1126,6 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hi".to_string(),
-            tool_calls: None,
         }];
 
         let response = client
