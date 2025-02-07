@@ -337,6 +337,7 @@ components:
         - system
         - user
         - assistant
+        - tool
     Message:
       type: object
       description: Message structure for provider requests
@@ -361,6 +362,24 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Model"
+    Tool:
+      type:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      parameters:
+        type: object
+        properties:
+          name:
+            type: string
+          type:
+            type: string
+          default:
+            type: string
+          description:
+            type: string
     GenerateRequest:
       type: object
       description: Request structure for token generation
@@ -393,6 +412,10 @@ components:
               - stream-end: Stream completion
 
               **Note:** Depending on the provider, some events may not be present.
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tool"
     ResponseTokens:
       type: object
       description: Token response structure
@@ -403,6 +426,21 @@ components:
           type: string
         content:
           type: string
+        tool_calls:
+          type: array
+          items:
+            type: object
+            properties:
+              function:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  parameters:
+                    type: object
+                    properties:
+                      arguments:
+                        type: object
     GenerateResponse:
       type: object
       description: Response structure for token generation
@@ -623,7 +661,7 @@ components:
                               parameter_size:
                                 type: string
             generate:
-              endpoint: "/api/generate"
+              endpoint: "/api/chat"
               method: "POST"
               schema:
                 request:
@@ -641,6 +679,21 @@ components:
                       type: number
                       format: float64
                       default: 0.7
+                    tools:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          function:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              parameters:
+                                type: object
+                                properties:
+                                  arguments:
+                                    type: object
                 response:
                   type: object
                   properties:
@@ -806,6 +859,21 @@ components:
                       type: number
                       format: float64
                       default: 0.7
+                    tools:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          function:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              parameters:
+                                type: object
+                                properties:
+                                  arguments:
+                                    type: object
                 response:
                   type: object
                   properties:
