@@ -1,3 +1,14 @@
+## [0.7.0](https://github.com/inference-gateway/rust-sdk/compare/0.6.3...0.7.0) (2025-02-07)
+
+### ✨ Features
+
+* Add tool call functionality to Message struct and related types ([dba7f19](https://github.com/inference-gateway/rust-sdk/commit/dba7f196fb048c55c8e6fdeb0fee22a99a8c9ec0))
+* Implement Tool-Use ([#2](https://github.com/inference-gateway/rust-sdk/issues/2)) ([1a484a7](https://github.com/inference-gateway/rust-sdk/commit/1a484a724748a371db4cffa8d94f2668b1d5b96b))
+
+### 📚 Documentation
+
+* **openapi:** Add Tool schema and update Message structure in OpenAPI definition ([ae377e9](https://github.com/inference-gateway/rust-sdk/commit/ae377e9d43ae117852b487533762b5449b5bf2ca))
+
 ## [0.6.3](https://github.com/inference-gateway/rust-sdk/compare/0.6.2...0.6.3) (2025-02-04)
 
 ### 🔧 Miscellaneous
