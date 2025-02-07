@@ -286,7 +286,3 @@ Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for information abou
 ## License
 
 This SDK is distributed under the MIT License, see [LICENSE](LICENSE) for more information.
-
-```
-
-```
