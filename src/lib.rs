@@ -10,6 +10,7 @@ use futures_util::{Stream, StreamExt};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 
+use serde_json::Value;
 use thiserror::Error;
 
 /// Stream of Server-Sent Events (SSE) from the Inference Gateway API
@@ -129,6 +130,7 @@ pub enum MessageRole {
     System,
     User,
     Assistant,
+    Tool,
 }
 
 impl fmt::Display for MessageRole {
@@ -137,6 +139,7 @@ impl fmt::Display for MessageRole {
             MessageRole::System => write!(f, "system"),
             MessageRole::User => write!(f, "user"),
             MessageRole::Assistant => write!(f, "assistant"),
+            MessageRole::Tool => write!(f, "tool"),
         }
     }
 }
@@ -148,6 +151,79 @@ pub struct Message {
     pub role: MessageRole,
     /// Content of the message
     pub content: String,
+    /// Optional tool calls to include in the message
+    pub tool_calls: Option<Vec<ToolCall>>,
+}
+
+/// Tool to use for generation
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ToolCall {
+    pub function: ToolFunction,
+}
+
+/// Tool function to call
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ToolFunction {
+    pub name: String,
+    pub parameters: Value,
+}
+
+/// Type of tool that can be used by the model
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum ToolType {
+    Function,
+}
+
+/// JSON Schema parameter types for tools
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum ToolParameterType {
+    String,
+    Number,
+    Integer,
+    Boolean,
+    Array,
+    Object,
+    Null,
+}
+
+impl Default for ToolParameterType {
+    fn default() -> Self {
+        Self::String
+    }
+}
+
+impl std::fmt::Display for ToolParameterType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::String => write!(f, "string"),
+            Self::Number => write!(f, "number"),
+            Self::Integer => write!(f, "integer"),
+            Self::Boolean => write!(f, "boolean"),
+            Self::Array => write!(f, "array"),
+            Self::Object => write!(f, "object"),
+            Self::Null => write!(f, "null"),
+        }
+    }
+}
+
+/// Tool to use for generation
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Tool {
+    pub r#type: ToolType,
+    pub name: String,
+    pub description: String,
+    pub parameters: ToolParameters,
+}
+
+/// Parameters for a tool
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ToolParameters {
+    pub name: String,
+    pub r#type: ToolParameterType,
+    pub default: Option<String>,
+    pub description: String,
 }
 
 /// Request payload for generating content
@@ -161,16 +237,27 @@ struct GenerateRequest {
     ssevents: bool,
     /// Enable streaming of responses
     stream: bool,
+    /// Optional tools to use for generation
+    tools: Option<Vec<Tool>>,
 }
 
+/// A tool call in the response
 #[derive(Debug, Deserialize, Clone)]
-pub struct GenerateResponse {
-    /// Provider that generated the response
-    pub provider: Provider,
-    /// Content of the response
-    pub response: ResponseContent,
+pub struct ToolCallResponse {
+    /// Function that was called
+    pub function: ToolFunctionResponse,
 }
 
+/// Function details in a tool call response
+#[derive(Debug, Deserialize, Clone)]
+pub struct ToolFunctionResponse {
+    /// Name of the function that was called
+    pub name: String,
+    /// Parameters passed to the function
+    pub parameters: Value,
+}
+
+/// The content of the response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ResponseContent {
     /// Role of the responder (typically "assistant")
@@ -179,6 +266,17 @@ pub struct ResponseContent {
     pub model: String,
     /// Generated content
     pub content: String,
+    /// Tool calls made by the model
+    pub tool_calls: Option<Vec<ToolCallResponse>>,
+}
+
+/// The response from generating content
+#[derive(Debug, Deserialize, Clone)]
+pub struct GenerateResponse {
+    /// Provider that generated the response
+    pub provider: Provider,
+    /// Content of the response
+    pub response: ResponseContent,
 }
 
 /// Client for interacting with the Inference Gateway API
@@ -229,11 +327,13 @@ pub trait InferenceGatewayAPI {
     /// * `provider` - The LLM provider to use
     /// * `model` - Name of the model
     /// * `messages` - Conversation history and prompt
+    /// * `tools` - Optional tools to use for generation
     fn generate_content(
         &self,
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
+        tools: Option<Vec<Tool>>,
     ) -> impl Future<Output = Result<GenerateResponse, GatewayError>> + Send;
 
     fn generate_content_stream(
@@ -337,6 +437,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
+        tools: Option<Vec<Tool>>,
     ) -> Result<GenerateResponse, GatewayError> {
         let url = format!("{}/llms/{}/generate", self.base_url, provider);
         let mut request = self.client.post(&url);
@@ -349,6 +450,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             messages,
             stream: false,
             ssevents: false,
+            tools,
         };
 
         let response = request.json(&request_payload).send().await?;
@@ -394,6 +496,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             messages,
             stream: true,
             ssevents: true,
+            tools: None,
         };
 
         async_stream::try_stream! {
@@ -641,9 +744,10 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            tool_calls: None,
         }];
         let response = client
-            .generate_content(Provider::Ollama, "llama2", messages)
+            .generate_content(Provider::Ollama, "llama2", messages, None)
             .await?;
 
         assert_eq!(response.provider, Provider::Ollama);
@@ -691,10 +795,11 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            tool_calls: None,
         }];
 
         let response = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
             .await?;
 
         // Verify structure matches
@@ -726,9 +831,10 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            tool_calls: None,
         }];
         let error = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
             .await
             .unwrap_err();
 
@@ -817,10 +923,11 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            tool_calls: None,
         }];
 
         let response = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
             .await?;
 
         assert_eq!(response.provider, Provider::Groq);
@@ -854,6 +961,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
+            tool_calls: None,
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -908,6 +1016,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
+            tool_calls: None,
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -920,6 +1029,121 @@ mod tests {
             assert!(result.data.contains("Invalid request"));
             assert!(result.retry.is_none());
         }
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_content_with_tools() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_json_response = r#"{
+            "provider": "groq",
+            "response": {
+                "role": "assistant",
+                "model": "deepseek-r1-distill-llama-70b",
+                "content": "Let me check the weather for you.",
+                "tool_calls": [
+                    {
+                        "function": {
+                            "name": "get_weather",
+                            "parameters": {
+                                "location": "London"
+                            }
+                        }
+                    }
+                ]
+            }
+        }"#;
+
+        let mock = server
+            .mock("POST", "/llms/groq/generate")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(raw_json_response)
+            .create();
+
+        let tools = vec![Tool {
+            r#type: ToolType::Function,
+            name: "get_weather".to_string(),
+            description: "Get the weather for a location".to_string(),
+            parameters: ToolParameters {
+                name: "location".to_string(),
+                r#type: ToolParameterType::String,
+                default: None,
+                description: "The city name".to_string(),
+            },
+        }];
+
+        let client = InferenceGatewayClient::new(&server.url());
+        let messages = vec![Message {
+            role: MessageRole::User,
+            content: "What's the weather in London?".to_string(),
+            tool_calls: None,
+        }];
+
+        let response = client
+            .generate_content(
+                Provider::Groq,
+                "deepseek-r1-distill-llama-70b",
+                messages,
+                Some(tools),
+            )
+            .await?;
+
+        assert_eq!(response.provider, Provider::Groq);
+        assert_eq!(response.response.role, MessageRole::Assistant);
+        assert_eq!(response.response.model, "deepseek-r1-distill-llama-70b");
+        assert_eq!(
+            response.response.content,
+            "Let me check the weather for you."
+        );
+
+        let tool_calls = response.response.tool_calls.unwrap();
+        assert_eq!(tool_calls.len(), 1);
+        assert_eq!(tool_calls[0].function.name, "get_weather");
+
+        let params = &tool_calls[0].function.parameters;
+        assert_eq!(params["location"], "London");
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_content_without_tools() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_json_response = r#"{
+            "provider": "openai",
+            "response": {
+                "role": "assistant",
+                "model": "deepseek-r1-distill-llama-70b",
+                "content": "Hello!"
+            }
+        }"#;
+
+        let mock = server
+            .mock("POST", "/llms/openai/generate")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(raw_json_response)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url());
+        let messages = vec![Message {
+            role: MessageRole::User,
+            content: "Hi".to_string(),
+            tool_calls: None,
+        }];
+
+        let response = client
+            .generate_content(Provider::OpenAI, "gpt-4", messages, None)
+            .await?;
+
+        // Verify response has no tool calls
+        assert!(response.response.tool_calls.is_none());
 
         mock.assert();
         Ok(())
