@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1-rc.3](https://github.com/inference-gateway/rust-sdk/compare/0.7.1-rc.2...0.7.1-rc.3) (2025-02-09)
+
+### ♻️ Improvements
+
+* Remove ToolParameterType and ToolParameter structs to simplify code ([0e4d1b4](https://github.com/inference-gateway/rust-sdk/commit/0e4d1b4a0519adb1c23dc5f25f841af72e7c6527))
+* Rename parameters to arguments in ToolFunctionResponse and update ToolCallResponse structure ([3f36c5f](https://github.com/inference-gateway/rust-sdk/commit/3f36c5f969a7b46417613c9fd11f1760d841ff76))
+
 ## [0.7.1-rc.2](https://github.com/inference-gateway/rust-sdk/compare/0.7.1-rc.1...0.7.1-rc.2) (2025-02-09)
 
 ### 🐛 Bug Fixes
