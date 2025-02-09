@@ -193,10 +193,12 @@ use futures_util::{StreamExt, pin_mut};
         Message {
             role: MessageRole::System,
             content: system_message,
+            tool_call_id: None
         },
         Message {
             role: MessageRole::User,
             content: "Write a poem".to_string(),
+            tool_call_id: None
         },
     ];
     let client = InferenceGatewayClient::new("http://localhost:8080");
@@ -250,33 +252,45 @@ use inference_gateway_sdk::{
     Provider,
     MessageRole,
     Tool,
-    ToolType,
-    ToolParameters,
-    ToolParameterType,
+    ToolFunction,
+    ToolType
 };
 
-let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
-Message{
-    role: MessageRole::System,
-    content: "You are an helpful assistent.".to_string()
-},
-Message{
-    role: MessageRole::User,
-    content: "What is the current weather in Berlin?".to_string()
-}
-], vec![
+let tools = vec![
     Tool {
         r#type: ToolType::Function,
-        name: "get_current_weather".to_string(),
-        description: "Get the weather for a location".to_string(),
-        parameters: ToolParameters {
-            name: "location".to_string(),
-            r#type: ToolParameterType::String,
-            default: None,
-            description: "The city name".to_string(),
+        function: ToolFunction {
+            name: "get_current_weather".to_string(),
+            description: "Get the weather for a location".to_string(),
+            parameters: json!({
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city name"
+                    }
+                },
+                "required": ["location"]
+            }),
         },
     },
-]).await?;
+];
+let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+Message {
+    role: MessageRole::System,
+    content: "You are an helpful assistent.".to_string()
+    tool_call_id: None
+},
+Message {
+    role: MessageRole::User,
+    content: "What is the current weather in Berlin?".to_string()
+    tool_call_id: None
+}
+], Some(tools)).await?;
+
+for tool_call in resp.response.tool_calls {
+    log::info!("Tool Call Requested by the LLM: {:?}", tool_call);
+}
 ```
 
 ## Contributing
