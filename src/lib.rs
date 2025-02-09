@@ -196,20 +196,24 @@ struct GenerateRequest {
     tools: Option<Vec<Tool>>,
 }
 
-/// A tool call in the response
-#[derive(Debug, Deserialize, Clone)]
-pub struct ToolCallResponse {
-    /// Function that the LLM wants to call
-    pub function: ToolFunctionResponse,
-}
-
 /// Function details in a tool call response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ToolFunctionResponse {
     /// Name of the function that the LLM wants to call
     pub name: String,
-    /// Parameters passed to the function
-    pub parameters: Value,
+    /// The arguments that the LLM wants to pass to the function
+    pub arguments: Value,
+}
+
+/// A tool call in the response
+#[derive(Debug, Deserialize, Clone)]
+pub struct ToolCallResponse {
+    /// Unique identifier of the tool call
+    pub id: String,
+    /// Type of tool that was called
+    pub r#type: ToolType,
+    /// Function that the LLM wants to call
+    pub function: ToolFunctionResponse,
 }
 
 /// The content of the response
@@ -1068,9 +1072,11 @@ mod tests {
                 "content": "Let me check the weather for you.",
                 "tool_calls": [
                     {
+                        "id": "1234",
+                        "type": "function",
                         "function": {
                             "name": "get_weather",
-                            "parameters": {
+                            "arguments": {
                                 "location": "London"
                             }
                         }
@@ -1131,7 +1137,7 @@ mod tests {
         assert_eq!(tool_calls.len(), 1);
         assert_eq!(tool_calls[0].function.name, "get_weather");
 
-        let params = &tool_calls[0].function.parameters;
+        let params = &tool_calls[0].function.arguments;
         assert_eq!(params["location"], "London");
 
         mock.assert();
@@ -1186,9 +1192,11 @@ mod tests {
                 "content": "Let me check the weather for you",
                 "tool_calls": [
                     {
+                        "id": "1234",
+                        "type": "function",
                         "function": {
                             "name": "get_current_weather",
-                            "parameters": {
+                            "arguments": {
                                 "city": "Toronto"
                             }
                         }
