@@ -174,52 +174,11 @@ pub enum ToolType {
     Function,
 }
 
-/// JSON Schema parameter types for tools
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum ToolParameterType {
-    String,
-    Number,
-    Integer,
-    Boolean,
-    Array,
-    Object,
-    Null,
-}
-
-impl Default for ToolParameterType {
-    fn default() -> Self {
-        Self::String
-    }
-}
-
-impl std::fmt::Display for ToolParameterType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::String => write!(f, "string"),
-            Self::Number => write!(f, "number"),
-            Self::Integer => write!(f, "integer"),
-            Self::Boolean => write!(f, "boolean"),
-            Self::Array => write!(f, "array"),
-            Self::Object => write!(f, "object"),
-            Self::Null => write!(f, "null"),
-        }
-    }
-}
-
 /// Tool to use for the LLM toolbox
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Tool {
     pub r#type: ToolType,
     pub function: ToolFunction,
-}
-
-/// Parameters for a tool
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ToolParameter {
-    pub r#type: ToolParameterType,
-    pub properties: Option<Vec<ToolParameter>>,
-    pub required: Vec<String>,
 }
 
 /// Request payload for generating content
@@ -240,14 +199,14 @@ struct GenerateRequest {
 /// A tool call in the response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ToolCallResponse {
-    /// Function that was called
+    /// Function that the LLM wants to call
     pub function: ToolFunctionResponse,
 }
 
 /// Function details in a tool call response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ToolFunctionResponse {
-    /// Name of the function that was called
+    /// Name of the function that the LLM wants to call
     pub name: String,
     /// Parameters passed to the function
     pub parameters: Value,
