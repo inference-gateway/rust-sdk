@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0-rc.1](https://github.com/inference-gateway/rust-sdk/compare/0.7.1-rc.3...0.8.0-rc.1) (2025-02-09)
+
+### ✨ Features
+
+* Add optional tool_call_id to Message struct and update serialization tests ([d51e911](https://github.com/inference-gateway/rust-sdk/commit/d51e9115bbcd4fb5f098e99dfda9f11c00febf07))
+
 ## [0.7.1-rc.3](https://github.com/inference-gateway/rust-sdk/compare/0.7.1-rc.2...0.7.1-rc.3) (2025-02-09)
 
 ### ♻️ Improvements
