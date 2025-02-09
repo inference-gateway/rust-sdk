@@ -1341,6 +1341,7 @@ mod tests {
             response.response.content,
             "Let me check the weather for you"
         );
+        assert_eq!(response.response.tool_calls.unwrap().len(), 1);
 
         mock.assert();
         Ok(())
