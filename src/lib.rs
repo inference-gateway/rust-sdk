@@ -266,6 +266,10 @@ pub trait InferenceGatewayAPI {
     /// - Returns [`GatewayError::Unauthorized`] if authentication fails
     /// - Returns [`GatewayError::BadRequest`] if the request is malformed
     /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// A list of models available from all providers
     fn list_models(&self)
         -> impl Future<Output = Result<Vec<ProviderModels>, GatewayError>> + Send;
 
@@ -278,6 +282,10 @@ pub trait InferenceGatewayAPI {
     /// - Returns [`GatewayError::Unauthorized`] if authentication fails
     /// - Returns [`GatewayError::BadRequest`] if the request is malformed
     /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// A list of models available from the specified provider
     fn list_models_by_provider(
         &self,
         provider: Provider,
@@ -290,6 +298,15 @@ pub trait InferenceGatewayAPI {
     /// * `model` - Name of the model
     /// * `messages` - Conversation history and prompt
     /// * `tools` - Optional tools to use for generation
+    ///
+    /// # Errors
+    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
+    /// - Returns [`GatewayError::BadRequest`] if the request is malformed
+    /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// The generated response
     fn generate_content(
         &self,
         provider: Provider,
@@ -298,6 +315,16 @@ pub trait InferenceGatewayAPI {
         tools: Option<Vec<Tool>>,
     ) -> impl Future<Output = Result<GenerateResponse, GatewayError>> + Send;
 
+    /// Stream content generation directly using the backend SSE stream.
+    ///
+    ///
+    /// # Arguments
+    /// * `provider` - The LLM provider to use
+    /// * `model` - Name of the model
+    /// * `messages` - Conversation history and prompt
+    ///
+    /// # Returns
+    /// A stream of Server-Sent Events (SSE) from the Inference Gateway API
     fn generate_content_stream(
         &self,
         provider: Provider,
