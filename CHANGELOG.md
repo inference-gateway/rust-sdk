@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1-rc.2](https://github.com/inference-gateway/rust-sdk/compare/0.7.1-rc.1...0.7.1-rc.2) (2025-02-09)
+
+### 🐛 Bug Fixes
+
+* Enhance Tool and ToolFunction structures with description and parameters updates, use JSON raw value for now ([cdf6eca](https://github.com/inference-gateway/rust-sdk/commit/cdf6eca712c07003841cea55d57ae62cfa3bca2b))
+
 ## [0.7.1-rc.1](https://github.com/inference-gateway/rust-sdk/compare/0.7.0...0.7.1-rc.1) (2025-02-08)
 
 ### ♻️ Improvements
