@@ -197,7 +197,11 @@ struct GenerateRequest {
     /// Enable streaming of responses
     stream: bool,
     /// Optional tools to use for generation
+    #[serde(skip_serializing_if = "Option::is_none")]
     tools: Option<Vec<Tool>>,
+    /// Maximum number of tokens to generate
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_tokens: Option<i32>,
 }
 
 /// Function details in a tool call response
@@ -248,6 +252,7 @@ pub struct InferenceGatewayClient {
     client: Client,
     token: Option<String>,
     tools: Option<Vec<Tool>>,
+    max_tokens: Option<i32>,
 }
 
 /// Implement Debug for InferenceGatewayClient
@@ -347,6 +352,7 @@ impl InferenceGatewayClient {
             client: Client::new(),
             token: None,
             tools: None,
+            max_tokens: None,
         }
     }
 
@@ -371,6 +377,18 @@ impl InferenceGatewayClient {
     /// Self with the token set
     pub fn with_token(mut self, token: impl Into<String>) -> Self {
         self.token = Some(token.into());
+        self
+    }
+
+    /// Sets the maximum number of tokens to generate
+    ///
+    /// # Arguments
+    /// * `max_tokens` - Maximum number of tokens to generate
+    ///
+    /// # Returns
+    /// Self with the maximum tokens set
+    pub fn with_max_tokens(mut self, max_tokens: Option<i32>) -> Self {
+        self.max_tokens = max_tokens;
         self
     }
 }
@@ -455,6 +473,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             stream: false,
             ssevents: false,
             tools: self.tools.clone(),
+            max_tokens: self.max_tokens,
         };
 
         let response = request.json(&request_payload).send().await?;
@@ -501,6 +520,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             stream: true,
             ssevents: true,
             tools: None,
+            max_tokens: None,
         };
 
         async_stream::try_stream! {
@@ -677,6 +697,7 @@ mod tests {
                     }),
                 },
             }]),
+            max_tokens: None,
         };
 
         let serialized = serde_json::to_string_pretty(&request_payload).unwrap();
@@ -1374,6 +1395,58 @@ mod tests {
             "Let me check the weather for you"
         );
         assert_eq!(response.response.tool_calls.unwrap().len(), 1);
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_content_with_max_tokens() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_json_response = r#"{
+            "provider": "groq",
+            "response": {
+                "role": "assistant",
+                "model": "mixtral-8x7b", 
+                "content": "Here's a poem with 100 tokens..."
+            }
+        }"#;
+
+        let mock = server
+            .mock("POST", "/llms/groq/generate")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .match_body(mockito::Matcher::JsonString(
+                r#"{
+                "model": "mixtral-8x7b",
+                "messages": [{"role":"user","content":"Write a poem"}],
+                "stream": false,
+                "ssevents": false,
+                "max_tokens": 100
+            }"#
+                .to_string(),
+            ))
+            .with_body(raw_json_response)
+            .create();
+
+        let client = InferenceGatewayClient::new(&server.url()).with_max_tokens(Some(100));
+
+        let messages = vec![Message {
+            role: MessageRole::User,
+            content: "Write a poem".to_string(),
+            ..Default::default()
+        }];
+
+        let response = client
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
+            .await?;
+
+        assert_eq!(response.provider, Provider::Groq);
+        assert_eq!(
+            response.response.content,
+            "Here's a poem with 100 tokens..."
+        );
 
         mock.assert();
         Ok(())
