@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0-rc.1](https://github.com/inference-gateway/rust-sdk/compare/0.8.0...0.9.0-rc.1) (2025-02-10)
+
+### ✨ Features
+
+* Add max_tokens parameter to GenerateRequest and InferenceGatewayClient ([8f1c08a](https://github.com/inference-gateway/rust-sdk/commit/8f1c08aec5107117ad1691bffc22b96f1765237a))
+
+### 📚 Documentation
+
+* Add max_tokens parameter to OpenAPI specification ([7f833af](https://github.com/inference-gateway/rust-sdk/commit/7f833afd4ebd43855411cd3f8b33de1f5191b982))
+
 ## [0.8.0](https://github.com/inference-gateway/rust-sdk/compare/0.7.0...0.8.0) (2025-02-10)
 
 ### ✨ Features
