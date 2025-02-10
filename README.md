@@ -277,6 +277,15 @@ Message {
 
 for tool_call in resp.response.tool_calls {
     log::info!("Tool Call Requested by the LLM: {:?}", tool_call);
+    // Make the function call with the parameters requested by the LLM
+
+    let message = Message {
+        role: MessageRole::Tool,
+        content: "The content from the tool".to_string(),
+        tool_call_id: Some(tool_call.id) // the tool call id so the LLM can reference it
+    };
+
+    // Append this message to the next request
 }
 ```
 
