@@ -246,6 +246,7 @@ pub struct InferenceGatewayClient {
     base_url: String,
     client: Client,
     token: Option<String>,
+    tools: Option<Vec<Tool>>,
 }
 
 /// Implement Debug for InferenceGatewayClient
@@ -312,7 +313,6 @@ pub trait InferenceGatewayAPI {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-        tools: Option<Vec<Tool>>,
     ) -> impl Future<Output = Result<GenerateResponse, GatewayError>> + Send;
 
     /// Stream content generation directly using the backend SSE stream.
@@ -345,13 +345,29 @@ impl InferenceGatewayClient {
             base_url: base_url.to_string(),
             client: Client::new(),
             token: None,
+            tools: None,
         }
+    }
+
+    /// Provides tools to use for generation
+    ///
+    /// # Arguments
+    /// * `tools` - List of tools to use for generation
+    ///
+    /// # Returns
+    /// Self with the tools set
+    pub fn with_tools(mut self, tools: Option<Vec<Tool>>) -> Self {
+        self.tools = tools;
+        self
     }
 
     /// Sets an authentication token for the client
     ///
     /// # Arguments
     /// * `token` - JWT token for authentication
+    ///
+    /// # Returns
+    /// Self with the token set
     pub fn with_token(mut self, token: impl Into<String>) -> Self {
         self.token = Some(token.into());
         self
@@ -425,7 +441,6 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-        tools: Option<Vec<Tool>>,
     ) -> Result<GenerateResponse, GatewayError> {
         let url = format!("{}/llms/{}/generate", self.base_url, provider);
         let mut request = self.client.post(&url);
@@ -438,7 +453,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             messages,
             stream: false,
             ssevents: false,
-            tools,
+            tools: self.tools.clone(),
         };
 
         let response = request.json(&request_payload).send().await?;
@@ -850,7 +865,7 @@ mod tests {
             tool_call_id: None,
         }];
         let response = client
-            .generate_content(Provider::Ollama, "llama2", messages, None)
+            .generate_content(Provider::Ollama, "llama2", messages)
             .await?;
 
         assert_eq!(response.provider, Provider::Ollama);
@@ -898,7 +913,7 @@ mod tests {
         }];
 
         let response = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await?;
 
         assert_eq!(response.provider, Provider::Groq);
@@ -932,7 +947,7 @@ mod tests {
             tool_call_id: None,
         }];
         let error = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await
             .unwrap_err();
 
@@ -1022,7 +1037,7 @@ mod tests {
         }];
 
         let response = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await?;
 
         assert_eq!(response.provider, Provider::Groq);
@@ -1179,7 +1194,7 @@ mod tests {
             },
         }];
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let client = InferenceGatewayClient::new(&server.url()).with_tools(Some(tools));
         let messages = vec![Message {
             role: MessageRole::User,
             content: "What's the weather in London?".to_string(),
@@ -1187,12 +1202,7 @@ mod tests {
         }];
 
         let response = client
-            .generate_content(
-                Provider::Groq,
-                "deepseek-r1-distill-llama-70b",
-                messages,
-                Some(tools),
-            )
+            .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", messages)
             .await?;
 
         assert_eq!(response.provider, Provider::Groq);
@@ -1242,7 +1252,7 @@ mod tests {
         }];
 
         let response = client
-            .generate_content(Provider::OpenAI, "gpt-4", messages, None)
+            .generate_content(Provider::OpenAI, "gpt-4", messages)
             .await?;
 
         assert!(response.response.tool_calls.is_none());
@@ -1319,21 +1329,6 @@ mod tests {
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
-
-        let messages = vec![
-            Message {
-                role: MessageRole::System,
-                content: "You are a helpful assistant.".to_string(),
-                tool_call_id: None,
-            },
-            Message {
-                role: MessageRole::User,
-                content: "What is the current weather in Toronto?".to_string(),
-                tool_call_id: None,
-            },
-        ];
-
         let tools = vec![Tool {
             r#type: ToolType::Function,
             function: ToolFunction {
@@ -1351,14 +1346,23 @@ mod tests {
                 }),
             },
         }];
+        let client = InferenceGatewayClient::new(&server.url()).with_tools(Some(tools));
+
+        let messages = vec![
+            Message {
+                role: MessageRole::System,
+                content: "You are a helpful assistant.".to_string(),
+                tool_call_id: None,
+            },
+            Message {
+                role: MessageRole::User,
+                content: "What is the current weather in Toronto?".to_string(),
+                tool_call_id: None,
+            },
+        ];
 
         let response = client
-            .generate_content(
-                Provider::Groq,
-                "deepseek-r1-distill-llama-70b",
-                messages,
-                Some(tools),
-            )
+            .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", messages)
             .await?;
 
         assert_eq!(response.response.role, MessageRole::Assistant);
