@@ -10,8 +10,8 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
-    - [Health Check](#health-check)
     - [Tool-Use](#tool-use)
+    - [Health Check](#health-check)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -226,19 +226,6 @@ use futures_util::{StreamExt, pin_mut};
 // ...rest of the main function
 ```
 
-### Health Check
-
-To check if the Inference Gateway is running, use the `health_check` method:
-
-```rust
-// ...rest of the imports
-use log::info;
-
-// ...main function
-let is_healthy = client.health_check().await?;
-info!("API is healthy: {}", is_healthy);
-```
-
 ### Tool-Use
 
 You can pass to the generate_content function also tools, which will be available for the LLM to use:
@@ -291,6 +278,19 @@ Message {
 for tool_call in resp.response.tool_calls {
     log::info!("Tool Call Requested by the LLM: {:?}", tool_call);
 }
+```
+
+### Health Check
+
+To check if the Inference Gateway is running, use the `health_check` method:
+
+```rust
+// ...rest of the imports
+use log::info;
+
+// ...main function
+let is_healthy = client.health_check().await?;
+info!("API is healthy: {}", is_healthy);
 ```
 
 ## Contributing
