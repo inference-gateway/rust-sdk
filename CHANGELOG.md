@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0-rc.2](https://github.com/inference-gateway/rust-sdk/compare/0.8.0-rc.1...0.8.0-rc.2) (2025-02-10)
+
+### ♻️ Improvements
+
+* Implement Default trait for Message and MessageRole structs ([cb43ca8](https://github.com/inference-gateway/rust-sdk/commit/cb43ca8034cec51bb4037e21dd1be9a8ce7312f3))
+* Initialize the client with tools optionally ([9c56170](https://github.com/inference-gateway/rust-sdk/commit/9c56170a17939b7ecf8a71ae04425313cf97727c))
+* Use in the tests two different conventions to see what's possible ([eef16e8](https://github.com/inference-gateway/rust-sdk/commit/eef16e8afedd2b28a2a54aa25f2364adfe11973b))
+
+### 📚 Documentation
+
+* Enhance InferenceGatewayAPI docblocks with additional error handling and return details ([b666c33](https://github.com/inference-gateway/rust-sdk/commit/b666c3338d81e193396d43d927a5b09569f70752))
+* Improve the docs for Tool-Use, update it ([9e5f5da](https://github.com/inference-gateway/rust-sdk/commit/9e5f5da14120b553ef045502dd704be5dcccd67f))
+* Improve the example by mentioning the workflow of messages exchange ([ef474b4](https://github.com/inference-gateway/rust-sdk/commit/ef474b427fd28527b589d7ff966acda4ea1d3cec))
+* Remove redundant whitespace in InferenceGatewayAPI documentation ([422e857](https://github.com/inference-gateway/rust-sdk/commit/422e8571c862547bf78aa2415528bf0814084319))
+* Resort functions examples, healthcheck is less important so put it at the bottom ([e6eb55d](https://github.com/inference-gateway/rust-sdk/commit/e6eb55d89a32a39603496303ed2b4d05b8bbf885))
+* Update the example in the README.md ([0fda0dc](https://github.com/inference-gateway/rust-sdk/commit/0fda0dc4dbed741dbfe8b62197ed6aea43e6b9e5))
+
+### ✅ Miscellaneous
+
+* Add assertion for tool_calls length in response test ([4edcd4b](https://github.com/inference-gateway/rust-sdk/commit/4edcd4b43e64bca6a1ac1856e8e57c4eabd0e0a8))
+
 ## [0.8.0-rc.1](https://github.com/inference-gateway/rust-sdk/compare/0.7.1-rc.3...0.8.0-rc.1) (2025-02-09)
 
 ### ✨ Features
