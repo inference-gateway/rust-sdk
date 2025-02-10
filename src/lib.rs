@@ -124,10 +124,11 @@ impl TryFrom<&str> for Provider {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum MessageRole {
     System,
+    #[default]
     User,
     Assistant,
     Tool,
@@ -145,7 +146,7 @@ impl fmt::Display for MessageRole {
 }
 
 /// A message in a conversation with an LLM
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Message {
     /// Role of the message sender ("system", "user" or "assistant")
     pub role: MessageRole,
@@ -606,7 +607,7 @@ mod tests {
         let message_without_tool = Message {
             role: MessageRole::User,
             content: "What's the weather?".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         };
 
         let serialized = serde_json::to_string(&message_without_tool).unwrap();
@@ -649,12 +650,12 @@ mod tests {
                 Message {
                     role: MessageRole::System,
                     content: "You are a helpful assistant.".to_string(),
-                    tool_call_id: None,
+                    ..Default::default()
                 },
                 Message {
                     role: MessageRole::User,
                     content: "What is the current weather in Toronto?".to_string(),
-                    tool_call_id: None,
+                    ..Default::default()
                 },
             ],
             stream: false,
@@ -862,7 +863,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
         let response = client
             .generate_content(Provider::Ollama, "llama2", messages)
@@ -909,7 +910,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
 
         let response = client
@@ -944,7 +945,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
         let error = client
             .generate_content(Provider::Groq, "mixtral-8x7b", messages)
@@ -1033,7 +1034,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
 
         let response = client
@@ -1071,7 +1072,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -1126,7 +1127,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -1198,7 +1199,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "What's the weather in London?".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
 
         let response = client
@@ -1248,7 +1249,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hi".to_string(),
-            tool_call_id: None,
+            ..Default::default()
         }];
 
         let response = client
@@ -1352,12 +1353,12 @@ mod tests {
             Message {
                 role: MessageRole::System,
                 content: "You are a helpful assistant.".to_string(),
-                tool_call_id: None,
+                ..Default::default()
             },
             Message {
                 role: MessageRole::User,
                 content: "What is the current weather in Toronto?".to_string(),
-                tool_call_id: None,
+                ..Default::default()
             },
         ];
 
