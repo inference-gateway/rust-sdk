@@ -317,7 +317,6 @@ pub trait InferenceGatewayAPI {
 
     /// Stream content generation directly using the backend SSE stream.
     ///
-    ///
     /// # Arguments
     /// * `provider` - The LLM provider to use
     /// * `model` - Name of the model
