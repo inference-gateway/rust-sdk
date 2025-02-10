@@ -275,18 +275,18 @@ let tools = vec![
         },
     },
 ];
-let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+let resp = client.with_tools(Some(tools)).generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
 Message {
     role: MessageRole::System,
-    content: "You are an helpful assistent.".to_string()
-    tool_call_id: None
+    content: "You are an helpful assistent.".to_string(),
+    ..Default::default()
 },
 Message {
     role: MessageRole::User,
-    content: "What is the current weather in Berlin?".to_string()
-    tool_call_id: None
+    content: "What is the current weather in Berlin?".to_string(),
+    ..Default::default()
 }
-], Some(tools)).await?;
+]).await?;
 
 for tool_call in resp.response.tool_calls {
     log::info!("Tool Call Requested by the LLM: {:?}", tool_call);
