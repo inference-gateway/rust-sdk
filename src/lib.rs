@@ -1347,7 +1347,7 @@ mod tests {
                 }),
             },
         }];
-        let client = InferenceGatewayClient::new(&server.url()).with_tools(Some(tools));
+        let client = InferenceGatewayClient::new(&server.url());
 
         let messages = vec![
             Message {
@@ -1363,6 +1363,7 @@ mod tests {
         ];
 
         let response = client
+            .with_tools(Some(tools))
             .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", messages)
             .await?;
 
