@@ -124,10 +124,11 @@ impl TryFrom<&str> for Provider {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum MessageRole {
     System,
+    #[default]
     User,
     Assistant,
     Tool,
@@ -145,12 +146,15 @@ impl fmt::Display for MessageRole {
 }
 
 /// A message in a conversation with an LLM
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Message {
     /// Role of the message sender ("system", "user" or "assistant")
     pub role: MessageRole,
     /// Content of the message
     pub content: String,
+    /// Unique identifier of the tool call
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_call_id: Option<String>,
 }
 
 /// Tool to use for generation
@@ -163,6 +167,7 @@ pub struct ToolCall {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ToolFunction {
     pub name: String,
+    pub description: String,
     pub parameters: Value,
 }
 
@@ -173,55 +178,11 @@ pub enum ToolType {
     Function,
 }
 
-/// JSON Schema parameter types for tools
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum ToolParameterType {
-    String,
-    Number,
-    Integer,
-    Boolean,
-    Array,
-    Object,
-    Null,
-}
-
-impl Default for ToolParameterType {
-    fn default() -> Self {
-        Self::String
-    }
-}
-
-impl std::fmt::Display for ToolParameterType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::String => write!(f, "string"),
-            Self::Number => write!(f, "number"),
-            Self::Integer => write!(f, "integer"),
-            Self::Boolean => write!(f, "boolean"),
-            Self::Array => write!(f, "array"),
-            Self::Object => write!(f, "object"),
-            Self::Null => write!(f, "null"),
-        }
-    }
-}
-
 /// Tool to use for the LLM toolbox
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Tool {
     pub r#type: ToolType,
-    pub name: String,
-    pub description: String,
-    pub parameters: Vec<ToolParameter>,
-}
-
-/// Parameters for a tool
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ToolParameter {
-    pub name: String,
-    pub r#type: ToolParameterType,
-    pub default: Option<String>,
-    pub description: String,
+    pub function: ToolFunction,
 }
 
 /// Request payload for generating content
@@ -239,20 +200,24 @@ struct GenerateRequest {
     tools: Option<Vec<Tool>>,
 }
 
-/// A tool call in the response
-#[derive(Debug, Deserialize, Clone)]
-pub struct ToolCallResponse {
-    /// Function that was called
-    pub function: ToolFunctionResponse,
-}
-
 /// Function details in a tool call response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ToolFunctionResponse {
-    /// Name of the function that was called
+    /// Name of the function that the LLM wants to call
     pub name: String,
-    /// Parameters passed to the function
-    pub parameters: Value,
+    /// The arguments that the LLM wants to pass to the function
+    pub arguments: Value,
+}
+
+/// A tool call in the response
+#[derive(Debug, Deserialize, Clone)]
+pub struct ToolCallResponse {
+    /// Unique identifier of the tool call
+    pub id: String,
+    /// Type of tool that was called
+    pub r#type: ToolType,
+    /// Function that the LLM wants to call
+    pub function: ToolFunctionResponse,
 }
 
 /// The content of the response
@@ -282,6 +247,7 @@ pub struct InferenceGatewayClient {
     base_url: String,
     client: Client,
     token: Option<String>,
+    tools: Option<Vec<Tool>>,
 }
 
 /// Implement Debug for InferenceGatewayClient
@@ -302,6 +268,10 @@ pub trait InferenceGatewayAPI {
     /// - Returns [`GatewayError::Unauthorized`] if authentication fails
     /// - Returns [`GatewayError::BadRequest`] if the request is malformed
     /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// A list of models available from all providers
     fn list_models(&self)
         -> impl Future<Output = Result<Vec<ProviderModels>, GatewayError>> + Send;
 
@@ -314,6 +284,10 @@ pub trait InferenceGatewayAPI {
     /// - Returns [`GatewayError::Unauthorized`] if authentication fails
     /// - Returns [`GatewayError::BadRequest`] if the request is malformed
     /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// A list of models available from the specified provider
     fn list_models_by_provider(
         &self,
         provider: Provider,
@@ -326,14 +300,31 @@ pub trait InferenceGatewayAPI {
     /// * `model` - Name of the model
     /// * `messages` - Conversation history and prompt
     /// * `tools` - Optional tools to use for generation
+    ///
+    /// # Errors
+    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
+    /// - Returns [`GatewayError::BadRequest`] if the request is malformed
+    /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// The generated response
     fn generate_content(
         &self,
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-        tools: Option<Vec<Tool>>,
     ) -> impl Future<Output = Result<GenerateResponse, GatewayError>> + Send;
 
+    /// Stream content generation directly using the backend SSE stream.
+    ///
+    /// # Arguments
+    /// * `provider` - The LLM provider to use
+    /// * `model` - Name of the model
+    /// * `messages` - Conversation history and prompt
+    ///
+    /// # Returns
+    /// A stream of Server-Sent Events (SSE) from the Inference Gateway API
     fn generate_content_stream(
         &self,
         provider: Provider,
@@ -355,13 +346,29 @@ impl InferenceGatewayClient {
             base_url: base_url.to_string(),
             client: Client::new(),
             token: None,
+            tools: None,
         }
+    }
+
+    /// Provides tools to use for generation
+    ///
+    /// # Arguments
+    /// * `tools` - List of tools to use for generation
+    ///
+    /// # Returns
+    /// Self with the tools set
+    pub fn with_tools(mut self, tools: Option<Vec<Tool>>) -> Self {
+        self.tools = tools;
+        self
     }
 
     /// Sets an authentication token for the client
     ///
     /// # Arguments
     /// * `token` - JWT token for authentication
+    ///
+    /// # Returns
+    /// Self with the token set
     pub fn with_token(mut self, token: impl Into<String>) -> Self {
         self.token = Some(token.into());
         self
@@ -435,7 +442,6 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-        tools: Option<Vec<Tool>>,
     ) -> Result<GenerateResponse, GatewayError> {
         let url = format!("{}/llms/{}/generate", self.base_url, provider);
         let mut request = self.client.post(&url);
@@ -448,7 +454,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             messages,
             stream: false,
             ssevents: false,
-            tools,
+            tools: self.tools.clone(),
         };
 
         let response = request.json(&request_payload).send().await?;
@@ -541,9 +547,13 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use futures_util::pin_mut;
+    use crate::{
+        GatewayError, GenerateRequest, GenerateResponse, InferenceGatewayAPI,
+        InferenceGatewayClient, Message, MessageRole, Provider, Tool, ToolFunction, ToolType,
+    };
+    use futures_util::{pin_mut, StreamExt};
     use mockito::{Matcher, Server};
+    use serde_json::json;
 
     #[test]
     fn test_provider_serialization() {
@@ -582,6 +592,40 @@ mod tests {
     }
 
     #[test]
+    fn test_message_serialization_with_tool_call_id() {
+        let message_with_tool = Message {
+            role: MessageRole::Tool,
+            content: "The weather is sunny".to_string(),
+            tool_call_id: Some("call_123".to_string()),
+        };
+
+        let serialized = serde_json::to_string(&message_with_tool).unwrap();
+        let expected_with_tool =
+            r#"{"role":"tool","content":"The weather is sunny","tool_call_id":"call_123"}"#;
+        assert_eq!(serialized, expected_with_tool);
+
+        let message_without_tool = Message {
+            role: MessageRole::User,
+            content: "What's the weather?".to_string(),
+            ..Default::default()
+        };
+
+        let serialized = serde_json::to_string(&message_without_tool).unwrap();
+        let expected_without_tool = r#"{"role":"user","content":"What's the weather?"}"#;
+        assert_eq!(serialized, expected_without_tool);
+
+        let deserialized: Message = serde_json::from_str(expected_with_tool).unwrap();
+        assert_eq!(deserialized.role, MessageRole::Tool);
+        assert_eq!(deserialized.content, "The weather is sunny");
+        assert_eq!(deserialized.tool_call_id, Some("call_123".to_string()));
+
+        let deserialized: Message = serde_json::from_str(expected_without_tool).unwrap();
+        assert_eq!(deserialized.role, MessageRole::User);
+        assert_eq!(deserialized.content, "What's the weather?");
+        assert_eq!(deserialized.tool_call_id, None);
+    }
+
+    #[test]
     fn test_provider_display() {
         let providers = vec![
             (Provider::Ollama, "ollama"),
@@ -598,11 +642,89 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_generate_request_serialization() {
+        let request_payload = GenerateRequest {
+            model: "llama3.2:1b".to_string(),
+            messages: vec![
+                Message {
+                    role: MessageRole::System,
+                    content: "You are a helpful assistant.".to_string(),
+                    ..Default::default()
+                },
+                Message {
+                    role: MessageRole::User,
+                    content: "What is the current weather in Toronto?".to_string(),
+                    ..Default::default()
+                },
+            ],
+            stream: false,
+            ssevents: false,
+            tools: Some(vec![Tool {
+                r#type: ToolType::Function,
+                function: ToolFunction {
+                    name: "get_current_weather".to_string(),
+                    description: "Get the current weather of a city".to_string(),
+                    parameters: json!({
+                        "type": "object",
+                        "properties": {
+                            "city": {
+                                "type": "string",
+                                "description": "The name of the city"
+                            }
+                        },
+                        "required": ["city"]
+                    }),
+                },
+            }]),
+        };
+
+        let serialized = serde_json::to_string_pretty(&request_payload).unwrap();
+        let expected = r#"{
+      "model": "llama3.2:1b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a helpful assistant."
+        },
+        {
+          "role": "user",
+          "content": "What is the current weather in Toronto?"
+        }
+      ],
+      "stream": false,
+      "ssevents": false,
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_current_weather",
+            "description": "Get the current weather of a city",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string",
+                  "description": "The name of the city"
+                }
+              },
+              "required": ["city"]
+            }
+          }
+        }
+      ]
+    }"#;
+
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&serialized).unwrap(),
+            serde_json::from_str::<serde_json::Value>(expected).unwrap()
+        );
+    }
+
     #[tokio::test]
     async fn test_authentication_header() -> Result<(), GatewayError> {
         let mut server = Server::new_async().await;
 
-        // Test with token
         let mock_with_auth = server
             .mock("GET", "/llms")
             .match_header("authorization", "Bearer test-token")
@@ -616,7 +738,6 @@ mod tests {
         client.list_models().await?;
         mock_with_auth.assert();
 
-        // Test without token
         let mock_without_auth = server
             .mock("GET", "/llms")
             .match_header("authorization", Matcher::Missing)
@@ -742,9 +863,10 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            ..Default::default()
         }];
         let response = client
-            .generate_content(Provider::Ollama, "llama2", messages, None)
+            .generate_content(Provider::Ollama, "llama2", messages)
             .await?;
 
         assert_eq!(response.provider, Provider::Ollama);
@@ -760,7 +882,6 @@ mod tests {
     async fn test_generate_content_serialization() -> Result<(), GatewayError> {
         let mut server = Server::new_async().await;
 
-        // Raw JSON response from API for debugging
         let raw_json = r#"{
         "provider": "groq",
         "response": {
@@ -770,7 +891,6 @@ mod tests {
         }
         }"#;
 
-        // Create mock with exact JSON structure
         let mock = server
             .mock("POST", "/llms/groq/generate")
             .with_status(200)
@@ -780,7 +900,6 @@ mod tests {
 
         let client = InferenceGatewayClient::new(&server.url());
 
-        // Test direct JSON deserialization first
         let direct_parse: Result<GenerateResponse, _> = serde_json::from_str(raw_json);
         assert!(
             direct_parse.is_ok(),
@@ -788,17 +907,16 @@ mod tests {
             direct_parse.err()
         );
 
-        // Test through client
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            ..Default::default()
         }];
 
         let response = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await?;
 
-        // Verify structure matches
         assert_eq!(response.provider, Provider::Groq);
         assert_eq!(response.response.role, MessageRole::Assistant);
         assert_eq!(response.response.model, "mixtral-8x7b");
@@ -827,9 +945,10 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            ..Default::default()
         }];
         let error = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await
             .unwrap_err();
 
@@ -846,7 +965,6 @@ mod tests {
     async fn test_gateway_errors() -> Result<(), GatewayError> {
         let mut server: mockito::ServerGuard = Server::new_async().await;
 
-        // Test unauthorized error
         let unauthorized_mock = server
             .mock("GET", "/llms")
             .with_status(401)
@@ -861,7 +979,6 @@ mod tests {
         }
         unauthorized_mock.assert();
 
-        // Test bad request error
         let bad_request_mock = server
             .mock("GET", "/llms")
             .with_status(400)
@@ -875,7 +992,6 @@ mod tests {
         }
         bad_request_mock.assert();
 
-        // Test internal server error
         let internal_error_mock = server
             .mock("GET", "/llms")
             .with_status(500)
@@ -918,10 +1034,11 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
+            ..Default::default()
         }];
 
         let response = client
-            .generate_content(Provider::Groq, "mixtral-8x7b", messages, None)
+            .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await?;
 
         assert_eq!(response.provider, Provider::Groq);
@@ -955,6 +1072,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
+            ..Default::default()
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -1009,6 +1127,7 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
+            ..Default::default()
         }];
 
         let stream = client.generate_content_stream(Provider::Groq, "mixtral-8x7b", messages);
@@ -1038,9 +1157,11 @@ mod tests {
                 "content": "Let me check the weather for you.",
                 "tool_calls": [
                     {
+                        "id": "1234",
+                        "type": "function",
                         "function": {
                             "name": "get_weather",
-                            "parameters": {
+                            "arguments": {
                                 "location": "London"
                             }
                         }
@@ -1058,29 +1179,31 @@ mod tests {
 
         let tools = vec![Tool {
             r#type: ToolType::Function,
-            name: "get_weather".to_string(),
-            description: "Get the weather for a location".to_string(),
-            parameters: vec![ToolParameter {
-                name: "location".to_string(),
-                r#type: ToolParameterType::String,
-                default: None,
-                description: "The city name".to_string(),
-            }],
+            function: ToolFunction {
+                name: "get_weather".to_string(),
+                description: "Get the weather for a location".to_string(),
+                parameters: json!({
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "The city name"
+                        }
+                    },
+                    "required": ["location"]
+                }),
+            },
         }];
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let client = InferenceGatewayClient::new(&server.url()).with_tools(Some(tools));
         let messages = vec![Message {
             role: MessageRole::User,
             content: "What's the weather in London?".to_string(),
+            ..Default::default()
         }];
 
         let response = client
-            .generate_content(
-                Provider::Groq,
-                "deepseek-r1-distill-llama-70b",
-                messages,
-                Some(tools),
-            )
+            .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", messages)
             .await?;
 
         assert_eq!(response.provider, Provider::Groq);
@@ -1095,7 +1218,7 @@ mod tests {
         assert_eq!(tool_calls.len(), 1);
         assert_eq!(tool_calls[0].function.name, "get_weather");
 
-        let params = &tool_calls[0].function.parameters;
+        let params = &tool_calls[0].function.arguments;
         assert_eq!(params["location"], "London");
 
         mock.assert();
@@ -1126,14 +1249,131 @@ mod tests {
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hi".to_string(),
+            ..Default::default()
         }];
 
         let response = client
-            .generate_content(Provider::OpenAI, "gpt-4", messages, None)
+            .generate_content(Provider::OpenAI, "gpt-4", messages)
             .await?;
 
-        // Verify response has no tool calls
         assert!(response.response.tool_calls.is_none());
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_generate_content_with_tools_payload() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_json_response = r#"{
+            "provider": "groq",
+            "response": {
+                "role": "assistant",
+                "model": "deepseek-r1-distill-llama-70b",
+                "content": "Let me check the weather for you",
+                "tool_calls": [
+                    {
+                        "id": "1234",
+                        "type": "function",
+                        "function": {
+                            "name": "get_current_weather",
+                            "arguments": {
+                                "city": "Toronto"
+                            }
+                        }
+                    }
+                ]
+            }
+        }"#;
+
+        let raw_request_body = r#"{
+            "model": "deepseek-r1-distill-llama-70b",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                },
+                {
+                    "role": "user",
+                    "content": "What is the current weather in Toronto?"
+                }
+            ],
+            "stream": false,
+            "ssevents": false,
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_current_weather",
+                        "description": "Get the current weather of a city",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "city": {
+                                    "type": "string",
+                                    "description": "The name of the city"
+                                }
+                            },
+                            "required": ["city"]
+                        }
+                    }
+                }
+            ]
+        }"#;
+
+        let mock = server
+            .mock("POST", "/llms/groq/generate")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .match_body(mockito::Matcher::JsonString(raw_request_body.to_string()))
+            .with_body(raw_json_response)
+            .create();
+
+        let tools = vec![Tool {
+            r#type: ToolType::Function,
+            function: ToolFunction {
+                name: "get_current_weather".to_string(),
+                description: "Get the current weather of a city".to_string(),
+                parameters: json!({
+                    "type": "object",
+                    "properties": {
+                        "city": {
+                            "type": "string",
+                            "description": "The name of the city"
+                        }
+                    },
+                    "required": ["city"]
+                }),
+            },
+        }];
+        let client = InferenceGatewayClient::new(&server.url());
+
+        let messages = vec![
+            Message {
+                role: MessageRole::System,
+                content: "You are a helpful assistant.".to_string(),
+                ..Default::default()
+            },
+            Message {
+                role: MessageRole::User,
+                content: "What is the current weather in Toronto?".to_string(),
+                ..Default::default()
+            },
+        ];
+
+        let response = client
+            .with_tools(Some(tools))
+            .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", messages)
+            .await?;
+
+        assert_eq!(response.response.role, MessageRole::Assistant);
+        assert_eq!(response.response.model, "deepseek-r1-distill-llama-70b");
+        assert_eq!(
+            response.response.content,
+            "Let me check the weather for you"
+        );
+        assert_eq!(response.response.tool_calls.unwrap().len(), 1);
 
         mock.assert();
         Ok(())

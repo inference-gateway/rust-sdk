@@ -10,8 +10,8 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
-    - [Health Check](#health-check)
     - [Tool-Use](#tool-use)
+    - [Health Check](#health-check)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -193,10 +193,12 @@ use futures_util::{StreamExt, pin_mut};
         Message {
             role: MessageRole::System,
             content: system_message,
+            tool_call_id: None
         },
         Message {
             role: MessageRole::User,
             content: "Write a poem".to_string(),
+            tool_call_id: None
         },
     ];
     let client = InferenceGatewayClient::new("http://localhost:8080");
@@ -224,19 +226,6 @@ use futures_util::{StreamExt, pin_mut};
 // ...rest of the main function
 ```
 
-### Health Check
-
-To check if the Inference Gateway is running, use the `health_check` method:
-
-```rust
-// ...rest of the imports
-use log::info;
-
-// ...main function
-let is_healthy = client.health_check().await?;
-info!("API is healthy: {}", is_healthy);
-```
-
 ### Tool-Use
 
 You can pass to the generate_content function also tools, which will be available for the LLM to use:
@@ -250,33 +239,67 @@ use inference_gateway_sdk::{
     Provider,
     MessageRole,
     Tool,
-    ToolType,
-    ToolParameters,
-    ToolParameterType,
+    ToolFunction,
+    ToolType
 };
 
-let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
-Message{
-    role: MessageRole::System,
-    content: "You are an helpful assistent.".to_string()
-},
-Message{
-    role: MessageRole::User,
-    content: "What is the current weather in Berlin?".to_string()
-}
-], vec![
+let tools = vec![
     Tool {
         r#type: ToolType::Function,
-        name: "get_current_weather".to_string(),
-        description: "Get the weather for a location".to_string(),
-        parameters: ToolParameters {
-            name: "location".to_string(),
-            r#type: ToolParameterType::String,
-            default: None,
-            description: "The city name".to_string(),
+        function: ToolFunction {
+            name: "get_current_weather".to_string(),
+            description: "Get the weather for a location".to_string(),
+            parameters: json!({
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city name"
+                    }
+                },
+                "required": ["location"]
+            }),
         },
     },
+];
+let resp = client.with_tools(Some(tools)).generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+Message {
+    role: MessageRole::System,
+    content: "You are an helpful assistent.".to_string(),
+    ..Default::default()
+},
+Message {
+    role: MessageRole::User,
+    content: "What is the current weather in Berlin?".to_string(),
+    ..Default::default()
+}
 ]).await?;
+
+for tool_call in resp.response.tool_calls {
+    log::info!("Tool Call Requested by the LLM: {:?}", tool_call);
+    // Make the function call with the parameters requested by the LLM
+
+    let message = Message {
+        role: MessageRole::Tool,
+        content: "The content from the tool".to_string(),
+        tool_call_id: Some(tool_call.id) // the tool call id so the LLM can reference it
+    };
+
+    // Append this message to the next request
+}
+```
+
+### Health Check
+
+To check if the Inference Gateway is running, use the `health_check` method:
+
+```rust
+// ...rest of the imports
+use log::info;
+
+// ...main function
+let is_healthy = client.health_check().await?;
+info!("API is healthy: {}", is_healthy);
 ```
 
 ## Contributing
