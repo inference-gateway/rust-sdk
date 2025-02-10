@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0](https://github.com/inference-gateway/rust-sdk/compare/0.7.0...0.8.0) (2025-02-10)
+
+### ✨ Features
+
+* Tool-Use functions call ([#4](https://github.com/inference-gateway/rust-sdk/issues/4)) ([efd8e6b](https://github.com/inference-gateway/rust-sdk/commit/efd8e6b9c4d9bf99f776e3f26a8a627713757482)), closes [#3](https://github.com/inference-gateway/rust-sdk/issues/3)
+
+### ♻️ Improvements
+
+* Remove tool_calls from Message struct and update related tests ([265bdec](https://github.com/inference-gateway/rust-sdk/commit/265bdec49b9a4394cb78e0bf286f0c267a9a3b06))
+
+### 👷 CI
+
+* Improve the Release Process Allowing to have Release Candidates ([#3](https://github.com/inference-gateway/rust-sdk/issues/3)) ([b97e5da](https://github.com/inference-gateway/rust-sdk/commit/b97e5da228ccfa8719f0211a0a28fa344bf4954c))
+
+### 📚 Documentation
+
+* Remove unnecessary code block from README.md ([dcb7c26](https://github.com/inference-gateway/rust-sdk/commit/dcb7c26493be82790615b7434acbf3ddb13b4fc1))
+
 ## [0.8.0-rc.2](https://github.com/inference-gateway/rust-sdk/compare/0.8.0-rc.1...0.8.0-rc.2) (2025-02-10)
 
 ### ♻️ Improvements
