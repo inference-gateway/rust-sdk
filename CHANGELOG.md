@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0](https://github.com/inference-gateway/rust-sdk/compare/0.8.0...0.9.0) (2025-02-11)
+
+### ✨ Features
+
+* Add max_tokens option to generate_content ([#5](https://github.com/inference-gateway/rust-sdk/issues/5)) ([fc21cf2](https://github.com/inference-gateway/rust-sdk/commit/fc21cf234e694c8d27dd54bfdb169157cce21288))
+
 ## [0.8.0](https://github.com/inference-gateway/rust-sdk/compare/0.7.0...0.8.0) (2025-02-10)
 
 ### ✨ Features
