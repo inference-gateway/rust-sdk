@@ -412,6 +412,9 @@ components:
               - stream-end: Stream completion
 
               **Note:** Depending on the provider, some events may not be present.
+        max_tokens:
+          type: integer
+          description: Maximum number of tokens to generate
         tools:
           type: array
           items:
