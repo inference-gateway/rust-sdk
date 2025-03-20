@@ -880,7 +880,10 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json_response = r#"{
-            "provider":"ollama",
+            "id": "chatcmpl-456",
+            "object": "chat.completion",
+            "created": 1630000001,
+            "model": "mixtral-8x7b",
             "choices": [
                 {
                     "index": 0,
