@@ -183,13 +183,11 @@ pub struct Tool {
 
 /// Request payload for generating content
 #[derive(Debug, Serialize)]
-struct GenerateRequest {
+struct CreateChatCompletionRequest {
     /// Name of the model
     model: String,
     /// Conversation history and prompt
     messages: Vec<Message>,
-    /// Enable Server-Sent Events (SSE) streaming
-    ssevents: bool,
     /// Enable streaming of responses
     stream: bool,
     /// Optional tools to use for generation
@@ -483,11 +481,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             request = request.bearer_auth(token);
         }
 
-        let request_payload = GenerateRequest {
+        let request_payload = CreateChatCompletionRequest {
             model: model.to_string(),
             messages,
             stream: false,
-            ssevents: false,
             tools: self.tools.clone(),
             max_tokens: self.max_tokens,
         };
@@ -530,11 +527,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             provider.to_string().to_lowercase()
         );
 
-        let request = GenerateRequest {
+        let request = CreateChatCompletionRequest {
             model: model.to_string(),
             messages,
             stream: true,
-            ssevents: true,
             tools: None,
             max_tokens: None,
         };
@@ -584,7 +580,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 #[cfg(test)]
 mod tests {
     use crate::{
-        GatewayError, GenerateRequest, GenerateResponse, InferenceGatewayAPI,
+        CreateChatCompletionRequest, GatewayError, GenerateResponse, InferenceGatewayAPI,
         InferenceGatewayClient, Message, MessageRole, Provider, Tool, ToolFunction, ToolType,
     };
     use futures_util::{pin_mut, StreamExt};
@@ -677,7 +673,7 @@ mod tests {
 
     #[test]
     fn test_generate_request_serialization() {
-        let request_payload = GenerateRequest {
+        let request_payload = CreateChatCompletionRequest {
             model: "llama3.2:1b".to_string(),
             messages: vec![
                 Message {
@@ -692,7 +688,6 @@ mod tests {
                 },
             ],
             stream: false,
-            ssevents: false,
             tools: Some(vec![Tool {
                 r#type: ToolType::Function,
                 function: ToolFunction {
@@ -727,7 +722,6 @@ mod tests {
         }
       ],
       "stream": false,
-      "ssevents": false,
       "tools": [
         {
           "type": "function",
@@ -1354,7 +1348,6 @@ mod tests {
                 }
             ],
             "stream": false,
-            "ssevents": false,
             "tools": [
                 {
                     "type": "function",
@@ -1457,7 +1450,6 @@ mod tests {
                 "model": "mixtral-8x7b",
                 "messages": [{"role":"user","content":"Write a poem"}],
                 "stream": false,
-                "ssevents": false,
                 "max_tokens": 100
             }"#
                 .to_string(),
