@@ -927,12 +927,20 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json = r#"{
-        "provider": "groq",
-        "response": {
-            "role": "assistant",
+            "id": "chatcmpl-456",
+            "object": "chat.completion",
+            "created": 1630000001,
             "model": "mixtral-8x7b",
-            "content": "Hello"
-        }
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Hello"
+                    }
+                }
+            ]
         }"#;
 
         let mock = server
