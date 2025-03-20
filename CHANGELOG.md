@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1-rc.1](https://github.com/inference-gateway/rust-sdk/compare/0.9.0...0.9.1-rc.1) (2025-03-20)
+
+### ♻️ Improvements
+
+* Add streaming response structures for chat completion ([0dd7b56](https://github.com/inference-gateway/rust-sdk/commit/0dd7b5693f14d086acdacc7356b34caf73eb7035))
+* Download the OpenAPI spec ([7701059](https://github.com/inference-gateway/rust-sdk/commit/7701059e64ae6073e73803b1ddb4fbc93dc35417))
+* Remove Google provider from the Provider enum ([5a98051](https://github.com/inference-gateway/rust-sdk/commit/5a98051437c3cc6578b7de86ef937ae4736b7184))
+* Remove nullable fields from OpenAPI schema definitions ([461750f](https://github.com/inference-gateway/rust-sdk/commit/461750facb43b70a3112f867cb689711804ca560))
+* Rename default client method to new_default for clarity ([8735999](https://github.com/inference-gateway/rust-sdk/commit/87359996264e6d50a3ef078080794d3254ed9e06))
+* Rename GenerateRequest to CreateChatCompletionRequest and remove ssevents field ([52c4008](https://github.com/inference-gateway/rust-sdk/commit/52c40089ec6c59fce0c9748f8f1c985cd81e6fab))
+* Restructure response to be compatible with OpenAI ([88da800](https://github.com/inference-gateway/rust-sdk/commit/88da80062a23a272be04c54b2d81a667004ca066))
+* Start by implementing default and base_url ([1afdaac](https://github.com/inference-gateway/rust-sdk/commit/1afdaac83a7cccd8405db1eeddb387dc0822260e))
+* Update JSON response format to include new fields for chat completion ([38869a1](https://github.com/inference-gateway/rust-sdk/commit/38869a19293385f5c6660adb5c3b79afddf2b906))
+* Update JSON response structure with new fields for chat completion ([340c02c](https://github.com/inference-gateway/rust-sdk/commit/340c02c006aa397b0ce8e7b512b9bf9c6e244f8a))
+* Update tool call structures for chat completion and enhance argument parsing ([c867978](https://github.com/inference-gateway/rust-sdk/commit/c86797846676a266f477d906f1e9a9a2e12f41cd))
+
+### 🐛 Bug Fixes
+
+* Add output logging for version determination error in release workflow ([d49ba50](https://github.com/inference-gateway/rust-sdk/commit/d49ba50bd4111b28b722ae78657c6660909c0932))
+
 ## [0.9.0](https://github.com/inference-gateway/rust-sdk/compare/0.8.0...0.9.0) (2025-02-11)
 
 ### ✨ Features
