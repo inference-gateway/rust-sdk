@@ -150,7 +150,7 @@ pub struct Message {
     pub content: String,
     /// The tools an LLM wants to invoke
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<ToolCall>>,
+    pub tool_calls: Option<Vec<ChatCompletionMessageToolCall>>,
     /// Unique identifier of the tool call
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_call_id: Option<String>,
@@ -159,10 +159,40 @@ pub struct Message {
     pub reasoning: Option<String>,
 }
 
-/// Tool to use for generation
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ToolCall {
-    pub function: FunctionObject,
+/// A tool call in a message response
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ChatCompletionMessageToolCall {
+    /// Unique identifier of the tool call
+    pub id: String,
+    /// Type of the tool being called
+    #[serde(rename = "type")]
+    pub r#type: ChatCompletionToolType,
+    /// Function that was called
+    pub function: ChatCompletionMessageToolCallFunction,
+}
+
+/// Type of tool that can be called
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub enum ChatCompletionToolType {
+    /// Function tool type
+    #[serde(rename = "function")]
+    Function,
+}
+
+/// Function details in a tool call
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ChatCompletionMessageToolCallFunction {
+    /// Name of the function to call
+    pub name: String,
+    /// Arguments to the function in JSON string format
+    pub arguments: String,
+}
+
+// Add this helper method to make argument access more convenient
+impl ChatCompletionMessageToolCallFunction {
+    pub fn parse_arguments(&self) -> Result<serde_json::Value, serde_json::Error> {
+        serde_json::from_str(&self.arguments)
+    }
 }
 
 /// Tool function to call
@@ -209,6 +239,9 @@ struct CreateChatCompletionRequest {
 pub struct ToolFunctionResponse {
     /// Name of the function that the LLM wants to call
     pub name: String,
+    /// Description of the function
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     /// The arguments that the LLM wants to pass to the function
     pub arguments: Value,
 }
@@ -219,6 +252,7 @@ pub struct ToolCallResponse {
     /// Unique identifier of the tool call
     pub id: String,
     /// Type of tool that was called
+    #[serde(rename = "type")]
     pub r#type: ToolType,
     /// Function that the LLM wants to call
     pub function: ToolFunctionResponse,
@@ -1280,24 +1314,30 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json_response = r#"{
-            "provider": "groq",
-            "response": {
-                "role": "assistant",
-                "model": "deepseek-r1-distill-llama-70b",
-                "content": "Let me check the weather for you.",
-                "tool_calls": [
-                    {
-                        "id": "1234",
-                        "type": "function",
-                        "function": {
-                            "name": "get_weather",
-                            "arguments": {
-                                "location": "London"
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "created": 1630000000,
+            "model": "deepseek-r1-distill-llama-70b",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "tool_calls",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Let me check the weather for you.",
+                        "tool_calls": [
+                            {
+                                "id": "1234",
+                                "type": "function",
+                                "function": {
+                                    "name": "get_weather",
+                                    "arguments": "{\"location\": \"London\"}"
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
-            }
+                }
+            ]
         }"#;
 
         let mock = server
@@ -1348,8 +1388,11 @@ mod tests {
         assert_eq!(tool_calls.len(), 1);
         assert_eq!(tool_calls[0].function.name, "get_weather");
 
-        // let params = &tool_calls[0].function.arguments;
-        // assert_eq!(params["location"], "London");
+        let params = tool_calls[0]
+            .function
+            .parse_arguments()
+            .expect("Failed to parse function arguments");
+        assert_eq!(params["location"].as_str().unwrap(), "London");
 
         mock.assert();
         Ok(())
@@ -1461,15 +1504,12 @@ mod tests {
                                 "type": "function",
                                 "function": {
                                     "name": "get_current_weather",
-                                    "arguments": {
-                                        "city": "Toronto"
-                                    }
+                                    "arguments": "{\"city\": \"Toronto\"}"
                                 }
                             }
                         ]
-                    }    
+                    }
                 }
-            
             ]
         }"#;
 
