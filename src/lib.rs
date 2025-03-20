@@ -83,8 +83,6 @@ pub enum Provider {
     Groq,
     #[serde(alias = "OpenAI", alias = "OPENAI")]
     OpenAI,
-    #[serde(alias = "Google", alias = "GOOGLE")]
-    Google,
     #[serde(alias = "Cloudflare", alias = "CLOUDFLARE")]
     Cloudflare,
     #[serde(alias = "Cohere", alias = "COHERE")]
@@ -99,7 +97,6 @@ impl fmt::Display for Provider {
             Provider::Ollama => write!(f, "ollama"),
             Provider::Groq => write!(f, "groq"),
             Provider::OpenAI => write!(f, "openai"),
-            Provider::Google => write!(f, "google"),
             Provider::Cloudflare => write!(f, "cloudflare"),
             Provider::Cohere => write!(f, "cohere"),
             Provider::Anthropic => write!(f, "anthropic"),
@@ -115,7 +112,6 @@ impl TryFrom<&str> for Provider {
             "ollama" => Ok(Self::Ollama),
             "groq" => Ok(Self::Groq),
             "openai" => Ok(Self::OpenAI),
-            "google" => Ok(Self::Google),
             "cloudflare" => Ok(Self::Cloudflare),
             "cohere" => Ok(Self::Cohere),
             "anthropic" => Ok(Self::Anthropic),
@@ -601,7 +597,6 @@ mod tests {
             (Provider::Ollama, "ollama"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
-            (Provider::Google, "google"),
             (Provider::Cloudflare, "cloudflare"),
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
@@ -619,7 +614,6 @@ mod tests {
             ("\"ollama\"", Provider::Ollama),
             ("\"groq\"", Provider::Groq),
             ("\"openai\"", Provider::OpenAI),
-            ("\"google\"", Provider::Google),
             ("\"cloudflare\"", Provider::Cloudflare),
             ("\"cohere\"", Provider::Cohere),
             ("\"anthropic\"", Provider::Anthropic),
@@ -671,7 +665,6 @@ mod tests {
             (Provider::Ollama, "ollama"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
-            (Provider::Google, "google"),
             (Provider::Cloudflare, "cloudflare"),
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
