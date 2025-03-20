@@ -74,7 +74,7 @@ pub struct ProviderModels {
 }
 
 /// Supported LLM providers
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum Provider {
     #[serde(alias = "Ollama", alias = "OLLAMA")]
@@ -356,6 +356,26 @@ impl InferenceGatewayClient {
         }
     }
 
+    /// Creates a new client instance with default configuration
+    /// pointing to http://localhost:8080/v1
+    pub fn default() -> Self {
+        let base_url = std::env::var("INFERENCE_GATEWAY_URL")
+            .unwrap_or_else(|_| "http://localhost:8080/v1".to_string());
+
+        Self {
+            base_url: base_url,
+            client: Client::new(),
+            token: None,
+            tools: None,
+            max_tokens: None,
+        }
+    }
+
+    /// Returns the base URL this client is configured to use
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
     /// Provides tools to use for generation
     ///
     /// # Arguments
@@ -395,7 +415,7 @@ impl InferenceGatewayClient {
 
 impl InferenceGatewayAPI for InferenceGatewayClient {
     async fn list_models(&self) -> Result<Vec<ProviderModels>, GatewayError> {
-        let url = format!("{}/llms", self.base_url);
+        let url = format!("{}/models", self.base_url);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
@@ -427,7 +447,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         &self,
         provider: Provider,
     ) -> Result<ProviderModels, GatewayError> {
-        let url = format!("{}/llms/{}", self.base_url, provider);
+        let url = format!("{}/list/models?provider={}", self.base_url, provider);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = self.client.get(&url).bearer_auth(token);
@@ -461,7 +481,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         model: &str,
         messages: Vec<Message>,
     ) -> Result<GenerateResponse, GatewayError> {
-        let url = format!("{}/llms/{}/generate", self.base_url, provider);
+        let url = format!("{}/chat/completions?provider={}", self.base_url, provider);
         let mut request = self.client.post(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
@@ -509,7 +529,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         let client = self.client.clone();
         let base_url = self.base_url.clone();
         let url = format!(
-            "{}/llms/{}/generate",
+            "{}/chat/completions?provider={}",
             base_url,
             provider.to_string().to_lowercase()
         );
@@ -747,7 +767,7 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let mock_with_auth = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .match_header("authorization", "Bearer test-token")
             .with_status(200)
             .with_header("content-type", "application/json")
@@ -755,12 +775,13 @@ mod tests {
             .expect(1)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url()).with_token("test-token");
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url).with_token("test-token");
         client.list_models().await?;
         mock_with_auth.assert();
 
         let mock_without_auth = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .match_header("authorization", Matcher::Missing)
             .with_status(200)
             .with_header("content-type", "application/json")
@@ -768,7 +789,8 @@ mod tests {
             .expect(1)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         client.list_models().await?;
         mock_without_auth.assert();
 
@@ -784,13 +806,14 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(401)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         let error = client.list_models().await.unwrap_err();
 
         assert!(matches!(error, GatewayError::Unauthorized(_)));
@@ -816,13 +839,14 @@ mod tests {
         ]"#;
 
         let mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_response_json)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         let models = client.list_models().await?;
 
         assert_eq!(models.len(), 1);
@@ -844,13 +868,14 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("GET", "/llms/ollama")
+            .mock("GET", "/v1/list/models?provider=ollama")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         let models = client.list_models_by_provider(Provider::Ollama).await?;
 
         assert_eq!(models.provider, Provider::Ollama);
@@ -874,13 +899,15 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/ollama/generate")
+            .mock("POST", "/v1/chat/completions?provider=ollama")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
@@ -913,13 +940,14 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
 
         let direct_parse: Result<GenerateResponse, _> = serde_json::from_str(raw_json);
         assert!(
@@ -956,13 +984,14 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(400)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
@@ -987,13 +1016,14 @@ mod tests {
         let mut server: mockito::ServerGuard = Server::new_async().await;
 
         let unauthorized_mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(401)
             .with_header("content-type", "application/json")
             .with_body(r#"{"error":"Invalid token"}"#)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         match client.list_models().await {
             Err(GatewayError::Unauthorized(msg)) => assert_eq!(msg, "Invalid token"),
             _ => panic!("Expected Unauthorized error"),
@@ -1001,7 +1031,7 @@ mod tests {
         unauthorized_mock.assert();
 
         let bad_request_mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(400)
             .with_header("content-type", "application/json")
             .with_body(r#"{"error":"Invalid provider"}"#)
@@ -1014,7 +1044,7 @@ mod tests {
         bad_request_mock.assert();
 
         let internal_error_mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(500)
             .with_header("content-type", "application/json")
             .with_body(r#"{"error":"Internal server error occurred"}"#)
@@ -1045,13 +1075,15 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
@@ -1074,7 +1106,7 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "text/event-stream")
             .with_chunked_body(move |writer| -> std::io::Result<()> {
@@ -1089,7 +1121,9 @@ mod tests {
             })
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
@@ -1128,7 +1162,7 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(400)
             .with_header("content-type", "application/json")
             .with_chunked_body(move |writer| -> std::io::Result<()> {
@@ -1144,7 +1178,9 @@ mod tests {
             .expect_at_least(1)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
@@ -1192,7 +1228,7 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
@@ -1216,7 +1252,9 @@ mod tests {
             },
         }];
 
-        let client = InferenceGatewayClient::new(&server.url()).with_tools(Some(tools));
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url).with_tools(Some(tools));
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "What's the weather in London?".to_string(),
@@ -1260,13 +1298,15 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/openai/generate")
+            .mock("POST", "/v1/chat/completions?provider=openai")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hi".to_string(),
@@ -1344,7 +1384,7 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .match_body(mockito::Matcher::JsonString(raw_request_body.to_string()))
@@ -1368,7 +1408,9 @@ mod tests {
                 }),
             },
         }];
-        let client = InferenceGatewayClient::new(&server.url());
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
 
         let messages = vec![
             Message {
@@ -1414,7 +1456,7 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .match_body(mockito::Matcher::JsonString(
@@ -1430,7 +1472,8 @@ mod tests {
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url()).with_max_tokens(Some(100));
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url).with_max_tokens(Some(100));
 
         let messages = vec![Message {
             role: MessageRole::User,
@@ -1462,6 +1505,28 @@ mod tests {
 
         assert!(is_healthy);
         mock.assert();
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_client_base_url_configuration() -> Result<(), GatewayError> {
+        let mut custom_url_server = Server::new_async().await;
+
+        let custom_url_mock = custom_url_server
+            .mock("GET", "/health")
+            .with_status(200)
+            .create();
+
+        let custom_client = InferenceGatewayClient::new(&custom_url_server.url());
+        let is_healthy = custom_client.health_check().await?;
+        assert!(is_healthy);
+        custom_url_mock.assert();
+
+        let default_client = InferenceGatewayClient::default();
+
+        let default_url = "http://localhost:8080/v1";
+        assert_eq!(default_client.base_url(), default_url);
 
         Ok(())
     }
