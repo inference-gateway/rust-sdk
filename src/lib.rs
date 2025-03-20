@@ -445,12 +445,12 @@ impl InferenceGatewayClient {
 
     /// Creates a new client instance with default configuration
     /// pointing to http://localhost:8080/v1
-    pub fn default() -> Self {
+    pub fn new_default() -> Self {
         let base_url = std::env::var("INFERENCE_GATEWAY_URL")
             .unwrap_or_else(|_| "http://localhost:8080/v1".to_string());
 
         Self {
-            base_url: base_url,
+            base_url,
             client: Client::new(),
             token: None,
             tools: None,
@@ -1669,7 +1669,7 @@ mod tests {
         assert!(is_healthy);
         custom_url_mock.assert();
 
-        let default_client = InferenceGatewayClient::default();
+        let default_client = InferenceGatewayClient::new_default();
 
         let default_url = "http://localhost:8080/v1";
         assert_eq!(default_client.base_url(), default_url);
