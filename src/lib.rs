@@ -241,6 +241,64 @@ pub struct CreateChatCompletionResponse {
     pub object: String,
 }
 
+/// The response from streaming content generation
+#[derive(Debug, Deserialize, Clone)]
+pub struct CreateChatCompletionStreamResponse {
+    /// A unique identifier for the chat completion. Each chunk has the same ID.
+    pub id: String,
+    /// A list of chat completion choices. Can contain more than one element if `n` is greater than 1.
+    pub choices: Vec<ChatCompletionStreamChoice>,
+    /// The Unix timestamp (in seconds) of when the chat completion was created.
+    pub created: i64,
+    /// The model used to generate the completion.
+    pub model: String,
+    /// This fingerprint represents the backend configuration that the model runs with.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_fingerprint: Option<String>,
+    /// The object type, which is always "chat.completion.chunk".
+    pub object: String,
+    /// Usage statistics for the completion request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<CompletionUsage>,
+}
+
+/// Choice in a streaming completion response
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChatCompletionStreamChoice {
+    /// The delta content for this streaming chunk
+    pub delta: ChatCompletionStreamDelta,
+    /// Index of the choice in the choices array
+    pub index: i32,
+    /// The reason the model stopped generating tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub finish_reason: Option<String>,
+}
+
+/// Delta content for streaming responses
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChatCompletionStreamDelta {
+    /// Role of the message sender
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<MessageRole>,
+    /// Content of the message delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    /// Tool calls for this delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<ToolCallResponse>>,
+}
+
+/// Usage statistics for the completion request
+#[derive(Debug, Deserialize, Clone)]
+pub struct CompletionUsage {
+    /// Number of tokens in the generated completion
+    pub completion_tokens: i64,
+    /// Number of tokens in the prompt
+    pub prompt_tokens: i64,
+    /// Total number of tokens used in the request (prompt + completion)
+    pub total_tokens: i64,
+}
+
 /// Client for interacting with the Inference Gateway API
 pub struct InferenceGatewayClient {
     base_url: String,
@@ -581,9 +639,9 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 #[cfg(test)]
 mod tests {
     use crate::{
-        CreateChatCompletionRequest, CreateChatCompletionResponse, FunctionObject, GatewayError,
-        InferenceGatewayAPI, InferenceGatewayClient, Message, MessageRole, Provider, Tool,
-        ToolType,
+        CreateChatCompletionRequest, CreateChatCompletionResponse,
+        CreateChatCompletionStreamResponse, FunctionObject, GatewayError, InferenceGatewayAPI,
+        InferenceGatewayClient, Message, MessageRole, Provider, Tool, ToolType,
     };
     use futures_util::{pin_mut, StreamExt};
     use mockito::{Matcher, Server};
@@ -1123,8 +1181,10 @@ mod tests {
             .with_header("content-type", "text/event-stream")
             .with_chunked_body(move |writer| -> std::io::Result<()> {
                 let events = vec![
-                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"Hello"}}"#),
-                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"World"}}"#),
+                    format!("data: {}\n\n", r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"mixtral-8x7b","system_fingerprint":"fp_","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":null}]}"#),
+                    format!("data: {}\n\n", r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268191,"model":"mixtral-8x7b","system_fingerprint":"fp_","choices":[{"index":0,"delta":{"role":"assistant","content":" World"},"finish_reason":null}]}"#),
+                    format!("data: {}\n\n", r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268192,"model":"mixtral-8x7b","system_fingerprint":"fp_","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":17,"completion_tokens":40,"total_tokens":57}}"#),
+                    format!("data: [DONE]\n\n")
                 ];
                 for event in events {
                     writer.write_all(event.as_bytes())?;
@@ -1146,19 +1206,24 @@ mod tests {
         pin_mut!(stream);
         while let Some(result) = stream.next().await {
             let result = result?;
-            let generate_response: CreateChatCompletionResponse =
+            let generate_response: CreateChatCompletionStreamResponse =
                 serde_json::from_str(&result.data)
                     .expect("Failed to parse CreateChatCompletionResponse");
 
-            assert_eq!(result.event, Some("message".to_string()));
-            assert!(matches!(
-                generate_response.choices[0].message.role,
-                MessageRole::Assistant
-            ));
-            assert!(matches!(
-                generate_response.choices[0].message.content.as_str(),
-                "Hello" | "World"
-            ));
+            if generate_response.choices[0].finish_reason.is_some() {
+                assert_eq!(
+                    generate_response.choices[0].finish_reason.as_ref().unwrap(),
+                    "stop"
+                );
+                break;
+            }
+
+            if let Some(content) = &generate_response.choices[0].delta.content {
+                assert!(matches!(content.as_str(), "Hello" | " World"));
+            }
+            if let Some(role) = &generate_response.choices[0].delta.role {
+                assert_eq!(role, &MessageRole::Assistant);
+            }
         }
 
         mock.assert();
