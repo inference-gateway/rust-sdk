@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.2](https://github.com/inference-gateway/rust-sdk/compare/0.9.1...0.9.2) (2025-03-21)
+
+### 📚 Documentation
+
+* **fix:** Update InferenceGatewayClient URL to include version path ([8dadd0f](https://github.com/inference-gateway/rust-sdk/commit/8dadd0f5be92168fc2dcf3ef8d0f04b9893a4611))
+
 ## [0.9.1](https://github.com/inference-gateway/rust-sdk/compare/0.9.0...0.9.1) (2025-03-21)
 
 ### ♻️ Improvements
