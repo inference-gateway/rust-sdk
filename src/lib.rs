@@ -57,24 +57,35 @@ struct ErrorResponse {
     error: String,
 }
 
-/// Represents a model available through a provider
-#[derive(Debug, Serialize, Deserialize)]
+/// Common model information
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Model {
-    /// Unique identifier of the model
-    pub name: String,
+    /// The model identifier
+    pub id: String,
+    /// The object type, usually "model"
+    pub object: Option<String>,
+    /// The Unix timestamp (in seconds) of when the model was created
+    pub created: Option<i64>,
+    /// The organization that owns the model
+    pub owned_by: Option<String>,
+    /// The provider that serves the model
+    pub served_by: Option<String>,
 }
 
-/// Collection of models available from a specific provider
+/// Response structure for listing models
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProviderModels {
-    /// The LLM provider
-    pub provider: Provider,
+pub struct ListModelsResponse {
+    /// The provider identifier
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provider: Option<Provider>,
+    /// Response object type, usually "list"
+    pub object: String,
     /// List of available models
-    pub models: Vec<Model>,
+    pub data: Vec<Model>,
 }
 
 /// Supported LLM providers
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum Provider {
     #[serde(alias = "Ollama", alias = "OLLAMA")]
@@ -83,8 +94,6 @@ pub enum Provider {
     Groq,
     #[serde(alias = "OpenAI", alias = "OPENAI")]
     OpenAI,
-    #[serde(alias = "Google", alias = "GOOGLE")]
-    Google,
     #[serde(alias = "Cloudflare", alias = "CLOUDFLARE")]
     Cloudflare,
     #[serde(alias = "Cohere", alias = "COHERE")]
@@ -99,7 +108,6 @@ impl fmt::Display for Provider {
             Provider::Ollama => write!(f, "ollama"),
             Provider::Groq => write!(f, "groq"),
             Provider::OpenAI => write!(f, "openai"),
-            Provider::Google => write!(f, "google"),
             Provider::Cloudflare => write!(f, "cloudflare"),
             Provider::Cohere => write!(f, "cohere"),
             Provider::Anthropic => write!(f, "anthropic"),
@@ -115,7 +123,6 @@ impl TryFrom<&str> for Provider {
             "ollama" => Ok(Self::Ollama),
             "groq" => Ok(Self::Groq),
             "openai" => Ok(Self::OpenAI),
-            "google" => Ok(Self::Google),
             "cloudflare" => Ok(Self::Cloudflare),
             "cohere" => Ok(Self::Cohere),
             "anthropic" => Ok(Self::Anthropic),
@@ -148,24 +155,60 @@ impl fmt::Display for MessageRole {
 /// A message in a conversation with an LLM
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Message {
-    /// Role of the message sender ("system", "user" or "assistant")
+    /// Role of the message sender ("system", "user", "assistant" or "tool")
     pub role: MessageRole,
     /// Content of the message
     pub content: String,
+    /// The tools an LLM wants to invoke
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<ChatCompletionMessageToolCall>>,
     /// Unique identifier of the tool call
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_call_id: Option<String>,
+    /// Reasoning behind the message
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<String>,
 }
 
-/// Tool to use for generation
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ToolCall {
-    pub function: ToolFunction,
+/// A tool call in a message response
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ChatCompletionMessageToolCall {
+    /// Unique identifier of the tool call
+    pub id: String,
+    /// Type of the tool being called
+    #[serde(rename = "type")]
+    pub r#type: ChatCompletionToolType,
+    /// Function that was called
+    pub function: ChatCompletionMessageToolCallFunction,
+}
+
+/// Type of tool that can be called
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub enum ChatCompletionToolType {
+    /// Function tool type
+    #[serde(rename = "function")]
+    Function,
+}
+
+/// Function details in a tool call
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ChatCompletionMessageToolCallFunction {
+    /// Name of the function to call
+    pub name: String,
+    /// Arguments to the function in JSON string format
+    pub arguments: String,
+}
+
+// Add this helper method to make argument access more convenient
+impl ChatCompletionMessageToolCallFunction {
+    pub fn parse_arguments(&self) -> Result<serde_json::Value, serde_json::Error> {
+        serde_json::from_str(&self.arguments)
+    }
 }
 
 /// Tool function to call
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ToolFunction {
+pub struct FunctionObject {
     pub name: String,
     pub description: String,
     pub parameters: Value,
@@ -182,18 +225,16 @@ pub enum ToolType {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Tool {
     pub r#type: ToolType,
-    pub function: ToolFunction,
+    pub function: FunctionObject,
 }
 
 /// Request payload for generating content
 #[derive(Debug, Serialize)]
-struct GenerateRequest {
+struct CreateChatCompletionRequest {
     /// Name of the model
     model: String,
     /// Conversation history and prompt
     messages: Vec<Message>,
-    /// Enable Server-Sent Events (SSE) streaming
-    ssevents: bool,
     /// Enable streaming of responses
     stream: bool,
     /// Optional tools to use for generation
@@ -204,46 +245,91 @@ struct GenerateRequest {
     max_tokens: Option<i32>,
 }
 
-/// Function details in a tool call response
-#[derive(Debug, Deserialize, Clone)]
-pub struct ToolFunctionResponse {
-    /// Name of the function that the LLM wants to call
-    pub name: String,
-    /// The arguments that the LLM wants to pass to the function
-    pub arguments: Value,
-}
-
 /// A tool call in the response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ToolCallResponse {
     /// Unique identifier of the tool call
     pub id: String,
     /// Type of tool that was called
+    #[serde(rename = "type")]
     pub r#type: ToolType,
     /// Function that the LLM wants to call
-    pub function: ToolFunctionResponse,
+    pub function: ChatCompletionMessageToolCallFunction,
 }
 
-/// The content of the response
 #[derive(Debug, Deserialize, Clone)]
-pub struct ResponseContent {
-    /// Role of the responder (typically "assistant")
-    pub role: MessageRole,
-    /// Model that generated the response
-    pub model: String,
-    /// Generated content
-    pub content: String,
-    /// Tool calls made by the model
-    pub tool_calls: Option<Vec<ToolCallResponse>>,
+pub struct ChatCompletionChoice {
+    pub finish_reason: String,
+    pub message: Message,
+    pub index: i32,
 }
 
 /// The response from generating content
 #[derive(Debug, Deserialize, Clone)]
-pub struct GenerateResponse {
-    /// Provider that generated the response
-    pub provider: Provider,
-    /// Content of the response
-    pub response: ResponseContent,
+pub struct CreateChatCompletionResponse {
+    pub id: String,
+    pub choices: Vec<ChatCompletionChoice>,
+    pub created: i64,
+    pub model: String,
+    pub object: String,
+}
+
+/// The response from streaming content generation
+#[derive(Debug, Deserialize, Clone)]
+pub struct CreateChatCompletionStreamResponse {
+    /// A unique identifier for the chat completion. Each chunk has the same ID.
+    pub id: String,
+    /// A list of chat completion choices. Can contain more than one element if `n` is greater than 1.
+    pub choices: Vec<ChatCompletionStreamChoice>,
+    /// The Unix timestamp (in seconds) of when the chat completion was created.
+    pub created: i64,
+    /// The model used to generate the completion.
+    pub model: String,
+    /// This fingerprint represents the backend configuration that the model runs with.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_fingerprint: Option<String>,
+    /// The object type, which is always "chat.completion.chunk".
+    pub object: String,
+    /// Usage statistics for the completion request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<CompletionUsage>,
+}
+
+/// Choice in a streaming completion response
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChatCompletionStreamChoice {
+    /// The delta content for this streaming chunk
+    pub delta: ChatCompletionStreamDelta,
+    /// Index of the choice in the choices array
+    pub index: i32,
+    /// The reason the model stopped generating tokens
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub finish_reason: Option<String>,
+}
+
+/// Delta content for streaming responses
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChatCompletionStreamDelta {
+    /// Role of the message sender
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<MessageRole>,
+    /// Content of the message delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    /// Tool calls for this delta
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<ToolCallResponse>>,
+}
+
+/// Usage statistics for the completion request
+#[derive(Debug, Deserialize, Clone)]
+pub struct CompletionUsage {
+    /// Number of tokens in the generated completion
+    pub completion_tokens: i64,
+    /// Number of tokens in the prompt
+    pub prompt_tokens: i64,
+    /// Total number of tokens used in the request (prompt + completion)
+    pub total_tokens: i64,
 }
 
 /// Client for interacting with the Inference Gateway API
@@ -277,8 +363,7 @@ pub trait InferenceGatewayAPI {
     ///
     /// # Returns
     /// A list of models available from all providers
-    fn list_models(&self)
-        -> impl Future<Output = Result<Vec<ProviderModels>, GatewayError>> + Send;
+    fn list_models(&self) -> impl Future<Output = Result<ListModelsResponse, GatewayError>> + Send;
 
     /// Lists available models by a specific provider
     ///
@@ -296,7 +381,7 @@ pub trait InferenceGatewayAPI {
     fn list_models_by_provider(
         &self,
         provider: Provider,
-    ) -> impl Future<Output = Result<ProviderModels, GatewayError>> + Send;
+    ) -> impl Future<Output = Result<ListModelsResponse, GatewayError>> + Send;
 
     /// Generates content using a specified model
     ///
@@ -319,7 +404,7 @@ pub trait InferenceGatewayAPI {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-    ) -> impl Future<Output = Result<GenerateResponse, GatewayError>> + Send;
+    ) -> impl Future<Output = Result<CreateChatCompletionResponse, GatewayError>> + Send;
 
     /// Stream content generation directly using the backend SSE stream.
     ///
@@ -354,6 +439,26 @@ impl InferenceGatewayClient {
             tools: None,
             max_tokens: None,
         }
+    }
+
+    /// Creates a new client instance with default configuration
+    /// pointing to http://localhost:8080/v1
+    pub fn new_default() -> Self {
+        let base_url = std::env::var("INFERENCE_GATEWAY_URL")
+            .unwrap_or_else(|_| "http://localhost:8080/v1".to_string());
+
+        Self {
+            base_url,
+            client: Client::new(),
+            token: None,
+            tools: None,
+            max_tokens: None,
+        }
+    }
+
+    /// Returns the base URL this client is configured to use
+    pub fn base_url(&self) -> &str {
+        &self.base_url
     }
 
     /// Provides tools to use for generation
@@ -394,8 +499,8 @@ impl InferenceGatewayClient {
 }
 
 impl InferenceGatewayAPI for InferenceGatewayClient {
-    async fn list_models(&self) -> Result<Vec<ProviderModels>, GatewayError> {
-        let url = format!("{}/llms", self.base_url);
+    async fn list_models(&self) -> Result<ListModelsResponse, GatewayError> {
+        let url = format!("{}/models", self.base_url);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
@@ -403,7 +508,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 
         let response = request.send().await?;
         match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
+            StatusCode::OK => {
+                let json_response: ListModelsResponse = response.json().await?;
+                Ok(json_response)
+            }
             StatusCode::UNAUTHORIZED => {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::Unauthorized(error.error))
@@ -426,8 +534,8 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
     async fn list_models_by_provider(
         &self,
         provider: Provider,
-    ) -> Result<ProviderModels, GatewayError> {
-        let url = format!("{}/llms/{}", self.base_url, provider);
+    ) -> Result<ListModelsResponse, GatewayError> {
+        let url = format!("{}/models?provider={}", self.base_url, provider);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = self.client.get(&url).bearer_auth(token);
@@ -435,7 +543,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 
         let response = request.send().await?;
         match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
+            StatusCode::OK => {
+                let json_response: ListModelsResponse = response.json().await?;
+                Ok(json_response)
+            }
             StatusCode::UNAUTHORIZED => {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::Unauthorized(error.error))
@@ -460,18 +571,17 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
-    ) -> Result<GenerateResponse, GatewayError> {
-        let url = format!("{}/llms/{}/generate", self.base_url, provider);
+    ) -> Result<CreateChatCompletionResponse, GatewayError> {
+        let url = format!("{}/chat/completions?provider={}", self.base_url, provider);
         let mut request = self.client.post(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
         }
 
-        let request_payload = GenerateRequest {
+        let request_payload = CreateChatCompletionRequest {
             model: model.to_string(),
             messages,
             stream: false,
-            ssevents: false,
             tools: self.tools.clone(),
             max_tokens: self.max_tokens,
         };
@@ -509,16 +619,15 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         let client = self.client.clone();
         let base_url = self.base_url.clone();
         let url = format!(
-            "{}/llms/{}/generate",
+            "{}/chat/completions?provider={}",
             base_url,
             provider.to_string().to_lowercase()
         );
 
-        let request = GenerateRequest {
+        let request = CreateChatCompletionRequest {
             model: model.to_string(),
             messages,
             stream: true,
-            ssevents: true,
             tools: None,
             max_tokens: None,
         };
@@ -568,8 +677,9 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 #[cfg(test)]
 mod tests {
     use crate::{
-        GatewayError, GenerateRequest, GenerateResponse, InferenceGatewayAPI,
-        InferenceGatewayClient, Message, MessageRole, Provider, Tool, ToolFunction, ToolType,
+        CreateChatCompletionRequest, CreateChatCompletionResponse,
+        CreateChatCompletionStreamResponse, FunctionObject, GatewayError, InferenceGatewayAPI,
+        InferenceGatewayClient, Message, MessageRole, Provider, Tool, ToolType,
     };
     use futures_util::{pin_mut, StreamExt};
     use mockito::{Matcher, Server};
@@ -581,7 +691,6 @@ mod tests {
             (Provider::Ollama, "ollama"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
-            (Provider::Google, "google"),
             (Provider::Cloudflare, "cloudflare"),
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
@@ -599,7 +708,6 @@ mod tests {
             ("\"ollama\"", Provider::Ollama),
             ("\"groq\"", Provider::Groq),
             ("\"openai\"", Provider::OpenAI),
-            ("\"google\"", Provider::Google),
             ("\"cloudflare\"", Provider::Cloudflare),
             ("\"cohere\"", Provider::Cohere),
             ("\"anthropic\"", Provider::Anthropic),
@@ -617,6 +725,7 @@ mod tests {
             role: MessageRole::Tool,
             content: "The weather is sunny".to_string(),
             tool_call_id: Some("call_123".to_string()),
+            ..Default::default()
         };
 
         let serialized = serde_json::to_string(&message_with_tool).unwrap();
@@ -651,7 +760,6 @@ mod tests {
             (Provider::Ollama, "ollama"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
-            (Provider::Google, "google"),
             (Provider::Cloudflare, "cloudflare"),
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
@@ -664,7 +772,7 @@ mod tests {
 
     #[test]
     fn test_generate_request_serialization() {
-        let request_payload = GenerateRequest {
+        let request_payload = CreateChatCompletionRequest {
             model: "llama3.2:1b".to_string(),
             messages: vec![
                 Message {
@@ -679,10 +787,9 @@ mod tests {
                 },
             ],
             stream: false,
-            ssevents: false,
             tools: Some(vec![Tool {
                 r#type: ToolType::Function,
-                function: ToolFunction {
+                function: FunctionObject {
                     name: "get_current_weather".to_string(),
                     description: "Get the current weather of a city".to_string(),
                     parameters: json!({
@@ -714,7 +821,6 @@ mod tests {
         }
       ],
       "stream": false,
-      "ssevents": false,
       "tools": [
         {
           "type": "function",
@@ -746,29 +852,36 @@ mod tests {
     async fn test_authentication_header() -> Result<(), GatewayError> {
         let mut server = Server::new_async().await;
 
+        let mock_response = r#"{
+            "object": "list",
+            "data": []
+        }"#;
+
         let mock_with_auth = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .match_header("authorization", "Bearer test-token")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body("[]")
+            .with_body(mock_response)
             .expect(1)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url()).with_token("test-token");
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url).with_token("test-token");
         client.list_models().await?;
         mock_with_auth.assert();
 
         let mock_without_auth = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .match_header("authorization", Matcher::Missing)
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body("[]")
+            .with_body(mock_response)
             .expect(1)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         client.list_models().await?;
         mock_without_auth.assert();
 
@@ -784,13 +897,14 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(401)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         let error = client.list_models().await.unwrap_err();
 
         assert!(matches!(error, GatewayError::Unauthorized(_)));
@@ -806,27 +920,34 @@ mod tests {
     async fn test_list_models() -> Result<(), GatewayError> {
         let mut server = Server::new_async().await;
 
-        let raw_response_json = r#"[
-            {
-                "provider": "ollama",
-                "models": [
-                    {"name": "llama2"}
-                ]
-            }
-        ]"#;
+        let raw_response_json = r#"{
+            "object": "list",
+            "data": [
+                {
+                    "id": "llama2",
+                    "object": "model",
+                    "created": 1630000001,
+                    "owned_by": "ollama",
+                    "served_by": "ollama"
+                }
+            ]
+        }"#;
 
         let mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_response_json)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
-        let models = client.list_models().await?;
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+        let response = client.list_models().await?;
 
-        assert_eq!(models.len(), 1);
-        assert_eq!(models[0].models[0].name, "llama2");
+        assert!(response.provider.is_none());
+        assert_eq!(response.object, "list");
+        assert_eq!(response.data.len(), 1);
+        assert_eq!(response.data[0].id, "llama2");
         mock.assert();
 
         Ok(())
@@ -838,23 +959,32 @@ mod tests {
 
         let raw_json_response = r#"{
             "provider":"ollama",
-            "models": [{
-                "name": "llama2"
-            }]
+            "object":"list",
+            "data": [
+                {
+                    "id": "llama2",
+                    "object": "model",
+                    "created": 1630000001,
+                    "owned_by": "ollama",
+                    "served_by": "ollama"
+                }
+            ]
         }"#;
 
         let mock = server
-            .mock("GET", "/llms/ollama")
+            .mock("GET", "/v1/models?provider=ollama")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
-        let models = client.list_models_by_provider(Provider::Ollama).await?;
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+        let response = client.list_models_by_provider(Provider::Ollama).await?;
 
-        assert_eq!(models.provider, Provider::Ollama);
-        assert_eq!(models.models[0].name, "llama2");
+        assert!(response.provider.is_some());
+        assert_eq!(response.provider, Some(Provider::Ollama));
+        assert_eq!(response.data[0].id, "llama2");
         mock.assert();
 
         Ok(())
@@ -865,22 +995,32 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json_response = r#"{
-            "provider":"ollama",
-            "response":{
-                "role":"assistant",
-                "model":"llama2",
-                "content":"Hellloooo"
-            }
+            "id": "chatcmpl-456",
+            "object": "chat.completion",
+            "created": 1630000001,
+            "model": "mixtral-8x7b",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Hellloooo"
+                    }
+                }
+            ]
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/ollama/generate")
+            .mock("POST", "/v1/chat/completions?provider=ollama")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
@@ -890,10 +1030,8 @@ mod tests {
             .generate_content(Provider::Ollama, "llama2", messages)
             .await?;
 
-        assert_eq!(response.provider, Provider::Ollama);
-        assert_eq!(response.response.role, MessageRole::Assistant);
-        assert_eq!(response.response.model, "llama2");
-        assert_eq!(response.response.content, "Hellloooo");
+        assert_eq!(response.choices[0].message.role, MessageRole::Assistant);
+        assert_eq!(response.choices[0].message.content, "Hellloooo");
         mock.assert();
 
         Ok(())
@@ -904,24 +1042,33 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json = r#"{
-        "provider": "groq",
-        "response": {
-            "role": "assistant",
+            "id": "chatcmpl-456",
+            "object": "chat.completion",
+            "created": 1630000001,
             "model": "mixtral-8x7b",
-            "content": "Hello"
-        }
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Hello"
+                    }
+                }
+            ]
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
 
-        let direct_parse: Result<GenerateResponse, _> = serde_json::from_str(raw_json);
+        let direct_parse: Result<CreateChatCompletionResponse, _> = serde_json::from_str(raw_json);
         assert!(
             direct_parse.is_ok(),
             "Direct JSON parse failed: {:?}",
@@ -938,10 +1085,8 @@ mod tests {
             .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await?;
 
-        assert_eq!(response.provider, Provider::Groq);
-        assert_eq!(response.response.role, MessageRole::Assistant);
-        assert_eq!(response.response.model, "mixtral-8x7b");
-        assert_eq!(response.response.content, "Hello");
+        assert_eq!(response.choices[0].message.role, MessageRole::Assistant);
+        assert_eq!(response.choices[0].message.content, "Hello");
 
         mock.assert();
         Ok(())
@@ -956,13 +1101,14 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(400)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
@@ -987,13 +1133,14 @@ mod tests {
         let mut server: mockito::ServerGuard = Server::new_async().await;
 
         let unauthorized_mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(401)
             .with_header("content-type", "application/json")
             .with_body(r#"{"error":"Invalid token"}"#)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
         match client.list_models().await {
             Err(GatewayError::Unauthorized(msg)) => assert_eq!(msg, "Invalid token"),
             _ => panic!("Expected Unauthorized error"),
@@ -1001,7 +1148,7 @@ mod tests {
         unauthorized_mock.assert();
 
         let bad_request_mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(400)
             .with_header("content-type", "application/json")
             .with_body(r#"{"error":"Invalid provider"}"#)
@@ -1014,7 +1161,7 @@ mod tests {
         bad_request_mock.assert();
 
         let internal_error_mock = server
-            .mock("GET", "/llms")
+            .mock("GET", "/v1/models")
             .with_status(500)
             .with_header("content-type", "application/json")
             .with_body(r#"{"error":"Internal server error occurred"}"#)
@@ -1036,22 +1183,32 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json = r#"{
-            "provider": "Groq",
-            "response": {
-                "role": "assistant",
-                "model": "mixtral-8x7b",
-                "content": "Hello"
-            }
+            "id": "chatcmpl-456",
+            "object": "chat.completion",
+            "created": 1630000001,
+            "model": "mixtral-8x7b",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Hello"
+                    }
+                }
+            ]
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hello".to_string(),
@@ -1062,8 +1219,10 @@ mod tests {
             .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await?;
 
-        assert_eq!(response.provider, Provider::Groq);
-        assert_eq!(response.response.content, "Hello");
+        assert_eq!(response.choices[0].message.role, MessageRole::Assistant);
+        assert_eq!(response.choices[0].message.content, "Hello");
+        assert_eq!(response.model, "mixtral-8x7b");
+        assert_eq!(response.object, "chat.completion");
         mock.assert();
 
         Ok(())
@@ -1074,13 +1233,15 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "text/event-stream")
             .with_chunked_body(move |writer| -> std::io::Result<()> {
                 let events = vec![
-                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"Hello"}}"#),
-                    format!("event: {}\ndata: {}\n\n", r#"message"#, r#"{"provider":"groq","response":{"role":"assistant","model":"mixtral-8x7b","content":"World"}}"#),
+                    format!("data: {}\n\n", r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"mixtral-8x7b","system_fingerprint":"fp_","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":null}]}"#),
+                    format!("data: {}\n\n", r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268191,"model":"mixtral-8x7b","system_fingerprint":"fp_","choices":[{"index":0,"delta":{"role":"assistant","content":" World"},"finish_reason":null}]}"#),
+                    format!("data: {}\n\n", r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268192,"model":"mixtral-8x7b","system_fingerprint":"fp_","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":17,"completion_tokens":40,"total_tokens":57}}"#),
+                    format!("data: [DONE]\n\n")
                 ];
                 for event in events {
                     writer.write_all(event.as_bytes())?;
@@ -1089,7 +1250,9 @@ mod tests {
             })
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
@@ -1100,23 +1263,24 @@ mod tests {
         pin_mut!(stream);
         while let Some(result) = stream.next().await {
             let result = result?;
-            let generate_response: GenerateResponse =
-                serde_json::from_str(&result.data).expect("Failed to parse GenerateResponse");
+            let generate_response: CreateChatCompletionStreamResponse =
+                serde_json::from_str(&result.data)
+                    .expect("Failed to parse CreateChatCompletionResponse");
 
-            assert_eq!(result.event, Some("message".to_string()));
-            assert_eq!(generate_response.provider, Provider::Groq);
-            assert!(matches!(
-                generate_response.response.role,
-                MessageRole::Assistant
-            ));
-            assert!(matches!(
-                generate_response.response.model.as_str(),
-                "mixtral-8x7b"
-            ));
-            assert!(matches!(
-                generate_response.response.content.as_str(),
-                "Hello" | "World"
-            ));
+            if generate_response.choices[0].finish_reason.is_some() {
+                assert_eq!(
+                    generate_response.choices[0].finish_reason.as_ref().unwrap(),
+                    "stop"
+                );
+                break;
+            }
+
+            if let Some(content) = &generate_response.choices[0].delta.content {
+                assert!(matches!(content.as_str(), "Hello" | " World"));
+            }
+            if let Some(role) = &generate_response.choices[0].delta.role {
+                assert_eq!(role, &MessageRole::Assistant);
+            }
         }
 
         mock.assert();
@@ -1128,7 +1292,7 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(400)
             .with_header("content-type", "application/json")
             .with_chunked_body(move |writer| -> std::io::Result<()> {
@@ -1144,7 +1308,9 @@ mod tests {
             .expect_at_least(1)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Test message".to_string(),
@@ -1171,28 +1337,34 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json_response = r#"{
-            "provider": "groq",
-            "response": {
-                "role": "assistant",
-                "model": "deepseek-r1-distill-llama-70b",
-                "content": "Let me check the weather for you.",
-                "tool_calls": [
-                    {
-                        "id": "1234",
-                        "type": "function",
-                        "function": {
-                            "name": "get_weather",
-                            "arguments": {
-                                "location": "London"
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "created": 1630000000,
+            "model": "deepseek-r1-distill-llama-70b",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "tool_calls",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Let me check the weather for you.",
+                        "tool_calls": [
+                            {
+                                "id": "1234",
+                                "type": "function",
+                                "function": {
+                                    "name": "get_weather",
+                                    "arguments": "{\"location\": \"London\"}"
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
-            }
+                }
+            ]
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
@@ -1200,7 +1372,7 @@ mod tests {
 
         let tools = vec![Tool {
             r#type: ToolType::Function,
-            function: ToolFunction {
+            function: FunctionObject {
                 name: "get_weather".to_string(),
                 description: "Get the weather for a location".to_string(),
                 parameters: json!({
@@ -1216,7 +1388,9 @@ mod tests {
             },
         }];
 
-        let client = InferenceGatewayClient::new(&server.url()).with_tools(Some(tools));
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url).with_tools(Some(tools));
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "What's the weather in London?".to_string(),
@@ -1227,20 +1401,21 @@ mod tests {
             .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", messages)
             .await?;
 
-        assert_eq!(response.provider, Provider::Groq);
-        assert_eq!(response.response.role, MessageRole::Assistant);
-        assert_eq!(response.response.model, "deepseek-r1-distill-llama-70b");
+        assert_eq!(response.choices[0].message.role, MessageRole::Assistant);
         assert_eq!(
-            response.response.content,
+            response.choices[0].message.content,
             "Let me check the weather for you."
         );
 
-        let tool_calls = response.response.tool_calls.unwrap();
+        let tool_calls = response.choices[0].message.tool_calls.as_ref().unwrap();
         assert_eq!(tool_calls.len(), 1);
         assert_eq!(tool_calls[0].function.name, "get_weather");
 
-        let params = &tool_calls[0].function.arguments;
-        assert_eq!(params["location"], "London");
+        let params = tool_calls[0]
+            .function
+            .parse_arguments()
+            .expect("Failed to parse function arguments");
+        assert_eq!(params["location"].as_str().unwrap(), "London");
 
         mock.assert();
         Ok(())
@@ -1251,22 +1426,32 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json_response = r#"{
-            "provider": "openai",
-            "response": {
-                "role": "assistant",
-                "model": "deepseek-r1-distill-llama-70b",
-                "content": "Hello!"
-            }
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "created": 1630000000,
+            "model": "gpt-4",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Hello!"
+                    }
+                }
+            ]
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/openai/generate")
+            .mock("POST", "/v1/chat/completions?provider=openai")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url());
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
         let messages = vec![Message {
             role: MessageRole::User,
             content: "Hi".to_string(),
@@ -1277,7 +1462,10 @@ mod tests {
             .generate_content(Provider::OpenAI, "gpt-4", messages)
             .await?;
 
-        assert!(response.response.tool_calls.is_none());
+        assert_eq!(response.model, "gpt-4");
+        assert_eq!(response.choices[0].message.content, "Hello!");
+        assert_eq!(response.choices[0].message.role, MessageRole::Assistant);
+        assert!(response.choices[0].message.tool_calls.is_none());
 
         mock.assert();
         Ok(())
@@ -1286,27 +1474,6 @@ mod tests {
     #[tokio::test]
     async fn test_generate_content_with_tools_payload() -> Result<(), GatewayError> {
         let mut server = Server::new_async().await;
-
-        let raw_json_response = r#"{
-            "provider": "groq",
-            "response": {
-                "role": "assistant",
-                "model": "deepseek-r1-distill-llama-70b",
-                "content": "Let me check the weather for you",
-                "tool_calls": [
-                    {
-                        "id": "1234",
-                        "type": "function",
-                        "function": {
-                            "name": "get_current_weather",
-                            "arguments": {
-                                "city": "Toronto"
-                            }
-                        }
-                    }
-                ]
-            }
-        }"#;
 
         let raw_request_body = r#"{
             "model": "deepseek-r1-distill-llama-70b",
@@ -1321,7 +1488,6 @@ mod tests {
                 }
             ],
             "stream": false,
-            "ssevents": false,
             "tools": [
                 {
                     "type": "function",
@@ -1343,8 +1509,35 @@ mod tests {
             ]
         }"#;
 
+        let raw_json_response = r#"{
+            "id": "1234",
+            "object": "chat.completion",
+            "created": 1630000000,
+            "model": "deepseek-r1-distill-llama-70b",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Let me check the weather for you",
+                        "tool_calls": [
+                            {
+                                "id": "1234",
+                                "type": "function",
+                                "function": {
+                                    "name": "get_current_weather",
+                                    "arguments": "{\"city\": \"Toronto\"}"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }"#;
+
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .match_body(mockito::Matcher::JsonString(raw_request_body.to_string()))
@@ -1353,7 +1546,7 @@ mod tests {
 
         let tools = vec![Tool {
             r#type: ToolType::Function,
-            function: ToolFunction {
+            function: FunctionObject {
                 name: "get_current_weather".to_string(),
                 description: "Get the current weather of a city".to_string(),
                 parameters: json!({
@@ -1368,7 +1561,9 @@ mod tests {
                 }),
             },
         }];
-        let client = InferenceGatewayClient::new(&server.url());
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
 
         let messages = vec![
             Message {
@@ -1388,13 +1583,20 @@ mod tests {
             .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", messages)
             .await?;
 
-        assert_eq!(response.response.role, MessageRole::Assistant);
-        assert_eq!(response.response.model, "deepseek-r1-distill-llama-70b");
+        assert_eq!(response.choices[0].message.role, MessageRole::Assistant);
         assert_eq!(
-            response.response.content,
+            response.choices[0].message.content,
             "Let me check the weather for you"
         );
-        assert_eq!(response.response.tool_calls.unwrap().len(), 1);
+        assert_eq!(
+            response.choices[0]
+                .message
+                .tool_calls
+                .as_ref()
+                .unwrap()
+                .len(),
+            1
+        );
 
         mock.assert();
         Ok(())
@@ -1405,16 +1607,24 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let raw_json_response = r#"{
-            "provider": "groq",
-            "response": {
-                "role": "assistant",
-                "model": "mixtral-8x7b", 
-                "content": "Here's a poem with 100 tokens..."
-            }
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "created": 1630000000,
+            "model": "mixtral-8x7b",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "Here's a poem with 100 tokens..."
+                    }
+                }
+            ]
         }"#;
 
         let mock = server
-            .mock("POST", "/llms/groq/generate")
+            .mock("POST", "/v1/chat/completions?provider=groq")
             .with_status(200)
             .with_header("content-type", "application/json")
             .match_body(mockito::Matcher::JsonString(
@@ -1422,7 +1632,6 @@ mod tests {
                 "model": "mixtral-8x7b",
                 "messages": [{"role":"user","content":"Write a poem"}],
                 "stream": false,
-                "ssevents": false,
                 "max_tokens": 100
             }"#
                 .to_string(),
@@ -1430,7 +1639,8 @@ mod tests {
             .with_body(raw_json_response)
             .create();
 
-        let client = InferenceGatewayClient::new(&server.url()).with_max_tokens(Some(100));
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url).with_max_tokens(Some(100));
 
         let messages = vec![Message {
             role: MessageRole::User,
@@ -1442,11 +1652,13 @@ mod tests {
             .generate_content(Provider::Groq, "mixtral-8x7b", messages)
             .await?;
 
-        assert_eq!(response.provider, Provider::Groq);
         assert_eq!(
-            response.response.content,
+            response.choices[0].message.content,
             "Here's a poem with 100 tokens..."
         );
+        assert_eq!(response.model, "mixtral-8x7b");
+        assert_eq!(response.created, 1630000000);
+        assert_eq!(response.object, "chat.completion");
 
         mock.assert();
         Ok(())
@@ -1462,6 +1674,28 @@ mod tests {
 
         assert!(is_healthy);
         mock.assert();
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_client_base_url_configuration() -> Result<(), GatewayError> {
+        let mut custom_url_server = Server::new_async().await;
+
+        let custom_url_mock = custom_url_server
+            .mock("GET", "/health")
+            .with_status(200)
+            .create();
+
+        let custom_client = InferenceGatewayClient::new(&custom_url_server.url());
+        let is_healthy = custom_client.health_check().await?;
+        assert!(is_healthy);
+        custom_url_mock.assert();
+
+        let default_client = InferenceGatewayClient::new_default();
+
+        let default_url = "http://localhost:8080/v1";
+        assert_eq!(default_client.base_url(), default_url);
 
         Ok(())
     }
