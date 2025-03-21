@@ -57,20 +57,31 @@ struct ErrorResponse {
     error: String,
 }
 
-/// Represents a model available through a provider
-#[derive(Debug, Serialize, Deserialize)]
+/// Common model information
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Model {
-    /// Unique identifier of the model
-    pub name: String,
+    /// The model identifier
+    pub id: String,
+    /// The object type, usually "model"
+    pub object: Option<String>,
+    /// The Unix timestamp (in seconds) of when the model was created
+    pub created: Option<i64>,
+    /// The organization that owns the model
+    pub owned_by: Option<String>,
+    /// The provider that serves the model
+    pub served_by: Option<String>,
 }
 
-/// Collection of models available from a specific provider
+/// Response structure for listing models
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProviderModels {
-    /// The LLM provider
-    pub provider: Provider,
+pub struct ListModelsResponse {
+    /// The provider identifier
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provider: Option<Provider>,
+    /// Response object type, usually "list"
+    pub object: String,
     /// List of available models
-    pub models: Vec<Model>,
+    pub data: Vec<Model>,
 }
 
 /// Supported LLM providers
@@ -364,8 +375,7 @@ pub trait InferenceGatewayAPI {
     ///
     /// # Returns
     /// A list of models available from all providers
-    fn list_models(&self)
-        -> impl Future<Output = Result<Vec<ProviderModels>, GatewayError>> + Send;
+    fn list_models(&self) -> impl Future<Output = Result<ListModelsResponse, GatewayError>> + Send;
 
     /// Lists available models by a specific provider
     ///
@@ -383,7 +393,7 @@ pub trait InferenceGatewayAPI {
     fn list_models_by_provider(
         &self,
         provider: Provider,
-    ) -> impl Future<Output = Result<ProviderModels, GatewayError>> + Send;
+    ) -> impl Future<Output = Result<ListModelsResponse, GatewayError>> + Send;
 
     /// Generates content using a specified model
     ///
@@ -501,7 +511,7 @@ impl InferenceGatewayClient {
 }
 
 impl InferenceGatewayAPI for InferenceGatewayClient {
-    async fn list_models(&self) -> Result<Vec<ProviderModels>, GatewayError> {
+    async fn list_models(&self) -> Result<ListModelsResponse, GatewayError> {
         let url = format!("{}/models", self.base_url);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
@@ -510,7 +520,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 
         let response = request.send().await?;
         match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
+            StatusCode::OK => {
+                let json_response: ListModelsResponse = response.json().await?;
+                Ok(json_response)
+            }
             StatusCode::UNAUTHORIZED => {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::Unauthorized(error.error))
@@ -533,7 +546,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
     async fn list_models_by_provider(
         &self,
         provider: Provider,
-    ) -> Result<ProviderModels, GatewayError> {
+    ) -> Result<ListModelsResponse, GatewayError> {
         let url = format!("{}/list/models?provider={}", self.base_url, provider);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
@@ -542,7 +555,10 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 
         let response = request.send().await?;
         match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
+            StatusCode::OK => {
+                let json_response: ListModelsResponse = response.json().await?;
+                Ok(json_response)
+            }
             StatusCode::UNAUTHORIZED => {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::Unauthorized(error.error))
@@ -848,12 +864,17 @@ mod tests {
     async fn test_authentication_header() -> Result<(), GatewayError> {
         let mut server = Server::new_async().await;
 
+        let mock_response = r#"{
+            "object": "list",
+            "data": []
+        }"#;
+
         let mock_with_auth = server
             .mock("GET", "/v1/models")
             .match_header("authorization", "Bearer test-token")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body("[]")
+            .with_body(mock_response)
             .expect(1)
             .create();
 
@@ -867,7 +888,7 @@ mod tests {
             .match_header("authorization", Matcher::Missing)
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body("[]")
+            .with_body(mock_response)
             .expect(1)
             .create();
 
@@ -911,14 +932,18 @@ mod tests {
     async fn test_list_models() -> Result<(), GatewayError> {
         let mut server = Server::new_async().await;
 
-        let raw_response_json = r#"[
-            {
-                "provider": "ollama",
-                "models": [
-                    {"name": "llama2"}
-                ]
-            }
-        ]"#;
+        let raw_response_json = r#"{
+            "object": "list",
+            "data": [
+                {
+                    "id": "llama2",
+                    "object": "model",
+                    "created": 1630000001,
+                    "owned_by": "ollama",
+                    "served_by": "ollama"
+                }
+            ]
+        }"#;
 
         let mock = server
             .mock("GET", "/v1/models")
@@ -929,10 +954,12 @@ mod tests {
 
         let base_url = format!("{}/v1", server.url());
         let client = InferenceGatewayClient::new(&base_url);
-        let models = client.list_models().await?;
+        let response = client.list_models().await?;
 
-        assert_eq!(models.len(), 1);
-        assert_eq!(models[0].models[0].name, "llama2");
+        assert!(response.provider.is_none());
+        assert_eq!(response.object, "list");
+        assert_eq!(response.data.len(), 1);
+        assert_eq!(response.data[0].id, "llama2");
         mock.assert();
 
         Ok(())
@@ -944,9 +971,16 @@ mod tests {
 
         let raw_json_response = r#"{
             "provider":"ollama",
-            "models": [{
-                "name": "llama2"
-            }]
+            "object":"list",
+            "data": [
+                {
+                    "id": "llama2",
+                    "object": "model",
+                    "created": 1630000001,
+                    "owned_by": "ollama",
+                    "served_by": "ollama"
+                }
+            ]
         }"#;
 
         let mock = server
@@ -958,10 +992,11 @@ mod tests {
 
         let base_url = format!("{}/v1", server.url());
         let client = InferenceGatewayClient::new(&base_url);
-        let models = client.list_models_by_provider(Provider::Ollama).await?;
+        let response = client.list_models_by_provider(Provider::Ollama).await?;
 
-        assert_eq!(models.provider, Provider::Ollama);
-        assert_eq!(models.models[0].name, "llama2");
+        assert!(response.provider.is_some());
+        assert_eq!(response.provider, Some(Provider::Ollama));
+        assert_eq!(response.data[0].id, "llama2");
         mock.assert();
 
         Ok(())
