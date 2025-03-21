@@ -48,20 +48,16 @@ async fn main() -> Result<(), GatewayError> {
     let client = InferenceGatewayClient::new("http://localhost:8080");
 
     // List all models and all providers
-    let models = client.list_models().await?;
-    for provider_models in models {
-        info!("Provider: {:?}", provider_models.provider);
-        for model in provider_models.models {
-            info!("Model: {:?}", model.name);
-        }
+    let response = client.list_models().await?;
+    for model in response.data {
+        info!("Model: {:?}", model.id);
     }
 
     // List models for a specific provider
-    let resp = client.list_models_by_provider(Provider::Groq).await?;
-    let models = resp.models;
-    info!("Provider: {:?}", resp.provider);
-    for model in models {
-        info!("Model: {:?}", model.name);
+    let response = client.list_models_by_provider(Provider::Groq).await?;
+    info!("Models for provider: {:?}", response.provider);
+    for model in response.data {
+        info!("Model: {:?}", model.id);
     }
 
     // Generate content - choose from available providers and models

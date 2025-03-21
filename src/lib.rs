@@ -547,7 +547,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         &self,
         provider: Provider,
     ) -> Result<ListModelsResponse, GatewayError> {
-        let url = format!("{}/list/models?provider={}", self.base_url, provider);
+        let url = format!("{}/models?provider={}", self.base_url, provider);
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = self.client.get(&url).bearer_auth(token);
@@ -984,7 +984,7 @@ mod tests {
         }"#;
 
         let mock = server
-            .mock("GET", "/v1/list/models?provider=ollama")
+            .mock("GET", "/v1/models?provider=ollama")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(raw_json_response)
