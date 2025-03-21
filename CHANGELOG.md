@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1-rc.4](https://github.com/inference-gateway/rust-sdk/compare/0.9.1-rc.3...0.9.1-rc.4) (2025-03-21)
+
+### ♻️ Improvements
+
+* Remove ToolFunctionResponse and update ToolCallResponse to use ChatCompletionMessageToolCallFunction ([e3d29bb](https://github.com/inference-gateway/rust-sdk/commit/e3d29bbd291d84708f4f37e0cdc338829b4cface))
+
+### 📚 Documentation
+
+* Enhance README with updated response types and improved logging ([651720b](https://github.com/inference-gateway/rust-sdk/commit/651720ba50cec350c92bce4f72a353c3d9189d9b))
+
 ## [0.9.1-rc.3](https://github.com/inference-gateway/rust-sdk/compare/0.9.1-rc.2...0.9.1-rc.3) (2025-03-21)
 
 ### ♻️ Improvements
