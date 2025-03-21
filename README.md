@@ -27,9 +27,11 @@ Here is a full example of how to create a client and interact with the Inference
 
 ```rust
 use inference_gateway_sdk::{
+    CreateChatCompletionResponse,
     GatewayError,
     InferenceGatewayAPI,
     InferenceGatewayClient,
+    ListModelsResponse,
     Message,
     Provider,
     MessageRole
@@ -48,20 +50,20 @@ async fn main() -> Result<(), GatewayError> {
     let client = InferenceGatewayClient::new("http://localhost:8080");
 
     // List all models and all providers
-    let response = client.list_models().await?;
+    let response: ListModelsResponse = client.list_models().await?;
     for model in response.data {
         info!("Model: {:?}", model.id);
     }
 
     // List models for a specific provider
-    let response = client.list_models_by_provider(Provider::Groq).await?;
+    let response: ListModelsResponse = client.list_models_by_provider(Provider::Groq).await?;
     info!("Models for provider: {:?}", response.provider);
     for model in response.data {
         info!("Model: {:?}", model.id);
     }
 
     // Generate content - choose from available providers and models
-    let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+    let response: CreateChatCompletionResponse = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
     Message{
         role: MessageRole::System,
         content: "You are an helpful assistent.".to_string()
@@ -72,9 +74,10 @@ async fn main() -> Result<(), GatewayError> {
     }
     ]).await?;
 
-    log::info!("Generated from provider: {:?}", resp.provider);
-    log::info!("Generated response: {:?}", resp.response.role);
-    log::info!("Generated content: {:?}", resp.response.content);
+    log::info!(
+        "Generated content: {:?}",
+        response.choices[0].message.content
+    );
 
     Ok(())
 }
@@ -89,6 +92,7 @@ use inference_gateway_sdk::{
     GatewayError
     InferenceGatewayAPI,
     InferenceGatewayClient,
+    ListModelsResponse,
     Message,
 };
 use log::info;
@@ -97,13 +101,10 @@ use log::info;
 fn main() -> Result<(), GatewayError> {
     // ...Create a client
 
-    // List all models and all providers
-    let models = client.list_models().await?;
-    for provider_models in models {
-        info!("Provider: {:?}", provider_models.provider);
-        for model in provider_models.models {
-            info!("Model: {:?}", model.name);
-        }
+    // List models from all providers
+    let response: ListModelsResponse = client.list_models().await?;
+    for model in response.data {
+        info!("Model: {:?}", model.id);
     }
 
     // ...
@@ -119,6 +120,7 @@ use inference_gateway_sdk::{
     GatewayError
     InferenceGatewayAPI,
     InferenceGatewayClient,
+    ListModelsResponse,
     Provider,
 };
 use log::info;
@@ -126,11 +128,10 @@ use log::info;
 // ...Open main function
 
 // List models for a specific provider
-let resp = client.list_models_by_provider(Provider::Ollama).await?;
-let models = resp.models;
-info!("Provider: {:?}", resp.provider);
-for model in models {
-    info!("Model: {:?}", model.name);
+let response: ListModelsResponse = client.list_models_by_provider(Provider::Groq).await?;
+info!("Models for provider: {:?}", response.provider);
+for model in response.data {
+    info!("Model: {:?}", model.id);
 }
 
 // ...Rest of the main function
@@ -142,6 +143,7 @@ To generate content using a model, use the `generate_content` method:
 
 ```rust
 use inference_gateway_sdk::{
+    CreateChatCompletionResponse,
     GatewayError,
     InferenceGatewayAPI,
     InferenceGatewayClient,
@@ -151,20 +153,23 @@ use inference_gateway_sdk::{
 };
 
 // Generate content - choose from available providers and models
-let resp = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+let response: CreateChatCompletionResponse = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
 Message{
     role: MessageRole::System,
-    content: "You are an helpful assistent.".to_string()
+    content: "You are an helpful assistent.".to_string(),
+    ..Default::default()
 },
 Message{
     role: MessageRole::User,
-    content: "Tell me a funny joke".to_string()
+    content: "Tell me a funny joke".to_string(),
+    ..Default::default()
 }
 ]).await?;
 
-log::info!("Generated from provider: {:?}", resp.provider);
-log::info!("Generated response: {:?}", resp.response.role);
-log::info!("Generated content: {:?}", resp.response.content);
+log::info!(
+    "Generated content: {:?}",
+    response.choices[0].message.content
+);
 ```
 
 ### Streaming Content
@@ -175,51 +180,78 @@ You need to add the following tiny dependencies:
 - `serde` with feature `derive` and `serde_json` for serialization and deserialization of the response content
 
 ```rust
+use futures_util::{pin_mut, StreamExt};
 use inference_gateway_sdk::{
-    InferenceGatewayAPI,
-    InferenceGatewayClient, Message, MessageRole, Provider, ResponseContent
+    CreateChatCompletionStreamResponse, GatewayError, InferenceGatewayAPI, InferenceGatewayClient,
+    Message, MessageRole, Provider,
 };
-use futures_util::{StreamExt, pin_mut};
-// ...rest of the imports
+use log::info;
+use std::env;
 
-// ...main function
+#[tokio::main]
+async fn main() -> Result<(), GatewayError> {
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info");
+    }
+    env_logger::init();
+
     let system_message = "You are an helpful assistent.".to_string();
     let model = "deepseek-r1-distill-llama-70b";
-    let messages = vec![
-        Message {
-            role: MessageRole::System,
-            content: system_message,
-            tool_call_id: None
-        },
-        Message {
-            role: MessageRole::User,
-            content: "Write a poem".to_string(),
-            tool_call_id: None
-        },
-    ];
-    let client = InferenceGatewayClient::new("http://localhost:8080");
-    let stream = client.generate_content_stream(Provider::Groq, model, messages);
+
+    let client = InferenceGatewayClient::new("http://localhost:8080/v1");
+    let stream = client.generate_content_stream(
+        Provider::Groq,
+        model,
+        vec![
+            Message {
+                role: MessageRole::System,
+                content: system_message,
+                ..Default::default()
+            },
+            Message {
+                role: MessageRole::User,
+                content: "Write a poem".to_string(),
+                ..Default::default()
+            },
+        ],
+    );
     pin_mut!(stream);
-    let content_delta = Some("content-delta".to_string());
     // Iterate over the stream of Server Sent Events
     while let Some(ssevent) = stream.next().await {
-        let resp = ssevent?;
-
-        // Only content-delta events contains the actual tokens
-        // There are also events like:
-        // - content-start
-        // - content-end
-        // - etc..
-        if resp.event != content_delta {
-            continue;
-        }
+        let ssevent = ssevent?;
 
         // Deserialize the event response
-        let generate_response: ResponseContent = serde_json::from_str(&resp.data)?;
+        let generate_response_stream: CreateChatCompletionStreamResponse =
+            serde_json::from_str(&ssevent.data)?;
+
+        let choice = generate_response_stream.choices.get(0);
+        if choice.is_none() {
+            continue;
+        }
+        let choice = choice.unwrap();
+
+        if let Some(usage) = generate_response_stream.usage.as_ref() {
+            // Get the usage metrics from the response
+            info!("Usage Metrics: {:?}", usage);
+            // Probably send them over to a metrics service
+            break;
+        }
+
         // Print the token out as it's being sent from the server
-        print!("{}", generate_response.content);
+        if let Some(content) = choice.delta.content.as_ref() {
+            print!("{}", content);
+        }
+
+        if let Some(finish_reason) = choice.finish_reason.as_ref() {
+            if finish_reason == "stop" {
+                info!("Finished generating content");
+                break;
+            }
+        }
     }
-// ...rest of the main function
+
+    Ok(())
+}
 ```
 
 ### Tool-Use
@@ -278,7 +310,8 @@ for tool_call in resp.response.tool_calls {
     let message = Message {
         role: MessageRole::Tool,
         content: "The content from the tool".to_string(),
-        tool_call_id: Some(tool_call.id) // the tool call id so the LLM can reference it
+        tool_call_id: Some(tool_call.id), // the tool call id so the LLM can reference it
+        ..Default::default()
     };
 
     // Append this message to the next request
