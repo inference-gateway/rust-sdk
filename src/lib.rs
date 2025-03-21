@@ -245,18 +245,6 @@ struct CreateChatCompletionRequest {
     max_tokens: Option<i32>,
 }
 
-/// Function details in a tool call response
-#[derive(Debug, Deserialize, Clone)]
-pub struct ToolFunctionResponse {
-    /// Name of the function that the LLM wants to call
-    pub name: String,
-    /// Description of the function
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    /// The arguments that the LLM wants to pass to the function
-    pub arguments: Value,
-}
-
 /// A tool call in the response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ToolCallResponse {
@@ -266,7 +254,7 @@ pub struct ToolCallResponse {
     #[serde(rename = "type")]
     pub r#type: ToolType,
     /// Function that the LLM wants to call
-    pub function: ToolFunctionResponse,
+    pub function: ChatCompletionMessageToolCallFunction,
 }
 
 #[derive(Debug, Deserialize, Clone)]
