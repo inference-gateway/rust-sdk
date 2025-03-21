@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1-rc.2](https://github.com/inference-gateway/rust-sdk/compare/0.9.1-rc.1...0.9.1-rc.2) (2025-03-21)
+
+### ♻️ Improvements
+
+* Update model response structures for clarity and consistency ([5ca2eb5](https://github.com/inference-gateway/rust-sdk/commit/5ca2eb5baad76b4ad3aaf405233036cd2e0b539c))
+
+### 🔧 Miscellaneous
+
+* Update dependencies for improved performance and security ([6079995](https://github.com/inference-gateway/rust-sdk/commit/607999577166554c32264327e20da2daa0b8b94e))
+
 ## [0.9.1-rc.1](https://github.com/inference-gateway/rust-sdk/compare/0.9.0...0.9.1-rc.1) (2025-03-20)
 
 ### ♻️ Improvements
