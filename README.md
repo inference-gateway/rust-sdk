@@ -260,21 +260,36 @@ You can pass to the generate_content function also tools, which will be availabl
 
 ```rust
 use inference_gateway_sdk::{
-    GatewayError,
-    InferenceGatewayAPI,
-    InferenceGatewayClient,
-    Message,
-    Provider,
-    MessageRole,
-    Tool,
-    ToolFunction,
-    ToolType
+    FunctionObject, GatewayError, InferenceGatewayAPI, InferenceGatewayClient, Message,
+    MessageRole, Provider, Tool, ToolType,
 };
+use log::{info, warn};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use std::env;
 
-let tools = vec![
-    Tool {
+#[tokio::main]
+async fn main() -> Result<(), GatewayError> {
+    // Configure logging
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info");
+    }
+    env_logger::init();
+
+    // API endpoint - store as a variable so we can reuse it
+    let api_endpoint = "http://localhost:8080/v1";
+
+    // Initialize the API client
+    let client = InferenceGatewayClient::new(api_endpoint);
+
+    // Define the model and provider
+    let provider = Provider::Groq;
+    let model = "deepseek-r1-distill-llama-70b";
+
+    // Define the weather tool
+    let tools = vec![Tool {
         r#type: ToolType::Function,
-        function: ToolFunction {
+        function: FunctionObject {
             name: "get_current_weather".to_string(),
             description: "Get the weather for a location".to_string(),
             parameters: json!({
@@ -288,33 +303,127 @@ let tools = vec![
                 "required": ["location"]
             }),
         },
-    },
-];
-let resp = client.with_tools(Some(tools)).generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
-Message {
-    role: MessageRole::System,
-    content: "You are an helpful assistent.".to_string(),
-    ..Default::default()
-},
-Message {
-    role: MessageRole::User,
-    content: "What is the current weather in Berlin?".to_string(),
-    ..Default::default()
-}
-]).await?;
+    }];
 
-for tool_call in resp.response.tool_calls {
-    log::info!("Tool Call Requested by the LLM: {:?}", tool_call);
-    // Make the function call with the parameters requested by the LLM
+    // Create initial conversation
+    let initial_messages = vec![
+        Message {
+            role: MessageRole::System,
+            content: "You are a helpful assistant that can check the weather.".to_string(),
+            ..Default::default()
+        },
+        Message {
+            role: MessageRole::User,
+            content: "What is the current weather in Berlin?".to_string(),
+            ..Default::default()
+        },
+    ];
 
-    let message = Message {
-        role: MessageRole::Tool,
-        content: "The content from the tool".to_string(),
-        tool_call_id: Some(tool_call.id), // the tool call id so the LLM can reference it
-        ..Default::default()
+    // Make the initial API request
+    info!("Sending initial request to model");
+    let response = client
+        .with_tools(Some(tools.clone()))
+        .generate_content(provider, model, initial_messages)
+        .await?;
+
+    info!("Received response from model");
+
+    // Check if we have a response
+    let choice = match response.choices.get(0) {
+        Some(choice) => choice,
+        None => {
+            warn!("No choice returned");
+            return Ok(());
+        }
     };
 
-    // Append this message to the next request
+    // Check for tool calls in the response
+    if let Some(tool_calls) = &choice.message.tool_calls {
+        // Create a new conversation starting with the initial messages
+        let mut follow_up_convo = vec![
+            Message {
+                role: MessageRole::System,
+                content: "You are a helpful assistant that can check the weather.".to_string(),
+                ..Default::default()
+            },
+            Message {
+                role: MessageRole::User,
+                content: "What is the current weather in Berlin?".to_string(),
+                ..Default::default()
+            },
+            Message {
+                role: MessageRole::Assistant,
+                content: choice.message.content.clone(),
+                tool_calls: choice.message.tool_calls.clone(),
+                ..Default::default()
+            },
+        ];
+
+        // Process each tool call
+        for tool_call in tool_calls {
+            info!("Tool Call Requested: {}", tool_call.function.name);
+
+            if tool_call.function.name == "get_current_weather" {
+                // Parse arguments
+                let args = tool_call.function.parse_arguments()?;
+
+                // Call our function
+                let weather_result = get_current_weather(args)?;
+
+                // Add the tool response to the conversation
+                follow_up_convo.push(Message {
+                    role: MessageRole::Tool,
+                    content: weather_result,
+                    tool_call_id: Some(tool_call.id.clone()),
+                    ..Default::default()
+                });
+            }
+        }
+
+        // Send the follow-up request with the tool results
+        info!("Sending follow-up request with tool results");
+
+        // Create a new client for the follow-up request
+        let follow_up_client = InferenceGatewayClient::new(api_endpoint);
+
+        let follow_up_response = follow_up_client
+            .with_tools(Some(tools))
+            .generate_content(provider, model, follow_up_convo)
+            .await?;
+
+        if let Some(choice) = follow_up_response.choices.get(0) {
+            info!("Final response: {}", choice.message.content);
+        } else {
+            warn!("No response in follow-up");
+        }
+    } else {
+        info!("No tool calls in the response");
+        info!("Model response: {}", choice.message.content);
+    }
+
+    Ok(())
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Weather {
+    location: String,
+}
+
+fn get_current_weather(args: Value) -> Result<String, GatewayError> {
+    // Parse the location from the arguments
+    let weather: Weather = serde_json::from_value(args)?;
+    info!(
+        "Getting weather function was called for {}",
+        weather.location
+    );
+
+    // In a real application, we would call an actual weather API here
+    // For this example, we'll just return a mock response
+    let location = weather.location;
+    Ok(format!(
+        "The weather in {} is currently sunny with a temperature of 22°C",
+        location
+    ))
 }
 ```
 
