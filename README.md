@@ -47,7 +47,7 @@ async fn main() -> Result<(), GatewayError> {
     env_logger::init();
 
     // Create a client
-    let client = InferenceGatewayClient::new("http://localhost:8080");
+    let client = InferenceGatewayClient::new("http://localhost:8080/v1");
 
     // List all models and all providers
     let response: ListModelsResponse = client.list_models().await?;
