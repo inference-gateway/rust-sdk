@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1](https://github.com/inference-gateway/rust-sdk/compare/0.9.0...0.9.1) (2025-03-21)
+
+### ♻️ Improvements
+
+* Make rust-sdk OpenAI Compatible ([#8](https://github.com/inference-gateway/rust-sdk/issues/8)) ([08f92dc](https://github.com/inference-gateway/rust-sdk/commit/08f92dc5d77deaf57c6e4b6fcc29aa4ca73aa954))
+
 ## [0.9.1-rc.5](https://github.com/inference-gateway/rust-sdk/compare/0.9.1-rc.4...0.9.1-rc.5) (2025-03-21)
 
 ### ♻️ Improvements
