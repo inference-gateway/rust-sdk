@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1-rc.5](https://github.com/inference-gateway/rust-sdk/compare/0.9.1-rc.4...0.9.1-rc.5) (2025-03-21)
+
+### ♻️ Improvements
+
+* Improve example for Tool-Use ([bc647da](https://github.com/inference-gateway/rust-sdk/commit/bc647dad7686aecd63a9fa38617dfe3a29d3bdb0))
+
 ## [0.9.1-rc.4](https://github.com/inference-gateway/rust-sdk/compare/0.9.1-rc.3...0.9.1-rc.4) (2025-03-21)
 
 ### ♻️ Improvements
