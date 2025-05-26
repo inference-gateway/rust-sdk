@@ -84,6 +84,29 @@ pub struct ListModelsResponse {
     pub data: Vec<Model>,
 }
 
+/// An MCP tool definition
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MCPTool {
+    /// The name of the tool
+    pub name: String,
+    /// A description of what the tool does
+    pub description: String,
+    /// The MCP server that provides this tool
+    pub server: String,
+    /// JSON schema for the tool's input parameters (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input_schema: Option<Value>,
+}
+
+/// Response structure for listing MCP tools
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListToolsResponse {
+    /// Response object type, always "list"
+    pub object: String,
+    /// Array of available MCP tools
+    pub data: Vec<MCPTool>,
+}
+
 /// Supported LLM providers
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
@@ -100,6 +123,8 @@ pub enum Provider {
     Cohere,
     #[serde(alias = "Anthropic", alias = "ANTHROPIC")]
     Anthropic,
+    #[serde(alias = "Deepseek", alias = "DEEPSEEK")]
+    Deepseek,
 }
 
 impl fmt::Display for Provider {
@@ -111,6 +136,7 @@ impl fmt::Display for Provider {
             Provider::Cloudflare => write!(f, "cloudflare"),
             Provider::Cohere => write!(f, "cohere"),
             Provider::Anthropic => write!(f, "anthropic"),
+            Provider::Deepseek => write!(f, "deepseek"),
         }
     }
 }
@@ -126,6 +152,7 @@ impl TryFrom<&str> for Provider {
             "cloudflare" => Ok(Self::Cloudflare),
             "cohere" => Ok(Self::Cohere),
             "anthropic" => Ok(Self::Anthropic),
+            "deepseek" => Ok(Self::Deepseek),
             _ => Err(GatewayError::BadRequest(format!("Unknown provider: {}", s))),
         }
     }
@@ -422,6 +449,18 @@ pub trait InferenceGatewayAPI {
         messages: Vec<Message>,
     ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send;
 
+    /// Lists available MCP tools
+    ///
+    /// # Errors
+    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
+    /// - Returns [`GatewayError::BadRequest`] if the request is malformed
+    /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// A list of available MCP tools. Only accessible when EXPOSE_MCP is enabled.
+    fn list_tools(&self) -> impl Future<Output = Result<ListToolsResponse, GatewayError>> + Send;
+
     /// Checks if the API is available
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
 }
@@ -663,6 +702,42 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
+    async fn list_tools(&self) -> Result<ListToolsResponse, GatewayError> {
+        let url = format!("{}/mcp/tools", self.base_url);
+        let mut request = self.client.get(&url);
+        if let Some(token) = &self.token {
+            request = request.bearer_auth(token);
+        }
+
+        let response = request.send().await?;
+        match response.status() {
+            StatusCode::OK => {
+                let json_response: ListToolsResponse = response.json().await?;
+                Ok(json_response)
+            }
+            StatusCode::UNAUTHORIZED => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::Unauthorized(error.error))
+            }
+            StatusCode::BAD_REQUEST => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::BadRequest(error.error))
+            }
+            StatusCode::FORBIDDEN => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::BadRequest(error.error))
+            }
+            StatusCode::INTERNAL_SERVER_ERROR => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::InternalError(error.error))
+            }
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Unexpected status code: {}", response.status()),
+            )))),
+        }
+    }
+
     async fn health_check(&self) -> Result<bool, GatewayError> {
         let url = format!("{}/health", self.base_url);
 
@@ -694,6 +769,7 @@ mod tests {
             (Provider::Cloudflare, "cloudflare"),
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
+            (Provider::Deepseek, "deepseek"),
         ];
 
         for (provider, expected) in providers {
@@ -711,6 +787,7 @@ mod tests {
             ("\"cloudflare\"", Provider::Cloudflare),
             ("\"cohere\"", Provider::Cohere),
             ("\"anthropic\"", Provider::Anthropic),
+            ("\"deepseek\"", Provider::Deepseek),
         ];
 
         for (json, expected) in test_cases {
@@ -763,6 +840,7 @@ mod tests {
             (Provider::Cloudflare, "cloudflare"),
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
+            (Provider::Deepseek, "deepseek"),
         ];
 
         for (provider, expected) in providers {
@@ -1697,6 +1775,129 @@ mod tests {
         let default_url = "http://localhost:8080/v1";
         assert_eq!(default_client.base_url(), default_url);
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_list_tools() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_response_json = r#"{
+            "object": "list",
+            "data": [
+                {
+                    "name": "read_file",
+                    "description": "Read content from a file",
+                    "server": "http://mcp-filesystem-server:8083/mcp",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "file_path": {
+                                "type": "string",
+                                "description": "Path to the file to read"
+                            }
+                        },
+                        "required": ["file_path"]
+                    }
+                },
+                {
+                    "name": "write_file",
+                    "description": "Write content to a file",
+                    "server": "http://mcp-filesystem-server:8083/mcp"
+                }
+            ]
+        }"#;
+
+        let mock = server
+            .mock("GET", "/v1/mcp/tools")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(raw_response_json)
+            .create();
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+        let response = client.list_tools().await?;
+
+        assert_eq!(response.object, "list");
+        assert_eq!(response.data.len(), 2);
+
+        // Test first tool with input_schema
+        assert_eq!(response.data[0].name, "read_file");
+        assert_eq!(response.data[0].description, "Read content from a file");
+        assert_eq!(
+            response.data[0].server,
+            "http://mcp-filesystem-server:8083/mcp"
+        );
+        assert!(response.data[0].input_schema.is_some());
+
+        // Test second tool without input_schema
+        assert_eq!(response.data[1].name, "write_file");
+        assert_eq!(response.data[1].description, "Write content to a file");
+        assert_eq!(
+            response.data[1].server,
+            "http://mcp-filesystem-server:8083/mcp"
+        );
+        assert!(response.data[1].input_schema.is_none());
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_list_tools_with_authentication() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_response_json = r#"{
+            "object": "list",
+            "data": []
+        }"#;
+
+        let mock = server
+            .mock("GET", "/v1/mcp/tools")
+            .match_header("authorization", "Bearer test-token")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(raw_response_json)
+            .create();
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url).with_token("test-token");
+        let response = client.list_tools().await?;
+
+        assert_eq!(response.object, "list");
+        assert_eq!(response.data.len(), 0);
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_list_tools_mcp_not_exposed() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let mock = server
+            .mock("GET", "/v1/mcp/tools")
+            .with_status(403)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"error":"MCP tools endpoint is not exposed. Set EXPOSE_MCP=true to enable."}"#,
+            )
+            .create();
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
+        match client.list_tools().await {
+            Err(GatewayError::BadRequest(msg)) => {
+                assert_eq!(
+                    msg,
+                    "MCP tools endpoint is not exposed. Set EXPOSE_MCP=true to enable."
+                );
+            }
+            _ => panic!("Expected BadRequest error for MCP not exposed"),
+        }
+
+        mock.assert();
         Ok(())
     }
 }
