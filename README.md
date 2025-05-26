@@ -8,6 +8,7 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Creating a Client](#creating-a-client)
     - [Listing Models](#listing-models)
     - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
+    - [Listing MCP Tools](#listing-mcp-tools)
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
     - [Tool-Use](#tool-use)
@@ -32,6 +33,7 @@ use inference_gateway_sdk::{
     InferenceGatewayAPI,
     InferenceGatewayClient,
     ListModelsResponse,
+    ListToolsResponse,
     Message,
     Provider,
     MessageRole
@@ -136,6 +138,41 @@ for model in response.data {
 
 // ...Rest of the main function
 ```
+
+### Listing MCP Tools
+
+To list all available MCP (Model Context Protocol) tools from all configured MCP servers, use the `list_tools` method:
+
+```rust
+use inference_gateway_sdk::{
+    GatewayError,
+    InferenceGatewayAPI,
+    InferenceGatewayClient,
+    ListToolsResponse,
+};
+use log::info;
+
+#[tokio::main]
+async fn main() -> Result<(), GatewayError> {
+    // ...Create a client
+
+    // List all MCP tools from all configured servers
+    let response: ListToolsResponse = client.list_tools().await?;
+    info!("Found {} MCP tools", response.data.len());
+
+    for tool in response.data {
+        info!("Tool: {} from server: {}", tool.name, tool.server);
+        info!("Description: {}", tool.description);
+        if let Some(schema) = &tool.input_schema {
+            info!("Input schema: {}", schema);
+        }
+    }
+
+    Ok(())
+}
+```
+
+Note: This functionality requires that MCP servers are configured and exposed in your Inference Gateway instance. If MCP is not exposed, you'll receive a `403 Forbidden` error.
 
 ### Generating Content
 

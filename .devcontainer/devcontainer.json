@@ -1,6 +1,9 @@
 {
   "name": "Debian with Rust",
   "dockerFile": "Dockerfile",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:latest": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -33,14 +36,46 @@
         "dev.containers.copyGitConfig": true,
         "githubPullRequests.experimental.chat": true,
         "githubPullRequests.experimental.notificationsView": true,
-        "files.insertFinalNewline": true
+        "files.insertFinalNewline": true,
+        "github.copilot.enable": {
+          "*": true
+        },
+        "github.copilot.advanced": {
+          "authProvider": "github"
+        },
+        "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+        "github.copilot.chat.codeGeneration.instructions": [
+          {
+            "file": ".github/copilot-instructions.md"
+          },
+          {
+            "file": "../README.md"
+          }
+        ],
+        "github.copilot.chat.commitMessageGeneration.instructions": [
+          {
+            "text": "Always use conventional commit message format."
+          }
+        ],
+        "mcp": {
+          "servers": {
+            "context7": {
+              "command": "docker",
+              "args": [
+                "run",
+                "-i",
+                "--rm",
+                "node:lts",
+                "npx",
+                "-y",
+                "@upstash/context7-mcp@latest"
+              ]
+            }
+          }
+        }
       }
     }
   },
-  "mounts": [
-    "source=${localWorkspaceFolder}/.devcontainer/.zshrc,target=/home/vscode/.zshrc,type=bind,consistency=cached",
-    "source=${localWorkspaceFolder}/.devcontainer/launch.json,target=/workspaces/inference-gateway/rust-sdk/.vscode/launch.json,type=bind,consistency=cached"
-  ],
   "remoteEnv": {
     "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
   }
