@@ -725,7 +725,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             }
             StatusCode::FORBIDDEN => {
                 let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::BadRequest(error.error))
+                Err(GatewayError::Forbidden(error.error))
             }
             StatusCode::INTERNAL_SERVER_ERROR => {
                 let error: ErrorResponse = response.json().await?;
