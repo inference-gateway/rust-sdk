@@ -27,6 +27,9 @@ pub enum GatewayError {
     #[error("Unauthorized: {0}")]
     Unauthorized(String),
 
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
+
     #[error("Bad request: {0}")]
     BadRequest(String),
 
@@ -1888,13 +1891,13 @@ mod tests {
         let client = InferenceGatewayClient::new(&base_url);
 
         match client.list_tools().await {
-            Err(GatewayError::BadRequest(msg)) => {
+            Err(GatewayError::Forbidden(msg)) => {
                 assert_eq!(
                     msg,
                     "MCP tools endpoint is not exposed. Set EXPOSE_MCP=true to enable."
                 );
             }
-            _ => panic!("Expected BadRequest error for MCP not exposed"),
+            _ => panic!("Expected Forbidden error for MCP not exposed"),
         }
 
         mock.assert();
