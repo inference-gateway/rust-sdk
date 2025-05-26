@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0](https://github.com/inference-gateway/rust-sdk/compare/0.9.2...0.10.0) (2025-05-26)
+
+### ✨ Features
+
+* Implement MCP List Tools ([#9](https://github.com/inference-gateway/rust-sdk/issues/9)) ([1f07d95](https://github.com/inference-gateway/rust-sdk/commit/1f07d95c9241fd77cbbd9c6490333d01c3acf582))
+
 ## [0.9.2](https://github.com/inference-gateway/rust-sdk/compare/0.9.1...0.9.2) (2025-03-21)
 
 ### 📚 Documentation
