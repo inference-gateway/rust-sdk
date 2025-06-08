@@ -566,8 +566,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
@@ -601,8 +600,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
@@ -644,8 +642,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            status => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            status => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", status),
             )))),
         }
@@ -734,8 +731,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
