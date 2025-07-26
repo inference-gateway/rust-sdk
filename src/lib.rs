@@ -128,6 +128,8 @@ pub enum Provider {
     Anthropic,
     #[serde(alias = "Deepseek", alias = "DEEPSEEK")]
     Deepseek,
+    #[serde(alias = "Google", alias = "GOOGLE")]
+    Google,
 }
 
 impl fmt::Display for Provider {
@@ -140,6 +142,7 @@ impl fmt::Display for Provider {
             Provider::Cohere => write!(f, "cohere"),
             Provider::Anthropic => write!(f, "anthropic"),
             Provider::Deepseek => write!(f, "deepseek"),
+            Provider::Google => write!(f, "google"),
         }
     }
 }
@@ -156,7 +159,8 @@ impl TryFrom<&str> for Provider {
             "cohere" => Ok(Self::Cohere),
             "anthropic" => Ok(Self::Anthropic),
             "deepseek" => Ok(Self::Deepseek),
-            _ => Err(GatewayError::BadRequest(format!("Unknown provider: {}", s))),
+            "google" => Ok(Self::Google),
+            _ => Err(GatewayError::BadRequest(format!("Unknown provider: {s}"))),
         }
     }
 }
@@ -566,8 +570,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
@@ -601,8 +604,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
@@ -644,9 +646,8 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            status => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Unexpected status code: {}", status),
+            status => Err(GatewayError::Other(Box::new(std::io::Error::other(
+                format!("Unexpected status code: {status}"),
             )))),
         }
     }
@@ -734,8 +735,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
@@ -773,6 +773,7 @@ mod tests {
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
+            (Provider::Google, "google"),
         ];
 
         for (provider, expected) in providers {
@@ -791,6 +792,7 @@ mod tests {
             ("\"cohere\"", Provider::Cohere),
             ("\"anthropic\"", Provider::Anthropic),
             ("\"deepseek\"", Provider::Deepseek),
+            ("\"google\"", Provider::Google),
         ];
 
         for (json, expected) in test_cases {
@@ -844,11 +846,32 @@ mod tests {
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
+            (Provider::Google, "google"),
         ];
 
         for (provider, expected) in providers {
             assert_eq!(provider.to_string(), expected);
         }
+    }
+
+    #[test]
+    fn test_google_provider_case_insensitive() {
+        let test_cases = vec!["google", "Google", "GOOGLE", "GoOgLe"];
+
+        for test_case in test_cases {
+            let provider: Result<Provider, _> = test_case.try_into();
+            assert!(provider.is_ok(), "Failed to parse: {}", test_case);
+            assert_eq!(provider.unwrap(), Provider::Google);
+        }
+
+        let json_cases = vec![r#""google""#, r#""Google""#, r#""GOOGLE""#];
+
+        for json_case in json_cases {
+            let provider: Provider = serde_json::from_str(json_case).unwrap();
+            assert_eq!(provider, Provider::Google);
+        }
+
+        assert_eq!(Provider::Google.to_string(), "google");
     }
 
     #[test]

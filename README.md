@@ -13,6 +13,7 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Streaming Content](#streaming-content)
     - [Tool-Use](#tool-use)
     - [Health Check](#health-check)
+  - [Supported Providers](#supported-providers)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -136,6 +137,13 @@ for model in response.data {
     info!("Model: {:?}", model.id);
 }
 
+// Example with Google provider
+let response: ListModelsResponse = client.list_models_by_provider(Provider::Google).await?;
+info!("Google models: {:?}", response.provider);
+for model in response.data {
+    info!("Google Model: {:?}", model.id);
+}
+
 // ...Rest of the main function
 ```
 
@@ -205,6 +213,25 @@ Message{
 
 log::info!(
     "Generated content: {:?}",
+    response.choices[0].message.content
+);
+
+// Example with Google provider (Gemini models)
+let response: CreateChatCompletionResponse = client.generate_content(Provider::Google, "gemini-1.5-flash", vec![
+Message{
+    role: MessageRole::System,
+    content: "You are a helpful AI assistant.".to_string(),
+    ..Default::default()
+},
+Message{
+    role: MessageRole::User,
+    content: "Explain quantum computing in simple terms".to_string(),
+    ..Default::default()
+}
+]).await?;
+
+log::info!(
+    "Google generated content: {:?}",
     response.choices[0].message.content
 );
 ```
@@ -475,6 +502,35 @@ use log::info;
 // ...main function
 let is_healthy = client.health_check().await?;
 info!("API is healthy: {}", is_healthy);
+```
+
+## Supported Providers
+
+The Inference Gateway Rust SDK supports the following providers:
+
+- **Ollama** (`Provider::Ollama`) - Local language model server
+- **Groq** (`Provider::Groq`) - High-speed inference provider
+- **OpenAI** (`Provider::OpenAI`) - GPT models and other OpenAI services
+- **Cloudflare** (`Provider::Cloudflare`) - Cloudflare Workers AI
+- **Cohere** (`Provider::Cohere`) - Cohere language models
+- **Anthropic** (`Provider::Anthropic`) - Claude models
+- **DeepSeek** (`Provider::Deepseek`) - DeepSeek models
+- **Google** (`Provider::Google`) - Google Gemini models via Generative AI API
+
+Each provider may support different models and capabilities. Use the `list_models_by_provider()` method to discover available models for each provider.
+
+Example:
+
+```rust
+use inference_gateway_sdk::{Provider, InferenceGatewayClient, InferenceGatewayAPI};
+
+let client = InferenceGatewayClient::new("http://localhost:8080/v1");
+
+// List Google models
+let google_models = client.list_models_by_provider(Provider::Google).await?;
+for model in google_models.data {
+    println!("Google model: {}", model.id);
+}
 ```
 
 ## Contributing
