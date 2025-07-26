@@ -864,7 +864,6 @@ mod tests {
             assert_eq!(provider.unwrap(), Provider::Google);
         }
 
-        // Test serialization/deserialization with aliases
         let json_cases = vec![r#""google""#, r#""Google""#, r#""GOOGLE""#];
 
         for json_case in json_cases {
@@ -872,7 +871,6 @@ mod tests {
             assert_eq!(provider, Provider::Google);
         }
 
-        // Test display is always lowercase
         assert_eq!(Provider::Google.to_string(), "google");
     }
 
