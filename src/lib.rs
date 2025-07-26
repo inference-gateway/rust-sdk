@@ -128,6 +128,8 @@ pub enum Provider {
     Anthropic,
     #[serde(alias = "Deepseek", alias = "DEEPSEEK")]
     Deepseek,
+    #[serde(alias = "Google", alias = "GOOGLE")]
+    Google,
 }
 
 impl fmt::Display for Provider {
@@ -140,6 +142,7 @@ impl fmt::Display for Provider {
             Provider::Cohere => write!(f, "cohere"),
             Provider::Anthropic => write!(f, "anthropic"),
             Provider::Deepseek => write!(f, "deepseek"),
+            Provider::Google => write!(f, "google"),
         }
     }
 }
@@ -156,6 +159,7 @@ impl TryFrom<&str> for Provider {
             "cohere" => Ok(Self::Cohere),
             "anthropic" => Ok(Self::Anthropic),
             "deepseek" => Ok(Self::Deepseek),
+            "google" => Ok(Self::Google),
             _ => Err(GatewayError::BadRequest(format!("Unknown provider: {}", s))),
         }
     }
