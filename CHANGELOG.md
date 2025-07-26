@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0](https://github.com/inference-gateway/rust-sdk/compare/0.10.0...0.11.0) (2025-07-26)
+
+### ✨ Features
+
+* Implement Google Provider ([#11](https://github.com/inference-gateway/rust-sdk/issues/11)) ([0df4342](https://github.com/inference-gateway/rust-sdk/commit/0df4342e7c9ea346bf9d4df4c8df83c640431b82))
+
+### 🔧 Miscellaneous
+
+* Update dependencies to latest versions ([#12](https://github.com/inference-gateway/rust-sdk/issues/12)) ([64fdd1e](https://github.com/inference-gateway/rust-sdk/commit/64fdd1eb1c5124f174ce35d87e6d453c6744c952))
+
 ## [0.10.0](https://github.com/inference-gateway/rust-sdk/compare/0.9.2...0.10.0) (2025-05-26)
 
 ### ✨ Features
