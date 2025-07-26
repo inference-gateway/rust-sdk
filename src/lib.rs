@@ -160,7 +160,7 @@ impl TryFrom<&str> for Provider {
             "anthropic" => Ok(Self::Anthropic),
             "deepseek" => Ok(Self::Deepseek),
             "google" => Ok(Self::Google),
-            _ => Err(GatewayError::BadRequest(format!("Unknown provider: {}", s))),
+            _ => Err(GatewayError::BadRequest(format!("Unknown provider: {s}"))),
         }
     }
 }
@@ -570,8 +570,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
@@ -605,8 +604,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
@@ -648,9 +646,8 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            status => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Unexpected status code: {}", status),
+            status => Err(GatewayError::Other(Box::new(std::io::Error::other(
+                format!("Unexpected status code: {status}"),
             )))),
         }
     }
@@ -738,8 +735,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
                 let error: ErrorResponse = response.json().await?;
                 Err(GatewayError::InternalError(error.error))
             }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
                 format!("Unexpected status code: {}", response.status()),
             )))),
         }
