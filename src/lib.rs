@@ -777,6 +777,7 @@ mod tests {
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
+            (Provider::Google, "google"),
         ];
 
         for (provider, expected) in providers {
@@ -795,6 +796,7 @@ mod tests {
             ("\"cohere\"", Provider::Cohere),
             ("\"anthropic\"", Provider::Anthropic),
             ("\"deepseek\"", Provider::Deepseek),
+            ("\"google\"", Provider::Google),
         ];
 
         for (json, expected) in test_cases {
@@ -848,11 +850,34 @@ mod tests {
             (Provider::Cohere, "cohere"),
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
+            (Provider::Google, "google"),
         ];
 
         for (provider, expected) in providers {
             assert_eq!(provider.to_string(), expected);
         }
+    }
+
+    #[test]
+    fn test_google_provider_case_insensitive() {
+        let test_cases = vec!["google", "Google", "GOOGLE", "GoOgLe"];
+
+        for test_case in test_cases {
+            let provider: Result<Provider, _> = test_case.try_into();
+            assert!(provider.is_ok(), "Failed to parse: {}", test_case);
+            assert_eq!(provider.unwrap(), Provider::Google);
+        }
+
+        // Test serialization/deserialization with aliases
+        let json_cases = vec![r#""google""#, r#""Google""#, r#""GOOGLE""#];
+
+        for json_case in json_cases {
+            let provider: Provider = serde_json::from_str(json_case).unwrap();
+            assert_eq!(provider, Provider::Google);
+        }
+
+        // Test display is always lowercase
+        assert_eq!(Provider::Google.to_string(), "google");
     }
 
     #[test]
