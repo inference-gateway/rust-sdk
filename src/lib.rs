@@ -113,62 +113,6 @@ pub struct ListToolsResponse {
     pub data: Vec<MCPTool>,
 }
 
-/// An A2A agent card definition
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct A2AAgentCard {
-    /// Unique identifier for the agent (base64-encoded SHA256 hash of the agent URL)
-    pub id: String,
-    /// Human readable name of the agent
-    pub name: String,
-    /// A human-readable description of the agent
-    pub description: String,
-    /// A URL to the address the agent is hosted at
-    pub url: String,
-    /// The version of the agent
-    pub version: String,
-    /// Optional capabilities supported by the agent
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub capabilities: Option<Value>,
-    /// The set of interaction modes that the agent supports across all skills
-    #[serde(rename = "defaultInputModes")]
-    pub default_input_modes: Vec<String>,
-    /// Supported media types for output
-    #[serde(rename = "defaultOutputModes")]
-    pub default_output_modes: Vec<String>,
-    /// Skills are a unit of capability that an agent can perform
-    pub skills: Vec<Value>,
-    /// A URL to documentation for the agent
-    #[serde(rename = "documentationUrl", skip_serializing_if = "Option::is_none")]
-    pub documentation_url: Option<String>,
-    /// A URL to an icon for the agent
-    #[serde(rename = "iconUrl", skip_serializing_if = "Option::is_none")]
-    pub icon_url: Option<String>,
-    /// The service provider of the agent
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider: Option<Value>,
-    /// Security requirements for contacting the agent
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub security: Option<Vec<Value>>,
-    /// Security scheme details used for authenticating with this agent
-    #[serde(rename = "securitySchemes", skip_serializing_if = "Option::is_none")]
-    pub security_schemes: Option<Value>,
-    /// True if the agent supports providing an extended agent card when the user is authenticated
-    #[serde(
-        rename = "supportsAuthenticatedExtendedCard",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub supports_authenticated_extended_card: Option<bool>,
-}
-
-/// Response structure for listing A2A agents
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ListAgentsResponse {
-    /// Response object type, always "list"
-    pub object: String,
-    /// Array of available A2A agents
-    pub data: Vec<A2AAgentCard>,
-}
-
 /// Supported LLM providers
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
@@ -611,37 +555,6 @@ pub trait InferenceGatewayAPI {
     /// A list of available MCP tools. Only accessible when EXPOSE_MCP is enabled.
     fn list_tools(&self) -> impl Future<Output = Result<ListToolsResponse, GatewayError>> + Send;
 
-    /// Lists available A2A agents
-    ///
-    /// # Errors
-    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
-    /// - Returns [`GatewayError::Forbidden`] if A2A is not exposed
-    /// - Returns [`GatewayError::InternalError`] if the server has an error
-    /// - Returns [`GatewayError::Other`] for other errors
-    ///
-    /// # Returns
-    /// A list of available A2A agents. Only accessible when EXPOSE_A2A is enabled.
-    fn list_agents(&self) -> impl Future<Output = Result<ListAgentsResponse, GatewayError>> + Send;
-
-    /// Gets a specific A2A agent by ID
-    ///
-    /// # Arguments
-    /// * `id` - The unique identifier of the agent
-    ///
-    /// # Errors
-    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
-    /// - Returns [`GatewayError::Forbidden`] if A2A is not exposed
-    /// - Returns [`GatewayError::NotFound`] if the agent is not found
-    /// - Returns [`GatewayError::InternalError`] if the server has an error
-    /// - Returns [`GatewayError::Other`] for other errors
-    ///
-    /// # Returns
-    /// The A2A agent card. Only accessible when EXPOSE_A2A is enabled.
-    fn get_agent(
-        &self,
-        id: &str,
-    ) -> impl Future<Output = Result<A2AAgentCard, GatewayError>> + Send;
-
     /// Checks if the API is available
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
 }
@@ -917,72 +830,6 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
-    async fn list_agents(&self) -> Result<ListAgentsResponse, GatewayError> {
-        let url = format!("{}/a2a/agents", self.base_url);
-        let mut request = self.client.get(&url);
-        if let Some(token) = &self.token {
-            request = request.bearer_auth(token);
-        }
-
-        let response = request.send().await?;
-        match response.status() {
-            StatusCode::OK => {
-                let json_response: ListAgentsResponse = response.json().await?;
-                Ok(json_response)
-            }
-            StatusCode::UNAUTHORIZED => {
-                let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::Unauthorized(error.error))
-            }
-            StatusCode::FORBIDDEN => {
-                let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::Forbidden(error.error))
-            }
-            StatusCode::INTERNAL_SERVER_ERROR => {
-                let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::InternalError(error.error))
-            }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
-                format!("Unexpected status code: {}", response.status()),
-            )))),
-        }
-    }
-
-    async fn get_agent(&self, id: &str) -> Result<A2AAgentCard, GatewayError> {
-        let url = format!("{}/a2a/agents/{}", self.base_url, id);
-        let mut request = self.client.get(&url);
-        if let Some(token) = &self.token {
-            request = request.bearer_auth(token);
-        }
-
-        let response = request.send().await?;
-        match response.status() {
-            StatusCode::OK => {
-                let json_response: A2AAgentCard = response.json().await?;
-                Ok(json_response)
-            }
-            StatusCode::UNAUTHORIZED => {
-                let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::Unauthorized(error.error))
-            }
-            StatusCode::FORBIDDEN => {
-                let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::Forbidden(error.error))
-            }
-            StatusCode::NOT_FOUND => {
-                let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::NotFound(error.error))
-            }
-            StatusCode::INTERNAL_SERVER_ERROR => {
-                let error: ErrorResponse = response.json().await?;
-                Err(GatewayError::InternalError(error.error))
-            }
-            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
-                format!("Unexpected status code: {}", response.status()),
-            )))),
-        }
-    }
-
     async fn health_check(&self) -> Result<bool, GatewayError> {
         let url = format!("{}/health", self.base_url);
 
@@ -1158,6 +1005,7 @@ mod tests {
                 },
             }]),
             max_tokens: None,
+            reasoning_format: None,
         };
 
         let serialized = serde_json::to_string_pretty(&request_payload).unwrap();
@@ -2177,136 +2025,6 @@ mod tests {
                 );
             }
             _ => panic!("Expected Forbidden error for MCP not exposed"),
-        }
-
-        mock.assert();
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_list_agents() -> Result<(), GatewayError> {
-        let mut server = Server::new_async().await;
-
-        let raw_response_json = r#"{
-            "object": "list",
-            "data": [
-                {
-                    "id": "agent-123",
-                    "name": "Test Agent",
-                    "description": "A test A2A agent",
-                    "url": "http://test-agent:8080",
-                    "version": "1.0.0",
-                    "defaultInputModes": ["text/plain"],
-                    "defaultOutputModes": ["text/plain"],
-                    "skills": []
-                }
-            ]
-        }"#;
-
-        let mock = server
-            .mock("GET", "/v1/a2a/agents")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(raw_response_json)
-            .create();
-
-        let base_url = format!("{}/v1", server.url());
-        let client = InferenceGatewayClient::new(&base_url);
-        let response = client.list_agents().await?;
-
-        assert_eq!(response.object, "list");
-        assert_eq!(response.data.len(), 1);
-        assert_eq!(response.data[0].id, "agent-123");
-        assert_eq!(response.data[0].name, "Test Agent");
-        assert_eq!(response.data[0].url, "http://test-agent:8080");
-        mock.assert();
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_list_agents_a2a_not_exposed() -> Result<(), GatewayError> {
-        let mut server = Server::new_async().await;
-
-        let mock = server
-            .mock("GET", "/v1/a2a/agents")
-            .with_status(403)
-            .with_header("content-type", "application/json")
-            .with_body(
-                r#"{"error":"A2A agents endpoint is not exposed. Set EXPOSE_A2A=true to enable."}"#,
-            )
-            .create();
-
-        let base_url = format!("{}/v1", server.url());
-        let client = InferenceGatewayClient::new(&base_url);
-
-        match client.list_agents().await {
-            Err(GatewayError::Forbidden(msg)) => {
-                assert_eq!(
-                    msg,
-                    "A2A agents endpoint is not exposed. Set EXPOSE_A2A=true to enable."
-                );
-            }
-            _ => panic!("Expected Forbidden error for A2A not exposed"),
-        }
-
-        mock.assert();
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_get_agent() -> Result<(), GatewayError> {
-        let mut server = Server::new_async().await;
-
-        let raw_response_json = r#"{
-            "id": "agent-123",
-            "name": "Test Agent",
-            "description": "A test A2A agent",
-            "url": "http://test-agent:8080",
-            "version": "1.0.0",
-            "defaultInputModes": ["text/plain"],
-            "defaultOutputModes": ["text/plain"],
-            "skills": []
-        }"#;
-
-        let mock = server
-            .mock("GET", "/v1/a2a/agents/agent-123")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body(raw_response_json)
-            .create();
-
-        let base_url = format!("{}/v1", server.url());
-        let client = InferenceGatewayClient::new(&base_url);
-        let response = client.get_agent("agent-123").await?;
-
-        assert_eq!(response.id, "agent-123");
-        assert_eq!(response.name, "Test Agent");
-        assert_eq!(response.url, "http://test-agent:8080");
-        mock.assert();
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_get_agent_not_found() -> Result<(), GatewayError> {
-        let mut server = Server::new_async().await;
-
-        let mock = server
-            .mock("GET", "/v1/a2a/agents/non-existent")
-            .with_status(404)
-            .with_header("content-type", "application/json")
-            .with_body(r#"{"error":"Agent not found"}"#)
-            .create();
-
-        let base_url = format!("{}/v1", server.url());
-        let client = InferenceGatewayClient::new(&base_url);
-
-        match client.get_agent("non-existent").await {
-            Err(GatewayError::NotFound(msg)) => {
-                assert_eq!(msg, "Agent not found");
-            }
-            _ => panic!("Expected NotFound error"),
         }
 
         mock.assert();
