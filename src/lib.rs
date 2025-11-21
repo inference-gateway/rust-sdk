@@ -30,6 +30,9 @@ pub enum GatewayError {
     #[error("Forbidden: {0}")]
     Forbidden(String),
 
+    #[error("Not found: {0}")]
+    NotFound(String),
+
     #[error("Bad request: {0}")]
     BadRequest(String),
 
@@ -66,13 +69,13 @@ pub struct Model {
     /// The model identifier
     pub id: String,
     /// The object type, usually "model"
-    pub object: Option<String>,
+    pub object: String,
     /// The Unix timestamp (in seconds) of when the model was created
-    pub created: Option<i64>,
+    pub created: i64,
     /// The organization that owns the model
-    pub owned_by: Option<String>,
+    pub owned_by: String,
     /// The provider that serves the model
-    pub served_by: Option<String>,
+    pub served_by: Provider,
 }
 
 /// Response structure for listing models
@@ -108,6 +111,59 @@ pub struct ListToolsResponse {
     pub object: String,
     /// Array of available MCP tools
     pub data: Vec<MCPTool>,
+}
+
+/// An A2A agent card definition
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct A2AAgentCard {
+    /// Unique identifier for the agent (base64-encoded SHA256 hash of the agent URL)
+    pub id: String,
+    /// Human readable name of the agent
+    pub name: String,
+    /// A human-readable description of the agent
+    pub description: String,
+    /// A URL to the address the agent is hosted at
+    pub url: String,
+    /// The version of the agent
+    pub version: String,
+    /// Optional capabilities supported by the agent
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capabilities: Option<Value>,
+    /// The set of interaction modes that the agent supports across all skills
+    #[serde(rename = "defaultInputModes")]
+    pub default_input_modes: Vec<String>,
+    /// Supported media types for output
+    #[serde(rename = "defaultOutputModes")]
+    pub default_output_modes: Vec<String>,
+    /// Skills are a unit of capability that an agent can perform
+    pub skills: Vec<Value>,
+    /// A URL to documentation for the agent
+    #[serde(rename = "documentationUrl", skip_serializing_if = "Option::is_none")]
+    pub documentation_url: Option<String>,
+    /// A URL to an icon for the agent
+    #[serde(rename = "iconUrl", skip_serializing_if = "Option::is_none")]
+    pub icon_url: Option<String>,
+    /// The service provider of the agent
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provider: Option<Value>,
+    /// Security requirements for contacting the agent
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub security: Option<Vec<Value>>,
+    /// Security scheme details used for authenticating with this agent
+    #[serde(rename = "securitySchemes", skip_serializing_if = "Option::is_none")]
+    pub security_schemes: Option<Value>,
+    /// True if the agent supports providing an extended agent card when the user is authenticated
+    #[serde(rename = "supportsAuthenticatedExtendedCard", skip_serializing_if = "Option::is_none")]
+    pub supports_authenticated_extended_card: Option<bool>,
+}
+
+/// Response structure for listing A2A agents
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListAgentsResponse {
+    /// Response object type, always "list"
+    pub object: String,
+    /// Array of available A2A agents
+    pub data: Vec<A2AAgentCard>,
 }
 
 /// Supported LLM providers
@@ -199,7 +255,10 @@ pub struct Message {
     /// Unique identifier of the tool call
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_call_id: Option<String>,
-    /// Reasoning behind the message
+    /// The reasoning content of the message
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_content: Option<String>,
+    /// The reasoning of the message (same as reasoning_content)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<String>,
 }
@@ -279,21 +338,41 @@ struct CreateChatCompletionRequest {
     max_tokens: Option<i32>,
 }
 
-/// A tool call in the response
+/// A tool call chunk in streaming responses
 #[derive(Debug, Deserialize, Clone)]
-pub struct ToolCallResponse {
+pub struct ChatCompletionMessageToolCallChunk {
+    /// Index of the tool call in the array
+    pub index: i32,
     /// Unique identifier of the tool call
-    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     /// Type of tool that was called
-    #[serde(rename = "type")]
-    pub r#type: ToolType,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
     /// Function that the LLM wants to call
-    pub function: ChatCompletionMessageToolCallFunction,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<ChatCompletionMessageToolCallFunction>,
+}
+
+/// The reason the model stopped generating tokens
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum FinishReason {
+    /// Model hit a natural stop point or a provided stop sequence
+    Stop,
+    /// Maximum number of tokens specified in the request was reached
+    Length,
+    /// Model called a tool
+    ToolCalls,
+    /// Content was omitted due to a flag from content filters
+    ContentFilter,
+    /// Function call (deprecated, use tool_calls)
+    FunctionCall,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ChatCompletionChoice {
-    pub finish_reason: String,
+    pub finish_reason: FinishReason,
     pub message: Message,
     pub index: i32,
 }
@@ -329,6 +408,39 @@ pub struct CreateChatCompletionStreamResponse {
     pub usage: Option<CompletionUsage>,
 }
 
+/// Token log probability information
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChatCompletionTokenLogprob {
+    /// The token
+    pub token: String,
+    /// The log probability of this token
+    pub logprob: f64,
+    /// UTF-8 bytes representation of the token
+    pub bytes: Option<Vec<i32>>,
+    /// List of the most likely tokens and their log probability
+    pub top_logprobs: Vec<TopLogprob>,
+}
+
+/// Top log probability entry
+#[derive(Debug, Deserialize, Clone)]
+pub struct TopLogprob {
+    /// The token
+    pub token: String,
+    /// The log probability of this token
+    pub logprob: f64,
+    /// UTF-8 bytes representation of the token
+    pub bytes: Option<Vec<i32>>,
+}
+
+/// Log probability information for a choice
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChoiceLogprobs {
+    /// A list of message content tokens with log probability information
+    pub content: Option<Vec<ChatCompletionTokenLogprob>>,
+    /// A list of message refusal tokens with log probability information
+    pub refusal: Option<Vec<ChatCompletionTokenLogprob>>,
+}
+
 /// Choice in a streaming completion response
 #[derive(Debug, Deserialize, Clone)]
 pub struct ChatCompletionStreamChoice {
@@ -338,7 +450,10 @@ pub struct ChatCompletionStreamChoice {
     pub index: i32,
     /// The reason the model stopped generating tokens
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub finish_reason: Option<String>,
+    pub finish_reason: Option<FinishReason>,
+    /// Log probability information for the choice
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<ChoiceLogprobs>,
 }
 
 /// Delta content for streaming responses
@@ -350,9 +465,18 @@ pub struct ChatCompletionStreamDelta {
     /// Content of the message delta
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
+    /// The reasoning content of the chunk message
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_content: Option<String>,
+    /// The reasoning of the chunk message (same as reasoning_content)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<String>,
     /// Tool calls for this delta
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<ToolCallResponse>>,
+    pub tool_calls: Option<Vec<ChatCompletionMessageToolCallChunk>>,
+    /// The refusal message generated by the model
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<String>,
 }
 
 /// Usage statistics for the completion request
@@ -467,6 +591,37 @@ pub trait InferenceGatewayAPI {
     /// # Returns
     /// A list of available MCP tools. Only accessible when EXPOSE_MCP is enabled.
     fn list_tools(&self) -> impl Future<Output = Result<ListToolsResponse, GatewayError>> + Send;
+
+    /// Lists available A2A agents
+    ///
+    /// # Errors
+    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
+    /// - Returns [`GatewayError::Forbidden`] if A2A is not exposed
+    /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// A list of available A2A agents. Only accessible when EXPOSE_A2A is enabled.
+    fn list_agents(&self) -> impl Future<Output = Result<ListAgentsResponse, GatewayError>> + Send;
+
+    /// Gets a specific A2A agent by ID
+    ///
+    /// # Arguments
+    /// * `id` - The unique identifier of the agent
+    ///
+    /// # Errors
+    /// - Returns [`GatewayError::Unauthorized`] if authentication fails
+    /// - Returns [`GatewayError::Forbidden`] if A2A is not exposed
+    /// - Returns [`GatewayError::NotFound`] if the agent is not found
+    /// - Returns [`GatewayError::InternalError`] if the server has an error
+    /// - Returns [`GatewayError::Other`] for other errors
+    ///
+    /// # Returns
+    /// The A2A agent card. Only accessible when EXPOSE_A2A is enabled.
+    fn get_agent(
+        &self,
+        id: &str,
+    ) -> impl Future<Output = Result<A2AAgentCard, GatewayError>> + Send;
 
     /// Checks if the API is available
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
@@ -741,6 +896,72 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
     }
 
+    async fn list_agents(&self) -> Result<ListAgentsResponse, GatewayError> {
+        let url = format!("{}/a2a/agents", self.base_url);
+        let mut request = self.client.get(&url);
+        if let Some(token) = &self.token {
+            request = request.bearer_auth(token);
+        }
+
+        let response = request.send().await?;
+        match response.status() {
+            StatusCode::OK => {
+                let json_response: ListAgentsResponse = response.json().await?;
+                Ok(json_response)
+            }
+            StatusCode::UNAUTHORIZED => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::Unauthorized(error.error))
+            }
+            StatusCode::FORBIDDEN => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::Forbidden(error.error))
+            }
+            StatusCode::INTERNAL_SERVER_ERROR => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::InternalError(error.error))
+            }
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
+                format!("Unexpected status code: {}", response.status()),
+            )))),
+        }
+    }
+
+    async fn get_agent(&self, id: &str) -> Result<A2AAgentCard, GatewayError> {
+        let url = format!("{}/a2a/agents/{}", self.base_url, id);
+        let mut request = self.client.get(&url);
+        if let Some(token) = &self.token {
+            request = request.bearer_auth(token);
+        }
+
+        let response = request.send().await?;
+        match response.status() {
+            StatusCode::OK => {
+                let json_response: A2AAgentCard = response.json().await?;
+                Ok(json_response)
+            }
+            StatusCode::UNAUTHORIZED => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::Unauthorized(error.error))
+            }
+            StatusCode::FORBIDDEN => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::Forbidden(error.error))
+            }
+            StatusCode::NOT_FOUND => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::NotFound(error.error))
+            }
+            StatusCode::INTERNAL_SERVER_ERROR => {
+                let error: ErrorResponse = response.json().await?;
+                Err(GatewayError::InternalError(error.error))
+            }
+            _ => Err(GatewayError::Other(Box::new(std::io::Error::other(
+                format!("Unexpected status code: {}", response.status()),
+            )))),
+        }
+    }
+
     async fn health_check(&self) -> Result<bool, GatewayError> {
         let url = format!("{}/health", self.base_url);
 
@@ -756,8 +977,9 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 mod tests {
     use crate::{
         CreateChatCompletionRequest, CreateChatCompletionResponse,
-        CreateChatCompletionStreamResponse, FunctionObject, GatewayError, InferenceGatewayAPI,
-        InferenceGatewayClient, Message, MessageRole, Provider, Tool, ToolType,
+        CreateChatCompletionStreamResponse, FinishReason, FunctionObject, GatewayError,
+        InferenceGatewayAPI, InferenceGatewayClient, Message, MessageRole, Provider, Tool,
+        ToolType,
     };
     use futures_util::{pin_mut, StreamExt};
     use mockito::{Matcher, Server};
@@ -1374,7 +1596,7 @@ mod tests {
             if generate_response.choices[0].finish_reason.is_some() {
                 assert_eq!(
                     generate_response.choices[0].finish_reason.as_ref().unwrap(),
-                    "stop"
+                    &FinishReason::Stop
                 );
                 break;
             }
@@ -1921,6 +2143,136 @@ mod tests {
                 );
             }
             _ => panic!("Expected Forbidden error for MCP not exposed"),
+        }
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_list_agents() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_response_json = r#"{
+            "object": "list",
+            "data": [
+                {
+                    "id": "agent-123",
+                    "name": "Test Agent",
+                    "description": "A test A2A agent",
+                    "url": "http://test-agent:8080",
+                    "version": "1.0.0",
+                    "defaultInputModes": ["text/plain"],
+                    "defaultOutputModes": ["text/plain"],
+                    "skills": []
+                }
+            ]
+        }"#;
+
+        let mock = server
+            .mock("GET", "/v1/a2a/agents")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(raw_response_json)
+            .create();
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+        let response = client.list_agents().await?;
+
+        assert_eq!(response.object, "list");
+        assert_eq!(response.data.len(), 1);
+        assert_eq!(response.data[0].id, "agent-123");
+        assert_eq!(response.data[0].name, "Test Agent");
+        assert_eq!(response.data[0].url, "http://test-agent:8080");
+        mock.assert();
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_list_agents_a2a_not_exposed() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let mock = server
+            .mock("GET", "/v1/a2a/agents")
+            .with_status(403)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{"error":"A2A agents endpoint is not exposed. Set EXPOSE_A2A=true to enable."}"#,
+            )
+            .create();
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
+        match client.list_agents().await {
+            Err(GatewayError::Forbidden(msg)) => {
+                assert_eq!(
+                    msg,
+                    "A2A agents endpoint is not exposed. Set EXPOSE_A2A=true to enable."
+                );
+            }
+            _ => panic!("Expected Forbidden error for A2A not exposed"),
+        }
+
+        mock.assert();
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_agent() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let raw_response_json = r#"{
+            "id": "agent-123",
+            "name": "Test Agent",
+            "description": "A test A2A agent",
+            "url": "http://test-agent:8080",
+            "version": "1.0.0",
+            "defaultInputModes": ["text/plain"],
+            "defaultOutputModes": ["text/plain"],
+            "skills": []
+        }"#;
+
+        let mock = server
+            .mock("GET", "/v1/a2a/agents/agent-123")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(raw_response_json)
+            .create();
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+        let response = client.get_agent("agent-123").await?;
+
+        assert_eq!(response.id, "agent-123");
+        assert_eq!(response.name, "Test Agent");
+        assert_eq!(response.url, "http://test-agent:8080");
+        mock.assert();
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_agent_not_found() -> Result<(), GatewayError> {
+        let mut server = Server::new_async().await;
+
+        let mock = server
+            .mock("GET", "/v1/a2a/agents/non-existent")
+            .with_status(404)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error":"Agent not found"}"#)
+            .create();
+
+        let base_url = format!("{}/v1", server.url());
+        let client = InferenceGatewayClient::new(&base_url);
+
+        match client.get_agent("non-existent").await {
+            Err(GatewayError::NotFound(msg)) => {
+                assert_eq!(msg, "Agent not found");
+            }
+            _ => panic!("Expected NotFound error"),
         }
 
         mock.assert();
