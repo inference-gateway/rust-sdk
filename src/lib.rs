@@ -172,6 +172,8 @@ pub struct ListAgentsResponse {
 pub enum Provider {
     #[serde(alias = "Ollama", alias = "OLLAMA")]
     Ollama,
+    #[serde(alias = "OllamaCloud", alias = "OLLAMA_CLOUD", rename = "ollama_cloud")]
+    OllamaCloud,
     #[serde(alias = "Groq", alias = "GROQ")]
     Groq,
     #[serde(alias = "OpenAI", alias = "OPENAI")]
@@ -186,12 +188,15 @@ pub enum Provider {
     Deepseek,
     #[serde(alias = "Google", alias = "GOOGLE")]
     Google,
+    #[serde(alias = "Mistral", alias = "MISTRAL")]
+    Mistral,
 }
 
 impl fmt::Display for Provider {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Provider::Ollama => write!(f, "ollama"),
+            Provider::OllamaCloud => write!(f, "ollama_cloud"),
             Provider::Groq => write!(f, "groq"),
             Provider::OpenAI => write!(f, "openai"),
             Provider::Cloudflare => write!(f, "cloudflare"),
@@ -199,6 +204,7 @@ impl fmt::Display for Provider {
             Provider::Anthropic => write!(f, "anthropic"),
             Provider::Deepseek => write!(f, "deepseek"),
             Provider::Google => write!(f, "google"),
+            Provider::Mistral => write!(f, "mistral"),
         }
     }
 }
@@ -209,6 +215,7 @@ impl TryFrom<&str> for Provider {
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
             "ollama" => Ok(Self::Ollama),
+            "ollama_cloud" => Ok(Self::OllamaCloud),
             "groq" => Ok(Self::Groq),
             "openai" => Ok(Self::OpenAI),
             "cloudflare" => Ok(Self::Cloudflare),
@@ -216,6 +223,7 @@ impl TryFrom<&str> for Provider {
             "anthropic" => Ok(Self::Anthropic),
             "deepseek" => Ok(Self::Deepseek),
             "google" => Ok(Self::Google),
+            "mistral" => Ok(Self::Mistral),
             _ => Err(GatewayError::BadRequest(format!("Unknown provider: {s}"))),
         }
     }
@@ -336,10 +344,13 @@ struct CreateChatCompletionRequest {
     /// Maximum number of tokens to generate
     #[serde(skip_serializing_if = "Option::is_none")]
     max_tokens: Option<i32>,
+    /// The format of the reasoning content. Can be `raw` or `parsed`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_format: Option<String>,
 }
 
 /// A tool call chunk in streaming responses
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatCompletionMessageToolCallChunk {
     /// Index of the tool call in the array
     pub index: i32,
@@ -375,6 +386,8 @@ pub struct ChatCompletionChoice {
     pub finish_reason: FinishReason,
     pub message: Message,
     pub index: i32,
+    /// Log probability information for the choice
+    pub logprobs: Option<ChoiceLogprobs>,
 }
 
 /// The response from generating content
@@ -406,6 +419,9 @@ pub struct CreateChatCompletionStreamResponse {
     /// Usage statistics for the completion request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<CompletionUsage>,
+    /// The format of the reasoning content. Can be `raw` or `parsed`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_format: Option<String>,
 }
 
 /// Token log probability information
@@ -783,6 +799,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             stream: false,
             tools: self.tools.clone(),
             max_tokens: self.max_tokens,
+            reasoning_format: None,
         };
 
         let response = request.json(&request_payload).send().await?;
@@ -828,6 +845,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             stream: true,
             tools: None,
             max_tokens: None,
+            reasoning_format: None,
         };
 
         async_stream::try_stream! {
@@ -989,6 +1007,7 @@ mod tests {
     fn test_provider_serialization() {
         let providers = vec![
             (Provider::Ollama, "ollama"),
+            (Provider::OllamaCloud, "ollama_cloud"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
             (Provider::Cloudflare, "cloudflare"),
@@ -996,6 +1015,7 @@ mod tests {
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
             (Provider::Google, "google"),
+            (Provider::Mistral, "mistral"),
         ];
 
         for (provider, expected) in providers {
@@ -1008,6 +1028,7 @@ mod tests {
     fn test_provider_deserialization() {
         let test_cases = vec![
             ("\"ollama\"", Provider::Ollama),
+            ("\"ollama_cloud\"", Provider::OllamaCloud),
             ("\"groq\"", Provider::Groq),
             ("\"openai\"", Provider::OpenAI),
             ("\"cloudflare\"", Provider::Cloudflare),
@@ -1015,6 +1036,7 @@ mod tests {
             ("\"anthropic\"", Provider::Anthropic),
             ("\"deepseek\"", Provider::Deepseek),
             ("\"google\"", Provider::Google),
+            ("\"mistral\"", Provider::Mistral),
         ];
 
         for (json, expected) in test_cases {
@@ -1062,6 +1084,7 @@ mod tests {
     fn test_provider_display() {
         let providers = vec![
             (Provider::Ollama, "ollama"),
+            (Provider::OllamaCloud, "ollama_cloud"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
             (Provider::Cloudflare, "cloudflare"),
@@ -1069,6 +1092,7 @@ mod tests {
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
             (Provider::Google, "google"),
+            (Provider::Mistral, "mistral"),
         ];
 
         for (provider, expected) in providers {
@@ -1329,6 +1353,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hellloooo"
@@ -1376,6 +1401,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hello"
@@ -1517,6 +1543,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hello"
@@ -1671,6 +1698,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "tool_calls",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Let me check the weather for you.",
@@ -1760,6 +1788,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hello!"
@@ -1844,6 +1873,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Let me check the weather for you",
@@ -1941,6 +1971,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Here's a poem with 100 tokens..."
