@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0](https://github.com/inference-gateway/rust-sdk/compare/0.11.0...0.12.0) (2025-11-21)
+
+### ✨ Features
+
+* Sync SDK with latest OpenAPI specification ([#15](https://github.com/inference-gateway/rust-sdk/issues/15)) ([b655389](https://github.com/inference-gateway/rust-sdk/commit/b655389278e8b29f9b7ef3bb984aec57e2e5a823))
+* Update default models and docs for flox ([5a3f97b](https://github.com/inference-gateway/rust-sdk/commit/5a3f97b09a306121a0a96f154767647bab40ccfa))
+
+### 🐛 Bug Fixes
+
+* resolve markdownlint violations in AGENTS.md ([8240142](https://github.com/inference-gateway/rust-sdk/commit/82401426352204cc2fe27ddd6f68b7c7eb3da33b))
+
+### 🔧 Miscellaneous
+
+* Add .env.example ([1099147](https://github.com/inference-gateway/rust-sdk/commit/109914732f9e548ec1875ba61b18dd6814564a01))
+* Add infer CLI ([c9dfc98](https://github.com/inference-gateway/rust-sdk/commit/c9dfc98462e063ba139459b539a3f92af490a535))
+* Add issue templates ([9626778](https://github.com/inference-gateway/rust-sdk/commit/96267788ce7f658405e90b5e80798777d16bb324))
+* Add markdownlint ([398e3b6](https://github.com/inference-gateway/rust-sdk/commit/398e3b6f89e4d4b2e5c4d6082c2432c9175784d9))
+* Claude PR Assistant workflow ([#13](https://github.com/inference-gateway/rust-sdk/issues/13)) ([a52795d](https://github.com/inference-gateway/rust-sdk/commit/a52795d8f1cd347cf3cff9a1dd8c74bd102a9a81))
+
+### 📦 Miscellaneous
+
+* Add flox environment ([bba25a4](https://github.com/inference-gateway/rust-sdk/commit/bba25a41f3540e12f42213e21ae9cea04db7595a))
+
 ## [0.11.0](https://github.com/inference-gateway/rust-sdk/compare/0.10.0...0.11.0) (2025-07-26)
 
 ### ✨ Features
