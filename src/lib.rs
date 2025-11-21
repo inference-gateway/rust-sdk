@@ -153,7 +153,10 @@ pub struct A2AAgentCard {
     #[serde(rename = "securitySchemes", skip_serializing_if = "Option::is_none")]
     pub security_schemes: Option<Value>,
     /// True if the agent supports providing an extended agent card when the user is authenticated
-    #[serde(rename = "supportsAuthenticatedExtendedCard", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "supportsAuthenticatedExtendedCard",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub supports_authenticated_extended_card: Option<bool>,
 }
 
