@@ -36,6 +36,12 @@
         "version": "^1.89.0"
       }
     },
+    "hook": {
+      "on-activate": "  if ! command -v infer &> /dev/null && [ ! -f \"$HOME/.local/bin/infer\" ]; then\n    echo \"Installing infer CLI...\"\n    curl -fsSL https://raw.githubusercontent.com/inference-gateway/cli/main/install.sh | bash -s -- --install-dir \"$HOME/.local/bin\"\n  fi\n"
+    },
+    "profile": {
+      "common": "  export PATH=\"$HOME/.local/bin:$PATH\"\n"
+    },
     "options": {}
   },
   "packages": [

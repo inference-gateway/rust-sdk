@@ -24,3 +24,16 @@ openssl.version = "^3.6.0"
 
 markdownlint-cli.pkg-path = "markdownlint-cli"
 markdownlint-cli.version = "0.45.0"
+
+[profile]
+common = '''
+  export PATH="$HOME/.local/bin:$PATH"
+'''
+
+[hook]
+on-activate = '''
+  if ! command -v infer &> /dev/null && [ ! -f "$HOME/.local/bin/infer" ]; then
+    echo "Installing infer CLI..."
+    curl -fsSL https://raw.githubusercontent.com/inference-gateway/cli/main/install.sh | bash -s -- --install-dir "$HOME/.local/bin"
+  fi
+'''
