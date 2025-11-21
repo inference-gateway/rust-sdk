@@ -30,6 +30,9 @@ pub enum GatewayError {
     #[error("Forbidden: {0}")]
     Forbidden(String),
 
+    #[error("Not found: {0}")]
+    NotFound(String),
+
     #[error("Bad request: {0}")]
     BadRequest(String),
 
@@ -66,13 +69,13 @@ pub struct Model {
     /// The model identifier
     pub id: String,
     /// The object type, usually "model"
-    pub object: Option<String>,
+    pub object: String,
     /// The Unix timestamp (in seconds) of when the model was created
-    pub created: Option<i64>,
+    pub created: i64,
     /// The organization that owns the model
-    pub owned_by: Option<String>,
+    pub owned_by: String,
     /// The provider that serves the model
-    pub served_by: Option<String>,
+    pub served_by: Provider,
 }
 
 /// Response structure for listing models
@@ -116,6 +119,8 @@ pub struct ListToolsResponse {
 pub enum Provider {
     #[serde(alias = "Ollama", alias = "OLLAMA")]
     Ollama,
+    #[serde(alias = "OllamaCloud", alias = "OLLAMA_CLOUD", rename = "ollama_cloud")]
+    OllamaCloud,
     #[serde(alias = "Groq", alias = "GROQ")]
     Groq,
     #[serde(alias = "OpenAI", alias = "OPENAI")]
@@ -130,12 +135,15 @@ pub enum Provider {
     Deepseek,
     #[serde(alias = "Google", alias = "GOOGLE")]
     Google,
+    #[serde(alias = "Mistral", alias = "MISTRAL")]
+    Mistral,
 }
 
 impl fmt::Display for Provider {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Provider::Ollama => write!(f, "ollama"),
+            Provider::OllamaCloud => write!(f, "ollama_cloud"),
             Provider::Groq => write!(f, "groq"),
             Provider::OpenAI => write!(f, "openai"),
             Provider::Cloudflare => write!(f, "cloudflare"),
@@ -143,6 +151,7 @@ impl fmt::Display for Provider {
             Provider::Anthropic => write!(f, "anthropic"),
             Provider::Deepseek => write!(f, "deepseek"),
             Provider::Google => write!(f, "google"),
+            Provider::Mistral => write!(f, "mistral"),
         }
     }
 }
@@ -153,6 +162,7 @@ impl TryFrom<&str> for Provider {
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
             "ollama" => Ok(Self::Ollama),
+            "ollama_cloud" => Ok(Self::OllamaCloud),
             "groq" => Ok(Self::Groq),
             "openai" => Ok(Self::OpenAI),
             "cloudflare" => Ok(Self::Cloudflare),
@@ -160,6 +170,7 @@ impl TryFrom<&str> for Provider {
             "anthropic" => Ok(Self::Anthropic),
             "deepseek" => Ok(Self::Deepseek),
             "google" => Ok(Self::Google),
+            "mistral" => Ok(Self::Mistral),
             _ => Err(GatewayError::BadRequest(format!("Unknown provider: {s}"))),
         }
     }
@@ -199,7 +210,10 @@ pub struct Message {
     /// Unique identifier of the tool call
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_call_id: Option<String>,
-    /// Reasoning behind the message
+    /// The reasoning content of the message
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_content: Option<String>,
+    /// The reasoning of the message (same as reasoning_content)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<String>,
 }
@@ -277,25 +291,50 @@ struct CreateChatCompletionRequest {
     /// Maximum number of tokens to generate
     #[serde(skip_serializing_if = "Option::is_none")]
     max_tokens: Option<i32>,
+    /// The format of the reasoning content. Can be `raw` or `parsed`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_format: Option<String>,
 }
 
-/// A tool call in the response
-#[derive(Debug, Deserialize, Clone)]
-pub struct ToolCallResponse {
+/// A tool call chunk in streaming responses
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChatCompletionMessageToolCallChunk {
+    /// Index of the tool call in the array
+    pub index: i32,
     /// Unique identifier of the tool call
-    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     /// Type of tool that was called
-    #[serde(rename = "type")]
-    pub r#type: ToolType,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
     /// Function that the LLM wants to call
-    pub function: ChatCompletionMessageToolCallFunction,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<ChatCompletionMessageToolCallFunction>,
+}
+
+/// The reason the model stopped generating tokens
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum FinishReason {
+    /// Model hit a natural stop point or a provided stop sequence
+    Stop,
+    /// Maximum number of tokens specified in the request was reached
+    Length,
+    /// Model called a tool
+    ToolCalls,
+    /// Content was omitted due to a flag from content filters
+    ContentFilter,
+    /// Function call (deprecated, use tool_calls)
+    FunctionCall,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ChatCompletionChoice {
-    pub finish_reason: String,
+    pub finish_reason: FinishReason,
     pub message: Message,
     pub index: i32,
+    /// Log probability information for the choice
+    pub logprobs: Option<ChoiceLogprobs>,
 }
 
 /// The response from generating content
@@ -327,6 +366,42 @@ pub struct CreateChatCompletionStreamResponse {
     /// Usage statistics for the completion request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<CompletionUsage>,
+    /// The format of the reasoning content. Can be `raw` or `parsed`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_format: Option<String>,
+}
+
+/// Token log probability information
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChatCompletionTokenLogprob {
+    /// The token
+    pub token: String,
+    /// The log probability of this token
+    pub logprob: f64,
+    /// UTF-8 bytes representation of the token
+    pub bytes: Option<Vec<i32>>,
+    /// List of the most likely tokens and their log probability
+    pub top_logprobs: Vec<TopLogprob>,
+}
+
+/// Top log probability entry
+#[derive(Debug, Deserialize, Clone)]
+pub struct TopLogprob {
+    /// The token
+    pub token: String,
+    /// The log probability of this token
+    pub logprob: f64,
+    /// UTF-8 bytes representation of the token
+    pub bytes: Option<Vec<i32>>,
+}
+
+/// Log probability information for a choice
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChoiceLogprobs {
+    /// A list of message content tokens with log probability information
+    pub content: Option<Vec<ChatCompletionTokenLogprob>>,
+    /// A list of message refusal tokens with log probability information
+    pub refusal: Option<Vec<ChatCompletionTokenLogprob>>,
 }
 
 /// Choice in a streaming completion response
@@ -338,7 +413,10 @@ pub struct ChatCompletionStreamChoice {
     pub index: i32,
     /// The reason the model stopped generating tokens
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub finish_reason: Option<String>,
+    pub finish_reason: Option<FinishReason>,
+    /// Log probability information for the choice
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<ChoiceLogprobs>,
 }
 
 /// Delta content for streaming responses
@@ -350,9 +428,18 @@ pub struct ChatCompletionStreamDelta {
     /// Content of the message delta
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
+    /// The reasoning content of the chunk message
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_content: Option<String>,
+    /// The reasoning of the chunk message (same as reasoning_content)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<String>,
     /// Tool calls for this delta
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<ToolCallResponse>>,
+    pub tool_calls: Option<Vec<ChatCompletionMessageToolCallChunk>>,
+    /// The refusal message generated by the model
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<String>,
 }
 
 /// Usage statistics for the completion request
@@ -628,6 +715,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             stream: false,
             tools: self.tools.clone(),
             max_tokens: self.max_tokens,
+            reasoning_format: None,
         };
 
         let response = request.json(&request_payload).send().await?;
@@ -673,6 +761,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             stream: true,
             tools: None,
             max_tokens: None,
+            reasoning_format: None,
         };
 
         async_stream::try_stream! {
@@ -756,8 +845,9 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
 mod tests {
     use crate::{
         CreateChatCompletionRequest, CreateChatCompletionResponse,
-        CreateChatCompletionStreamResponse, FunctionObject, GatewayError, InferenceGatewayAPI,
-        InferenceGatewayClient, Message, MessageRole, Provider, Tool, ToolType,
+        CreateChatCompletionStreamResponse, FinishReason, FunctionObject, GatewayError,
+        InferenceGatewayAPI, InferenceGatewayClient, Message, MessageRole, Provider, Tool,
+        ToolType,
     };
     use futures_util::{pin_mut, StreamExt};
     use mockito::{Matcher, Server};
@@ -767,6 +857,7 @@ mod tests {
     fn test_provider_serialization() {
         let providers = vec![
             (Provider::Ollama, "ollama"),
+            (Provider::OllamaCloud, "ollama_cloud"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
             (Provider::Cloudflare, "cloudflare"),
@@ -774,6 +865,7 @@ mod tests {
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
             (Provider::Google, "google"),
+            (Provider::Mistral, "mistral"),
         ];
 
         for (provider, expected) in providers {
@@ -786,6 +878,7 @@ mod tests {
     fn test_provider_deserialization() {
         let test_cases = vec![
             ("\"ollama\"", Provider::Ollama),
+            ("\"ollama_cloud\"", Provider::OllamaCloud),
             ("\"groq\"", Provider::Groq),
             ("\"openai\"", Provider::OpenAI),
             ("\"cloudflare\"", Provider::Cloudflare),
@@ -793,6 +886,7 @@ mod tests {
             ("\"anthropic\"", Provider::Anthropic),
             ("\"deepseek\"", Provider::Deepseek),
             ("\"google\"", Provider::Google),
+            ("\"mistral\"", Provider::Mistral),
         ];
 
         for (json, expected) in test_cases {
@@ -840,6 +934,7 @@ mod tests {
     fn test_provider_display() {
         let providers = vec![
             (Provider::Ollama, "ollama"),
+            (Provider::OllamaCloud, "ollama_cloud"),
             (Provider::Groq, "groq"),
             (Provider::OpenAI, "openai"),
             (Provider::Cloudflare, "cloudflare"),
@@ -847,6 +942,7 @@ mod tests {
             (Provider::Anthropic, "anthropic"),
             (Provider::Deepseek, "deepseek"),
             (Provider::Google, "google"),
+            (Provider::Mistral, "mistral"),
         ];
 
         for (provider, expected) in providers {
@@ -909,6 +1005,7 @@ mod tests {
                 },
             }]),
             max_tokens: None,
+            reasoning_format: None,
         };
 
         let serialized = serde_json::to_string_pretty(&request_payload).unwrap();
@@ -1107,6 +1204,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hellloooo"
@@ -1154,6 +1252,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hello"
@@ -1295,6 +1394,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hello"
@@ -1374,7 +1474,7 @@ mod tests {
             if generate_response.choices[0].finish_reason.is_some() {
                 assert_eq!(
                     generate_response.choices[0].finish_reason.as_ref().unwrap(),
-                    "stop"
+                    &FinishReason::Stop
                 );
                 break;
             }
@@ -1449,6 +1549,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "tool_calls",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Let me check the weather for you.",
@@ -1538,6 +1639,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Hello!"
@@ -1622,6 +1724,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Let me check the weather for you",
@@ -1719,6 +1822,7 @@ mod tests {
                 {
                     "index": 0,
                     "finish_reason": "stop",
+                    "logprobs": null,
                     "message": {
                         "role": "assistant",
                         "content": "Here's a poem with 100 tokens..."
