@@ -69,8 +69,7 @@ Ollama, Cohere, Cloudflare, DeepSeek, and Google.
 
 ### Prerequisites
 
-- Rust toolchain (via rustup)
-- Docker (for development container)
+- [flox](https://flox.dev/) (for development environment)
 - Task runner (`task` command)
 
 ### Quick Setup
@@ -80,18 +79,15 @@ Ollama, Cohere, Cloudflare, DeepSeek, and Google.
 git clone https://github.com/inference-gateway/rust-sdk
 cd rust-sdk
 
+# Activate flox environment (installs Rust toolchain and dependencies)
+flox activate
+
 # Build project
 cargo build
 
 # Run tests
 cargo test
 ```
-
-### Development Container (Recommended)
-
-1. Open in VS Code
-2. Click "Reopen in Container" button
-3. Development environment is automatically configured
 
 ## Key Commands
 

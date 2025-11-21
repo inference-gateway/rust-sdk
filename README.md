@@ -68,7 +68,7 @@ async fn main() -> Result<(), GatewayError> {
 
     // Generate content - choose from available providers and models
     let response: CreateChatCompletionResponse = client
-        .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+        .generate_content(Provider::Groq, "llama-3.3-70b-versatile", vec![
     Message{
         role: MessageRole::System,
         content: "You are an helpful assistent.".to_string()
@@ -206,7 +206,7 @@ use inference_gateway_sdk::{
 
 // Generate content - choose from available providers and models
 let response: CreateChatCompletionResponse = client
-    .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+    .generate_content(Provider::Groq, "llama-3.3-70b-versatile", vec![
 Message{
     role: MessageRole::System,
     content: "You are an helpful assistent.".to_string(),
@@ -226,7 +226,7 @@ log::info!(
 
 // Example with Google provider (Gemini models)
 let response: CreateChatCompletionResponse = client
-    .generate_content(Provider::Google, "gemini-1.5-flash", vec![
+    .generate_content(Provider::Google, "gemini-1.5-pro", vec![
 Message{
     role: MessageRole::System,
     content: "You are a helpful AI assistant.".to_string(),
@@ -247,11 +247,7 @@ log::info!(
 
 ### Streaming Content
 
-You need to add the following tiny dependencies:
 
-- `futures-util` for the `StreamExt` trait
-- `serde` with feature `derive` and `serde_json` for serialization and
-  deserialization of the response content
 
 ```rust
 use futures_util::{pin_mut, StreamExt};
@@ -270,7 +266,7 @@ async fn main() -> Result<(), GatewayError> {
     env_logger::init();
 
     let system_message = "You are an helpful assistent.".to_string();
-    let model = "deepseek-r1-distill-llama-70b";
+    let model = "llama-3.3-70b-versatile";
 
     let client = InferenceGatewayClient::new("http://localhost:8080/v1");
     let stream = client.generate_content_stream(
@@ -359,7 +355,7 @@ async fn main() -> Result<(), GatewayError> {
 
     // Define the model and provider
     let provider = Provider::Groq;
-    let model = "deepseek-r1-distill-llama-70b";
+    let model = "llama-3.3-70b-versatile";
 
     // Define the weather tool
     let tools = vec![Tool {

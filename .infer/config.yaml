@@ -213,7 +213,7 @@ agent:
     buffer_size: 2
 git:
   commit_message:
-    model: ""
+    model: "deepseek/deepseek-chat"
     system_prompt: |-
       Generate a concise git commit message following conventional commit format.
 

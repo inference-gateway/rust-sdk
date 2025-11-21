@@ -17,17 +17,15 @@ This document provides guidelines and steps for contributing.
 
 1. Prerequisites:
 
-- docker
+- [flox](https://flox.dev/)
 
 1. Clone and setup:
 
 ```sh
-git clone https://github.com/inference-gateway/sdk
-code sdk
+git clone https://github.com/inference-gateway/rust-sdk
+cd rust-sdk
+flox activate
 ```
-
-1. Click on the `Reopen in Container` button in the bottom right corner of the
-   window.
 
 ## Development Process
 
