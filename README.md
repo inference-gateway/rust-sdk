@@ -25,7 +25,8 @@ Run `cargo add inference-gateway-sdk`.
 
 ### Creating a Client
 
-Here is a full example of how to create a client and interact with the Inference Gateway API:
+Here is a full example of how to create a client and interact with the
+Inference Gateway API:
 
 ```rust
 use inference_gateway_sdk::{
@@ -66,7 +67,8 @@ async fn main() -> Result<(), GatewayError> {
     }
 
     // Generate content - choose from available providers and models
-    let response: CreateChatCompletionResponse = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+    let response: CreateChatCompletionResponse = client
+        .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
     Message{
         role: MessageRole::System,
         content: "You are an helpful assistent.".to_string()
@@ -88,7 +90,8 @@ async fn main() -> Result<(), GatewayError> {
 
 ### Listing Models
 
-To list all available models from all configured providers, use the `list_models` method:
+To list all available models from all configured providers, use the
+`list_models` method:
 
 ```rust
 use inference_gateway_sdk::{
@@ -116,7 +119,8 @@ fn main() -> Result<(), GatewayError> {
 
 ### Listing Models from a specific provider
 
-To list all available models from a specific provider, use the `list_models_by_provider` method:
+To list all available models from a specific provider, use the
+`list_models_by_provider` method:
 
 ```rust
 use inference_gateway_sdk::{
@@ -149,7 +153,8 @@ for model in response.data {
 
 ### Listing MCP Tools
 
-To list all available MCP (Model Context Protocol) tools from all configured MCP servers, use the `list_tools` method:
+To list all available MCP (Model Context Protocol) tools from all configured
+MCP servers, use the `list_tools` method:
 
 ```rust
 use inference_gateway_sdk::{
@@ -180,7 +185,9 @@ async fn main() -> Result<(), GatewayError> {
 }
 ```
 
-Note: This functionality requires that MCP servers are configured and exposed in your Inference Gateway instance. If MCP is not exposed, you'll receive a `403 Forbidden` error.
+Note: This functionality requires that MCP servers are configured and exposed
+in your Inference Gateway instance. If MCP is not exposed, you'll receive a
+`403 Forbidden` error.
 
 ### Generating Content
 
@@ -198,7 +205,8 @@ use inference_gateway_sdk::{
 };
 
 // Generate content - choose from available providers and models
-let response: CreateChatCompletionResponse = client.generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
+let response: CreateChatCompletionResponse = client
+    .generate_content(Provider::Groq, "deepseek-r1-distill-llama-70b", vec![
 Message{
     role: MessageRole::System,
     content: "You are an helpful assistent.".to_string(),
@@ -217,7 +225,8 @@ log::info!(
 );
 
 // Example with Google provider (Gemini models)
-let response: CreateChatCompletionResponse = client.generate_content(Provider::Google, "gemini-1.5-flash", vec![
+let response: CreateChatCompletionResponse = client
+    .generate_content(Provider::Google, "gemini-1.5-flash", vec![
 Message{
     role: MessageRole::System,
     content: "You are a helpful AI assistant.".to_string(),
@@ -241,7 +250,8 @@ log::info!(
 You need to add the following tiny dependencies:
 
 - `futures-util` for the `StreamExt` trait
-- `serde` with feature `derive` and `serde_json` for serialization and deserialization of the response content
+- `serde` with feature `derive` and `serde_json` for serialization and
+  deserialization of the response content
 
 ```rust
 use futures_util::{pin_mut, StreamExt};
@@ -320,7 +330,8 @@ async fn main() -> Result<(), GatewayError> {
 
 ### Tool-Use
 
-You can pass to the generate_content function also tools, which will be available for the LLM to use:
+You can pass to the generate_content function also tools, which will be
+available for the LLM to use:
 
 ```rust
 use inference_gateway_sdk::{
@@ -517,7 +528,9 @@ The Inference Gateway Rust SDK supports the following providers:
 - **DeepSeek** (`Provider::Deepseek`) - DeepSeek models
 - **Google** (`Provider::Google`) - Google Gemini models via Generative AI API
 
-Each provider may support different models and capabilities. Use the `list_models_by_provider()` method to discover available models for each provider.
+Each provider may support different models and capabilities. Use the
+`list_models_by_provider()` method to discover available models for each
+provider.
 
 Example:
 
@@ -535,7 +548,8 @@ for model in google_models.data {
 
 ## Contributing
 
-Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for information about how to get involved. We welcome issues, questions, and pull requests.
+Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for information
+about how to get involved. We welcome issues, questions, and pull requests.
 
 ## License
 

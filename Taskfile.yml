@@ -10,6 +10,7 @@ tasks:
     desc: Run linter
     cmds:
       - cargo fmt --all -- --check
+      - markdownlint '**/*.md' --ignore node_modules
 
   analyse:
     desc: Run static analysis

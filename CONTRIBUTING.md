@@ -1,6 +1,7 @@
 # Contributing to the Inference Gateway Rust SDK
 
-Thank you for your interest in contributing to the Inference Gateway Rust SDK! This document provides guidelines and steps for contributing.
+Thank you for your interest in contributing to the Inference Gateway Rust SDK!
+This document provides guidelines and steps for contributing.
 
 ## Table of Contents
 
@@ -18,14 +19,15 @@ Thank you for your interest in contributing to the Inference Gateway Rust SDK! T
 
 - docker
 
-2. Clone and setup:
+1. Clone and setup:
 
 ```sh
 git clone https://github.com/inference-gateway/sdk
 code sdk
 ```
 
-3. Click on the `Reopen in Container` button in the bottom right corner of the window.
+1. Click on the `Reopen in Container` button in the bottom right corner of the
+   window.
 
 ## Development Process
 
@@ -35,21 +37,21 @@ code sdk
 git checkout -b feature/my-feature
 ```
 
-2. Make changes and test:
+1. Make changes and test:
 
 ```sh
 task test
 ```
 
-3. Add tests for new features or fix tests for refactoring and bug fixes.
+1. Add tests for new features or fix tests for refactoring and bug fixes.
 
-4. Run linter:
+1. Run linter:
 
 ```sh
 task lint
 ```
 
-5. Run static analysis:
+1. Run static analysis:
 
 ```sh
 task analyze
@@ -76,7 +78,7 @@ Types:
 - ci: changes to CI configuration files and scripts
 - perf: code change that improves performance
 
-2. Ensure your PR:
+1. Ensure your PR:
 
 - Passes all tests
 - Updates documentation as needed

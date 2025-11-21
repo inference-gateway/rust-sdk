@@ -15,6 +15,10 @@
         "pkg-path": "clippy",
         "version": "^1.89.0"
       },
+      "markdownlint-cli": {
+        "pkg-path": "markdownlint-cli",
+        "version": "0.45.0"
+      },
       "openssl": {
         "pkg-path": "openssl",
         "version": "^3.6.0"
@@ -380,6 +384,122 @@
       "outputs": {
         "debug": "/nix/store/ypqv62aqhanfvkrnfg612pbby11wsbnf-clippy-1.89.0-debug",
         "out": "/nix/store/0yy1f5k22s6x9n6hva5n7v2fpnv3r7zw-clippy-1.89.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "markdownlint-cli",
+      "broken": false,
+      "derivation": "/nix/store/80bdknb5mf68hd09dal90sasvchfrgry-markdownlint-cli-0.45.0.drv",
+      "description": "Command line interface for MarkdownLint",
+      "install_id": "markdownlint-cli",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "name": "markdownlint-cli-0.45.0",
+      "pname": "markdownlint-cli",
+      "rev": "b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "rev_count": 888552,
+      "rev_date": "2025-11-02T19:18:41Z",
+      "scrape_date": "2025-11-04T00:35:37.814161Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.45.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/n8r26agrzpfcfq1h290ng32a9c2vibd4-markdownlint-cli-0.45.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "markdownlint-cli",
+      "broken": false,
+      "derivation": "/nix/store/jkrbnhlmh85m50llpygwvcf9q7kcjk62-markdownlint-cli-0.45.0.drv",
+      "description": "Command line interface for MarkdownLint",
+      "install_id": "markdownlint-cli",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "name": "markdownlint-cli-0.45.0",
+      "pname": "markdownlint-cli",
+      "rev": "b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "rev_count": 888552,
+      "rev_date": "2025-11-02T19:18:41Z",
+      "scrape_date": "2025-11-05T16:29:30.586220Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.45.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/8bj392k642g6dip1mlw330vs2v9y7nl0-markdownlint-cli-0.45.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "markdownlint-cli",
+      "broken": false,
+      "derivation": "/nix/store/6ydg68bych3vgajml0izqs154ms92bbj-markdownlint-cli-0.45.0.drv",
+      "description": "Command line interface for MarkdownLint",
+      "install_id": "markdownlint-cli",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "name": "markdownlint-cli-0.45.0",
+      "pname": "markdownlint-cli",
+      "rev": "b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "rev_count": 888552,
+      "rev_date": "2025-11-02T19:18:41Z",
+      "scrape_date": "2025-11-05T16:55:17.549939Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.45.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/idp6m459vvg7h3pq33w0728qs5qmp0zh-markdownlint-cli-0.45.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "markdownlint-cli",
+      "broken": false,
+      "derivation": "/nix/store/y7amq1w9xjdxcxz0ai62sxdkxj93lq8c-markdownlint-cli-0.45.0.drv",
+      "description": "Command line interface for MarkdownLint",
+      "install_id": "markdownlint-cli",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "name": "markdownlint-cli-0.45.0",
+      "pname": "markdownlint-cli",
+      "rev": "b3d51a0365f6695e7dd5cdf3e180604530ed33b4",
+      "rev_count": 888552,
+      "rev_date": "2025-11-02T19:18:41Z",
+      "scrape_date": "2025-11-05T17:21:23.129255Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.45.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/f0inncvh6l700ni1kpbyrwk8na398hna-markdownlint-cli-0.45.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
