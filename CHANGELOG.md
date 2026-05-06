@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.2](https://github.com/inference-gateway/rust-sdk/compare/0.13.1...0.13.2) (2026-05-06)
+
+### 👷 CI
+
+* Add explicit rust-toolchain so the actions know what to run ([6eba510](https://github.com/inference-gateway/rust-sdk/commit/6eba5104e946cafa000765da8d5552fdf4cab79a))
+
 ## [0.13.1](https://github.com/inference-gateway/rust-sdk/compare/0.13.0...0.13.1) (2026-05-06)
 
 ### 👷 CI
