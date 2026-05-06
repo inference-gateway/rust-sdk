@@ -1,15 +1,30 @@
+---
+container_runtime:
+  type: docker
 gateway:
   url: http://localhost:8080
   api_key: ""
   timeout: 200
   oci: ghcr.io/inference-gateway/inference-gateway:latest
   run: true
-  docker: true
+  standalone_binary: true
   exclude_models:
     - ollama_cloud/cogito-2.1:671b
     - ollama_cloud/kimi-k2:1t
     - ollama_cloud/kimi-k2-thinking
     - ollama_cloud/deepseek-v3.1:671b
+    - groq/whisper-large-v3
+    - groq/whisper-large-v3-turbo
+    - groq/playai-tts
+    - groq/playai-tts-arabic
+  vision_enabled: true
+claude_code:
+  enabled: false
+  cli_path: claude
+  timeout: 600
+  max_output_tokens: 32000
+  thinking_budget: 10000
+  max_turns: 10
 client:
   timeout: 200
   retry:
@@ -29,20 +44,33 @@ client:
 logging:
   debug: false
   dir: ""
+  stdout: false
 tools:
   enabled: true
   sandbox:
     directories:
       - .
       - /tmp
+      - .infer/tmp
     protected_paths:
-      - .infer/
+      - .infer/config.yaml
+      - .infer/*.db
+      - .infer/shortcuts/
+      - .infer/agents.yaml
+      - .infer/mcp.yaml
+      - .infer/keybindings.yaml
+      - .infer/prompts.yaml
+      - .infer/channels.yaml
+      - .infer/heartbeat.yaml
+      - .infer/computer_use.yaml
       - .git/
       - '*.env'
   bash:
     enabled: true
+    timeout: 120
     whitelist:
       commands:
+        - echo
         - ls
         - pwd
         - tree
@@ -61,6 +89,11 @@ tools:
         - ^git diff
         - ^git remote( -v)?$
         - ^git show
+    background_shells:
+      enabled: true
+      max_concurrent: 5
+      max_output_buffer_mb: 10
+      retention_minutes: 60
   read:
     enabled: true
     require_approval: false
@@ -84,8 +117,9 @@ tools:
     enabled: true
     whitelisted_domains:
       - golang.org
+      - localhost
     safety:
-      max_size: 8192
+      max_size: 10485760
       timeout: 30
       allow_redirect: true
     cache:
@@ -104,135 +138,50 @@ tools:
     enabled: true
     token: '%GITHUB_TOKEN%'
     base_url: https://api.github.com
-    owner: ""
+    owner: inference-gateway
     safety:
       max_size: 1048576
       timeout: 30
   todo_write:
     enabled: true
     require_approval: false
+  schedule:
+    enabled: false
+    require_approval: true
+    max_jobs: 100
   safety:
     require_approval: true
-compact:
-  output_dir: .infer
+image:
+  max_size: 5242880
+  timeout: 30
+  clipboard_optimize:
+    enabled: true
+    max_width: 1920
+    max_height: 1080
+    quality: 75
+    convert_jpeg: true
+export:
+  output_dir: .infer/tmp
   summary_model: ""
 agent:
   model: ""
-  system_prompt: |
-    Autonomous software engineering agent. Execute tasks iteratively until completion.
-
-    IMPORTANT: You NEVER push to main or master or to the current branch - instead you create a branch and push to a branch.
-    IMPORTANT: You ALWAYS prefer to search for specific matches in a file rather than reading it all - prefer to use Grep tool over Read tool for efficiency.
-    IMPORTANT: You ALWAYS prefer to see AGENTS.md before README.md files.
-    IMPORTANT: When reading project documentation, prefer AGENTS.md if available, otherwise fallback to README.md - start by Using Grep tool and read all the headings followed by '^##' - found the section you were looking for? great - use Read tool. You didn't find anything? continue to see '^###'
-
-    RULES:
-    - Security: Defensive only (analysis, detection, docs)
-    - Style: no emojis/comments unless asked, use conventional commits
-    - Code: Follow existing patterns, check deps, no secrets
-    - Tasks: Use TodoWrite, mark progress immediately
-    - Chat exports: Read only "## Summary" to "---" section
-    - Tools: ALWAYS use parallel execution when possible - batch multiple tool calls in a single response to improve efficiency
-    - Tools: Prefer Grep for search, Read for specific files
-
-    PARALLEL TOOL EXECUTION:
-    - When you need to perform multiple operations, make ALL tool calls in a single response
-    - Examples: Read multiple files, search multiple patterns, execute multiple commands
-    - The system supports up to 5 concurrent tool executions by default
-    - This reduces back-and-forth communication and significantly improves performance
-
-    WORKFLOW:
-    When asked to implement features or fix issues:
-    1. Plan with TodoWrite
-    2. Search codebase to understand context
-    3. Implement solution
-    4. Run tests with: task test
-    5. Run lint/format with: task fmt and task lint
-    6. Commit changes (only if explicitly asked)
-    7. Create a pull request (only if explicitly asked)
-
-    EXAMPLE:
-    <user>Can you create a pull request with the changes?</user>
-    <assistant>I will checkout to a new branch</assistant>
-    <tool>Bash(git checkout -b feat/my-new-feature)</tool>
-    <assistant>Now I will modify the files</assistant>
-    <tool>Read|Edit|Grep etc</tool>
-    <tool>Bash(git add <files>)</tool>
-    <tool>Bash(git commit -m <message>)</tool>
-    <assistant>Now I will push the changes</assistant>
-    <tool>Bash(git push origin <branch>)</tool>
-    <assistant>Now I'll create a pull request</assistant>
-    <tool>Github(...)</tool>
-  system_prompt_plan: |-
-    You are an AI planning assistant in PLAN MODE. Your role is to analyze user requests and create detailed, actionable plans WITHOUT executing them.
-
-    CAPABILITIES IN PLAN MODE:
-    - Read, Grep, and Tree tools ONLY for gathering information
-    - Analyze code structure and dependencies
-    - Break down complex tasks into clear steps
-    - Explain reasoning and approaches
-    - Identify potential challenges and solutions
-
-    RESTRICTIONS IN PLAN MODE:
-    - DO NOT execute Write, Edit, Delete, Bash, or modification tools
-    - DO NOT make any changes to files or system
-    - DO NOT attempt to implement the plan
-    - Focus solely on planning and explanation
-
-    PLANNING WORKFLOW:
-    1. Use Read/Grep/Tree to understand the codebase
-    2. Analyze the user's request thoroughly
-    3. Break down into logical, sequential steps
-    4. Explain your reasoning for each step
-    5. Identify files/components that need changes
-    6. Suggest testing and validation approaches
-    7. Present the complete plan to the user
-
-    OUTPUT FORMAT:
-    Structure your plan clearly with:
-    - Overview: What needs to be done and why
-    - Steps: Numbered, actionable steps with explanations
-    - Files: List of files that would be modified
-    - Testing: How to verify the changes
-    - Considerations: Potential issues or alternatives
-  system_reminders:
-    enabled: true
-    interval: 4
-    reminder_text: |-
-      <system-reminder>
-      This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.
-      </system-reminder>
+  system_prompt_with_defaults: true
+  context:
+    git_context_enabled: true
+    working_dir_enabled: true
+    git_context_refresh_turns: 10
+  skills:
+    enabled: false
   verbose_tools: false
   max_turns: 50
-  max_tokens: 4096
+  max_tokens: 8192
   max_concurrent_tools: 5
-  optimization:
-    enabled: false
-    model: ""
-    min_messages: 10
-    buffer_size: 2
 git:
   commit_message:
-    model: "deepseek/deepseek-v4-flash"
-    system_prompt: |-
-      Generate a concise git commit message following conventional commit format.
-
-      REQUIREMENTS:
-      - MUST use format: "type: Brief description"
-      - MUST be under 50 characters total
-      - MUST use imperative mood (e.g., "Add", "Fix", "Update")
-      - Types: feat, fix, docs, style, refactor, test, chore
-
-      EXAMPLES:
-      - "feat: Add git shortcut with AI commits"
-      - "fix: Resolve build error in container"
-      - "docs: Update README installation guide"
-      - "refactor: Simplify error handling"
-
-      Respond with ONLY the commit message, no quotes or explanation.
+    model: ""
 storage:
   enabled: true
-  type: sqlite
+  type: jsonl
   sqlite:
     path: .infer/conversations.db
   postgres:
@@ -247,31 +196,31 @@ storage:
     port: 6379
     password: ""
     db: 0
+  jsonl:
+    path: .infer/conversations
 conversation:
   title_generation:
     enabled: true
     model: ""
-    system_prompt: |-
-      Generate a concise conversation title based on the messages provided.
-
-      REQUIREMENTS:
-      - MUST be under 50 characters total
-      - MUST be descriptive and capture the main topic
-      - MUST use title case
-      - NO quotes, colons, or special characters
-      - Focus on the primary subject or task discussed
-
-      EXAMPLES:
-      - "React Component Testing"
-      - "Database Migration Setup"
-      - "API Error Handling"
-      - "Docker Configuration"
-
-      Respond with ONLY the title, no quotes or explanation.
     batch_size: 10
     interval: 0
 chat:
   theme: tokyo-night
+  status_bar:
+    enabled: true
+    indicators:
+      model: true
+      theme: true
+      max_output: false
+      a2a_agents: true
+      tools: true
+      background_shells: true
+      a2a_tasks: true
+      mcp: true
+      context_usage: true
+      session_tokens: true
+      cost: true
+      git_branch: true
 a2a:
   enabled: true
   cache:
@@ -285,6 +234,7 @@ a2a:
     backoff_multiplier: 2
     background_monitoring: true
     completed_task_retention: 5
+    agent_mode_max_wait_seconds: 300
   tools:
     query_agent:
       enabled: true
@@ -294,25 +244,35 @@ a2a:
       require_approval: false
     submit_task:
       enabled: true
-      require_approval: false
-    download_artifacts:
-      enabled: true
-      download_dir: /tmp/downloads
-      timeout_seconds: 30
-      require_approval: false
-init:
-  prompt: |-
-    Please analyze this project and generate a comprehensive AGENTS.md file. Start by using the Tree tool to understand the project structure.
-    Use your available tools to examine configuration files, documentation, build systems, and development workflow.
-    Focus on creating actionable documentation that will help other AI agents understand how to work effectively with this project.
-
-    The AGENTS.md file should include:
-    - Project overview and main technologies
-    - Architecture and structure
-    - Development environment setup
-    - Key commands (build, test, lint, run)
-    - Testing instructions
-    - Project conventions and coding standards
-    - Important files and configurations
-
-    Write the AGENTS.md file to the project root when you have gathered enough information.
+      require_approval: true
+mcp:
+  enabled: false
+  connection_timeout: 30
+  discovery_timeout: 30
+  liveness_probe_enabled: true
+  liveness_probe_interval: 10
+  max_retries: 10
+  servers: []
+pricing:
+  enabled: true
+  currency: USD
+  custom_prices: {}
+compact:
+  enabled: true
+  auto_at: 80
+  keep_first_messages: 2
+  rollover_on_idle_minutes: 30
+  summary_max_tokens: 1024
+web:
+  enabled: false
+  port: 3000
+  host: localhost
+  session_inactivity_mins: 5
+  ssh:
+    enabled: false
+    use_ssh_config: true
+    known_hosts_path: ~/.ssh/known_hosts
+    auto_install: true
+    install_version: latest
+    install_dir: ~/.local/bin
+  servers: []
