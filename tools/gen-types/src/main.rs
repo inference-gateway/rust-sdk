@@ -201,19 +201,12 @@ fn apply_known_patches(value: &mut Value) -> Result<()> {
         .as_object_mut()
         .ok_or_else(|| anyhow!("schemas not an object"))?;
 
-    // ChatCompletionStreamChoice: spec marks `finish_reason` required, but the
-    // OpenAI streaming wire format sends `"finish_reason": null` for every
-    // non-final chunk. With FinishReason being an enum, requiring it makes
-    // chunks fail to deserialize. Treat as optional in Rust.
     if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamChoice") {
         if let Some(Value::Array(req)) = s.get_mut("required") {
             req.retain(|v| v.as_str() != Some("finish_reason"));
         }
     }
 
-    // ChatCompletionStreamResponseDelta: spec marks `content` and `role` required,
-    // but the final chunk sends an empty `delta: {}` and tool-call chunks omit
-    // `content`. Make them optional to match the wire format.
     if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamResponseDelta") {
         if let Some(Value::Array(req)) = s.get_mut("required") {
             req.retain(|v| {
@@ -222,12 +215,6 @@ fn apply_known_patches(value: &mut Value) -> Result<()> {
             });
         }
     }
-
-    // ChatCompletionChoice: spec marks `logprobs` required, but the OpenAI-style
-    // response sends `"logprobs": null`. Without a schema, typify falls back to
-    // `serde_json::Value` which deserializes null fine — but real consumers rarely
-    // care, so leave the required + Value combo as-is. (No patch needed; documented
-    // here so a future maintainer doesn't second-guess.)
 
     Ok(())
 }

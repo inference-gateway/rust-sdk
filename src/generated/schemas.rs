@@ -44,7 +44,6 @@ pub mod error {
 ///  "required": [
 ///    "finish_reason",
 ///    "index",
-///    "logprobs",
 ///    "message"
 ///  ],
 ///  "properties": {
@@ -54,6 +53,31 @@ pub mod error {
 ///    "index": {
 ///      "description": "The index of the choice in the list of choices.",
 ///      "type": "integer"
+///    },
+///    "logprobs": {
+///      "description": "Log probability information for the choice.",
+///      "type": "object",
+///      "required": [
+///        "content",
+///        "refusal"
+///      ],
+///      "properties": {
+///        "content": {
+///          "description": "A list of message content tokens with log probability information.",
+///          "type": "array",
+///          "items": {
+///            "$ref": "#/definitions/ChatCompletionTokenLogprob"
+///          }
+///        },
+///        "refusal": {
+///          "description": "A list of message refusal tokens with log probability information.",
+///          "type": "array",
+///          "items": {
+///            "$ref": "#/definitions/ChatCompletionTokenLogprob"
+///          }
+///        }
+///      },
+///      "nullable": true
 ///    },
 ///    "message": {
 ///      "$ref": "#/definitions/Message"
@@ -67,8 +91,48 @@ pub struct ChatCompletionChoice {
     pub finish_reason: FinishReason,
     ///The index of the choice in the list of choices.
     pub index: i64,
-    pub logprobs: ::serde_json::Value,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub logprobs: ::std::option::Option<ChatCompletionChoiceLogprobs>,
     pub message: Message,
+}
+///Log probability information for the choice.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Log probability information for the choice.",
+///  "type": "object",
+///  "required": [
+///    "content",
+///    "refusal"
+///  ],
+///  "properties": {
+///    "content": {
+///      "description": "A list of message content tokens with log probability information.",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/ChatCompletionTokenLogprob"
+///      }
+///    },
+///    "refusal": {
+///      "description": "A list of message refusal tokens with log probability information.",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/ChatCompletionTokenLogprob"
+///      }
+///    }
+///  },
+///  "nullable": true
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ChatCompletionChoiceLogprobs {
+    ///A list of message content tokens with log probability information.
+    pub content: ::std::vec::Vec<ChatCompletionTokenLogprob>,
+    ///A list of message refusal tokens with log probability information.
+    pub refusal: ::std::vec::Vec<ChatCompletionTokenLogprob>,
 }
 ///`ChatCompletionMessageToolCall`
 ///
