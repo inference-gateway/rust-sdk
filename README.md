@@ -1,8 +1,24 @@
-# Inference Gateway Rust SDK
+<div align="center">
 
-An SDK written in Rust for the [Inference Gateway](https://github.com/inference-gateway/inference-gateway).
+# 🦀 Inference Gateway Rust SDK
 
-- [Inference Gateway Rust SDK](#inference-gateway-rust-sdk)
+### A powerful and easy-to-use Rust SDK for the Inference Gateway
+
+[![Crates.io](https://img.shields.io/crates/v/inference-gateway-sdk.svg)](https://crates.io/crates/inference-gateway-sdk)
+[![Docs.rs](https://img.shields.io/docsrs/inference-gateway-sdk)](https://docs.rs/inference-gateway-sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Release](https://img.shields.io/github/release/inference-gateway/rust-sdk.svg)](https://github.com/inference-gateway/rust-sdk/releases)
+[![Rust Edition](https://img.shields.io/badge/rust-2024-orange.svg)](https://doc.rust-lang.org/edition-guide/rust-2024/)
+
+Connect to multiple LLM providers through a unified interface • Stream responses • Function calling • MCP tools support
+
+[Installation](#installation) • [Quick Start](#usage) • [Examples](#examples) • [Documentation](#documentation)
+
+</div>
+
+---
+
+- [🦀 Inference Gateway Rust SDK](#-inference-gateway-rust-sdk)
   - [Installation](#installation)
   - [Usage](#usage)
     - [Creating a Client](#creating-a-client)
@@ -13,7 +29,9 @@ An SDK written in Rust for the [Inference Gateway](https://github.com/inference-
     - [Streaming Content](#streaming-content)
     - [Tool-Use](#tool-use)
     - [Health Check](#health-check)
+  - [Examples](#examples)
   - [Supported Providers](#supported-providers)
+  - [Documentation](#documentation)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -516,6 +534,10 @@ let is_healthy = client.health_check().await?;
 info!("API is healthy: {}", is_healthy);
 ```
 
+## Examples
+
+Runnable examples live in the [examples directory](./examples/) — see its [README](./examples/README.md) for the full list and instructions.
+
 ## Supported Providers
 
 The Inference Gateway Rust SDK supports the following providers:
@@ -549,6 +571,10 @@ for model in google_models.data {
     println!("Google model: {}", model.id);
 }
 ```
+
+## Documentation
+
+Full API documentation is published on [docs.rs](https://docs.rs/inference-gateway-sdk).
 
 ## Contributing
 

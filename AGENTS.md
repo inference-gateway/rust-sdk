@@ -16,7 +16,7 @@ single, OpenAI-compatible interface.
 ### Key Technologies
 
 | Technology | Purpose |
-|---|---|
+| --- | --- |
 | **Rust 2024 edition** | Language and edition |
 | **reqwest 0.13** | HTTP client (JSON + stream features) |
 | **serde / serde_json** | Serialization/deserialization |
@@ -93,6 +93,7 @@ pub struct InferenceGatewayClient {
 ```
 
 **Builder methods:**
+
 - `new(base_url)` — create client targeting a specific URL
 - `new_default()` — uses `INFERENCE_GATEWAY_URL` env var or `http://localhost:8080/v1`
 - `.with_token(token)` — set bearer auth
@@ -104,7 +105,7 @@ pub struct InferenceGatewayClient {
 Defines the API surface — all methods are async:
 
 | Method | HTTP | URL Pattern | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `list_models()` | GET | `{base}/models` | List all models |
 | `list_models_by_provider(Provider)` | GET | `{base}/models?provider=` | Filter by provider |
 | `generate_content(Provider, model, messages)` | POST | `{base}/chat/completions?provider=` | Chat completion |
@@ -164,7 +165,7 @@ GatewayError::Other(Box<dyn Error + Send + Sync>)
 ### Key Generated Types (src/generated/schemas.rs)
 
 | Type | Description |
-|---|---|
+| --- | --- |
 | `Message` | Chat message with role, content, tool_calls, tool_call_id |
 | `MessageRole` | Enum: User, Assistant, System, Tool |
 | `MessageContent` | Enum: String or Array of content parts |
@@ -255,7 +256,7 @@ cargo test --all-targets --all-features
 ### Using Cargo
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `cargo build` | Build the library |
 | `cargo build --release` | Build with optimizations |
 | `cargo test --all-targets --all-features` | Run all tests |
@@ -271,7 +272,7 @@ cargo test --all-targets --all-features
 ### Using Task (Taskfile.yml)
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `task test` | Run `cargo test --all-targets --all-features` |
 | `task lint` | Run `cargo fmt --check` + markdownlint |
 | `task analyse` | Run `cargo clippy ... -D warnings` |
@@ -376,6 +377,7 @@ The test suite comprehensively covers:
 ### CI (`ci.yml`) — Runs on push/PR to `main`
 
 Steps in order:
+
 1. **Lint** — `cargo fmt --all -- --check`
 2. **Static Analysis** — `cargo clippy --all-targets --all-features -- -D warnings`
 3. **Build** — `cargo build --verbose`
@@ -435,12 +437,12 @@ Anthropic Claude Code action to respond. Has access to `task:*`, `go:*`,
 
 Use **conventional commits** with capital letters:
 
-```
+```text
 type(scope): Description starting with capital letter
 ```
 
 | Type | Release | Description |
-|---|---|---|
+| --- | --- | --- |
 | `feat` | minor | New feature |
 | `fix` | patch | Bug fix |
 | `refactor` | patch | Code change with no feature/fix |
@@ -454,7 +456,8 @@ type(scope): Description starting with capital letter
 | `impr` | patch | Improvement (non-feature) |
 
 Examples:
-```
+
+```text
 feat(provider): Add Mistral AI provider support
 fix(streaming): Handle empty delta chunks correctly
 refactor(client): Extract common request logic
@@ -493,7 +496,7 @@ let client = InferenceGatewayClient::new("http://localhost:8080/v1")
 ### Configuration Files
 
 | File | Purpose |
-|---|---|
+| --- | --- |
 | `Cargo.toml` | Package definition, dependencies, workspace members |
 | `Taskfile.yml` | Task automation (test, lint, analyse, oas-sync) |
 | `.releaserc.yaml` | semantic-release configuration with release rules |
@@ -503,7 +506,7 @@ let client = InferenceGatewayClient::new("http://localhost:8080/v1")
 ### CI/CD Files
 
 | File | Purpose |
-|---|---|
+| --- | --- |
 | `.github/workflows/ci.yml` | Lint, clippy, build, test, drift check |
 | `.github/workflows/release.yml` | Semantic release + cargo publish |
 | `.github/workflows/claude.yml` | Claude Code PR assistant |
@@ -511,7 +514,7 @@ let client = InferenceGatewayClient::new("http://localhost:8080/v1")
 ### Source Files
 
 | File | Lines | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `src/lib.rs` | ~340 | Client, API trait, error types, SSE |
 | `src/tests.rs` | ~879 | All integration tests |
 | `src/generated/schemas.rs` | ~1000+ | Auto-generated types |
@@ -521,13 +524,14 @@ let client = InferenceGatewayClient::new("http://localhost:8080/v1")
 ### Environment Variables
 
 | Variable | Default | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `INFERENCE_GATEWAY_URL` | `http://localhost:8080/v1` | Client base URL (used by `new_default()`) |
 | `RUST_LOG` | — | Log level for env_logger |
 
 ### Dependencies (Cargo.toml)
 
 **Runtime:**
+
 - `reqwest 0.13` (features: json, stream) — HTTP client
 - `serde 1.0` (features: derive) — Serialization
 - `serde_json 1.0` — JSON handling
@@ -537,10 +541,12 @@ let client = InferenceGatewayClient::new("http://localhost:8080/v1")
 - `thiserror 2.0` — Error type derivation
 
 **Dev:**
+
 - `mockito 1.7` — HTTP mocking for tests
 - `tokio 1.52` (features: macros, rt) — Async test runtime
 
 **Internal tool (`tools/gen-types/`):**
+
 - `typify 0.6` — OpenAPI to Rust type generation
 - `schemars 0.8` — JSON Schema handling
 - `syn 2` — Rust syntax parsing
