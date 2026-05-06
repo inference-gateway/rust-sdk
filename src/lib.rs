@@ -173,6 +173,24 @@ impl InferenceGatewayClient {
         self
     }
 
+    /// The gateway serves `/health` from the root server, not under the
+    /// versioned API prefix, so this strips a trailing `/v<digits>` segment
+    /// from the configured base URL before appending `/health`.
+    fn health_url(&self) -> String {
+        let trimmed = self.base_url.trim_end_matches('/');
+        let root = match trimmed.rsplit_once('/') {
+            Some((prefix, last))
+                if last.len() >= 2
+                    && last.starts_with('v')
+                    && last[1..].chars().all(|c| c.is_ascii_digit()) =>
+            {
+                prefix
+            }
+            _ => trimmed,
+        };
+        format!("{root}/health")
+    }
+
     fn build_chat_request(
         &self,
         model: &str,
@@ -331,8 +349,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
     }
 
     async fn health_check(&self) -> Result<bool, GatewayError> {
-        let url = format!("{}/health", self.base_url);
-        let response = self.client.get(&url).send().await?;
+        let response = self.client.get(self.health_url()).send().await?;
         Ok(response.status() == StatusCode::OK)
     }
 }

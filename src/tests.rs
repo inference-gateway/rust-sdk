@@ -747,6 +747,26 @@ async fn test_health_check() -> Result<(), GatewayError> {
 }
 
 #[tokio::test]
+async fn test_health_check_strips_versioned_prefix() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+    let mock = server.mock("GET", "/health").with_status(200).create();
+    let v1_unmatched = server
+        .mock("GET", "/v1/health")
+        .with_status(404)
+        .expect(0)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+    let is_healthy = client.health_check().await?;
+
+    assert!(is_healthy);
+    mock.assert();
+    v1_unmatched.assert();
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_client_base_url_configuration() -> Result<(), GatewayError> {
     let mut custom_url_server = Server::new_async().await;
 
