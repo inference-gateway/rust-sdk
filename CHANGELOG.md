@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.1](https://github.com/inference-gateway/rust-sdk/compare/0.13.0...0.13.1) (2026-05-06)
+
+### 👷 CI
+
+* **release:** Drop unused conventional-changelog-cli dependency ([34053b3](https://github.com/inference-gateway/rust-sdk/commit/34053b3846be747f5810ef720860e79c603f6949))
+* **release:** Switch crates.io publish to OIDC trusted publishing ([403d524](https://github.com/inference-gateway/rust-sdk/commit/403d5240ab4bb561b8170d93b775d9ba51c50245))
+
+### 📚 Documentation
+
+* **claude:** Refresh CLAUDE.md for current architecture ([d541364](https://github.com/inference-gateway/rust-sdk/commit/d5413648edeb594f709a942ee21663909aa24b2e))
+
 ## [0.13.0](https://github.com/inference-gateway/rust-sdk/compare/0.12.0...0.13.0) (2026-05-06)
 
 ### ✨ Features
