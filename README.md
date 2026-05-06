@@ -30,15 +30,9 @@ Inference Gateway API:
 
 ```rust
 use inference_gateway_sdk::{
-    CreateChatCompletionResponse,
-    GatewayError,
-    InferenceGatewayAPI,
-    InferenceGatewayClient,
-    ListModelsResponse,
-    ListToolsResponse,
-    Message,
-    Provider,
-    MessageRole
+    CreateChatCompletionResponse, GatewayError, InferenceGatewayAPI,
+    InferenceGatewayClient, ListModelsResponse, ListToolsResponse, Message,
+    MessageContent, MessageRole, Provider,
 };
 use log::info;
 use std::env;
@@ -68,16 +62,29 @@ async fn main() -> Result<(), GatewayError> {
 
     // Generate content - choose from available providers and models
     let response: CreateChatCompletionResponse = client
-        .generate_content(Provider::Groq, "llama-3.3-70b-versatile", vec![
-    Message{
-        role: MessageRole::System,
-        content: "You are an helpful assistent.".to_string()
-    },
-    Message{
-        role: MessageRole::User,
-        content: "Tell me a funny joke".to_string()
-    }
-    ]).await?;
+        .generate_content(
+            Provider::Deepseek,
+            "deepseek-v4-flash",
+            vec![
+                Message {
+                    role: MessageRole::System,
+                    content: MessageContent::String("You are a helpful assistant.".to_string()),
+                    reasoning: None,
+                    reasoning_content: None,
+                    tool_call_id: None,
+                    tool_calls: Vec::new(),
+                },
+                Message {
+                    role: MessageRole::User,
+                    content: MessageContent::String("Tell me a funny joke".to_string()),
+                    reasoning: None,
+                    reasoning_content: None,
+                    tool_call_id: None,
+                    tool_calls: Vec::new(),
+                },
+            ],
+        )
+        .await?;
 
     log::info!(
         "Generated content: {:?}",
@@ -176,8 +183,8 @@ async fn main() -> Result<(), GatewayError> {
     for tool in response.data {
         info!("Tool: {} from server: {}", tool.name, tool.server);
         info!("Description: {}", tool.description);
-        if let Some(schema) = &tool.input_schema {
-            info!("Input schema: {}", schema);
+        if !tool.input_schema.is_empty() {
+            info!("Input schema: {:?}", tool.input_schema);
         }
     }
 
@@ -195,29 +202,32 @@ To generate content using a model, use the `generate_content` method:
 
 ```rust
 use inference_gateway_sdk::{
-    CreateChatCompletionResponse,
-    GatewayError,
-    InferenceGatewayAPI,
-    InferenceGatewayClient,
-    Message,
-    Provider,
-    MessageRole
+    CreateChatCompletionResponse, GatewayError, InferenceGatewayAPI, InferenceGatewayClient,
+    Message, MessageContent, MessageRole, Provider,
 };
+
+fn message(role: MessageRole, text: &str) -> Message {
+    Message {
+        role,
+        content: MessageContent::String(text.to_string()),
+        reasoning: None,
+        reasoning_content: None,
+        tool_call_id: None,
+        tool_calls: Vec::new(),
+    }
+}
 
 // Generate content - choose from available providers and models
 let response: CreateChatCompletionResponse = client
-    .generate_content(Provider::Groq, "llama-3.3-70b-versatile", vec![
-Message{
-    role: MessageRole::System,
-    content: "You are an helpful assistent.".to_string(),
-    ..Default::default()
-},
-Message{
-    role: MessageRole::User,
-    content: "Tell me a funny joke".to_string(),
-    ..Default::default()
-}
-]).await?;
+    .generate_content(
+        Provider::Deepseek,
+        "deepseek-v4-flash",
+        vec![
+            message(MessageRole::System, "You are a helpful assistant."),
+            message(MessageRole::User, "Tell me a funny joke"),
+        ],
+    )
+    .await?;
 
 log::info!(
     "Generated content: {:?}",
@@ -226,18 +236,15 @@ log::info!(
 
 // Example with Google provider (Gemini models)
 let response: CreateChatCompletionResponse = client
-    .generate_content(Provider::Google, "gemini-1.5-pro", vec![
-Message{
-    role: MessageRole::System,
-    content: "You are a helpful AI assistant.".to_string(),
-    ..Default::default()
-},
-Message{
-    role: MessageRole::User,
-    content: "Explain quantum computing in simple terms".to_string(),
-    ..Default::default()
-}
-]).await?;
+    .generate_content(
+        Provider::Google,
+        "gemini-3-pro",
+        vec![
+            message(MessageRole::System, "You are a helpful AI assistant."),
+            message(MessageRole::User, "Explain quantum computing in simple terms"),
+        ],
+    )
+    .await?;
 
 log::info!(
     "Google generated content: {:?}",
@@ -247,16 +254,25 @@ log::info!(
 
 ### Streaming Content
 
-
-
 ```rust
 use futures_util::{pin_mut, StreamExt};
 use inference_gateway_sdk::{
-    CreateChatCompletionStreamResponse, GatewayError, InferenceGatewayAPI, InferenceGatewayClient,
-    Message, MessageRole, Provider,
+    CreateChatCompletionStreamResponse, FinishReason, GatewayError, InferenceGatewayAPI,
+    InferenceGatewayClient, Message, MessageContent, MessageRole, Provider,
 };
 use log::info;
 use std::env;
+
+fn message(role: MessageRole, text: &str) -> Message {
+    Message {
+        role,
+        content: MessageContent::String(text.to_string()),
+        reasoning: None,
+        reasoning_content: None,
+        tool_call_id: None,
+        tool_calls: Vec::new(),
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), GatewayError> {
@@ -265,40 +281,32 @@ async fn main() -> Result<(), GatewayError> {
     }
     env_logger::init();
 
-    let system_message = "You are an helpful assistent.".to_string();
-    let model = "llama-3.3-70b-versatile";
+    let model = "deepseek-v4-flash";
 
     let client = InferenceGatewayClient::new("http://localhost:8080/v1");
     let stream = client.generate_content_stream(
-        Provider::Groq,
+        Provider::Deepseek,
         model,
         vec![
-            Message {
-                role: MessageRole::System,
-                content: system_message,
-                ..Default::default()
-            },
-            Message {
-                role: MessageRole::User,
-                content: "Write a poem".to_string(),
-                ..Default::default()
-            },
+            message(MessageRole::System, "You are a helpful assistant."),
+            message(MessageRole::User, "Write a poem"),
         ],
     );
     pin_mut!(stream);
     // Iterate over the stream of Server Sent Events
     while let Some(ssevent) = stream.next().await {
         let ssevent = ssevent?;
+        if ssevent.data == "[DONE]" {
+            break;
+        }
 
         // Deserialize the event response
         let generate_response_stream: CreateChatCompletionStreamResponse =
             serde_json::from_str(&ssevent.data)?;
 
-        let choice = generate_response_stream.choices.get(0);
-        if choice.is_none() {
+        let Some(choice) = generate_response_stream.choices.first() else {
             continue;
-        }
-        let choice = choice.unwrap();
+        };
 
         if let Some(usage) = generate_response_stream.usage.as_ref() {
             // Get the usage metrics from the response
@@ -312,8 +320,8 @@ async fn main() -> Result<(), GatewayError> {
             print!("{}", content);
         }
 
-        if let Some(finish_reason) = choice.finish_reason.as_ref() {
-            if finish_reason == "stop" {
+        if let Some(reason) = choice.finish_reason.as_ref() {
+            if matches!(reason, FinishReason::Stop) {
                 info!("Finished generating content");
                 break;
             }
@@ -331,13 +339,25 @@ available for the LLM to use:
 
 ```rust
 use inference_gateway_sdk::{
-    FunctionObject, GatewayError, InferenceGatewayAPI, InferenceGatewayClient, Message,
-    MessageRole, Provider, Tool, ToolType,
+    ChatCompletionTool, ChatCompletionToolType, FunctionObject,
+    FunctionParameters, GatewayError, InferenceGatewayAPI,
+    InferenceGatewayClient, Message, MessageContent, MessageRole, Provider,
 };
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::json;
 use std::env;
+
+fn message(role: MessageRole, text: &str) -> Message {
+    Message {
+        role,
+        content: MessageContent::String(text.to_string()),
+        reasoning: None,
+        reasoning_content: None,
+        tool_call_id: None,
+        tool_calls: Vec::new(),
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), GatewayError> {
@@ -354,40 +374,39 @@ async fn main() -> Result<(), GatewayError> {
     let client = InferenceGatewayClient::new(api_endpoint);
 
     // Define the model and provider
-    let provider = Provider::Groq;
-    let model = "llama-3.3-70b-versatile";
+    let provider = Provider::Deepseek;
+    let model = "deepseek-v4-flash";
 
     // Define the weather tool
-    let tools = vec![Tool {
-        r#type: ToolType::Function,
+    let parameters = json!({
+        "type": "object",
+        "properties": {
+            "location": {
+                "type": "string",
+                "description": "The city name"
+            }
+        },
+        "required": ["location"]
+    });
+    let tools = vec![ChatCompletionTool {
+        type_: ChatCompletionToolType::Function,
         function: FunctionObject {
             name: "get_current_weather".to_string(),
-            description: "Get the weather for a location".to_string(),
-            parameters: json!({
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city name"
-                    }
-                },
-                "required": ["location"]
-            }),
+            description: Some("Get the weather for a location".to_string()),
+            parameters: Some(FunctionParameters(
+                parameters.as_object().unwrap().clone(),
+            )),
+            strict: false,
         },
     }];
 
     // Create initial conversation
     let initial_messages = vec![
-        Message {
-            role: MessageRole::System,
-            content: "You are a helpful assistant that can check the weather.".to_string(),
-            ..Default::default()
-        },
-        Message {
-            role: MessageRole::User,
-            content: "What is the current weather in Berlin?".to_string(),
-            ..Default::default()
-        },
+        message(
+            MessageRole::System,
+            "You are a helpful assistant that can check the weather.",
+        ),
+        message(MessageRole::User, "What is the current weather in Berlin?"),
     ];
 
     // Make the initial API request
@@ -399,54 +418,45 @@ async fn main() -> Result<(), GatewayError> {
 
     info!("Received response from model");
 
-    // Check if we have a response
-    let choice = match response.choices.get(0) {
-        Some(choice) => choice,
-        None => {
-            warn!("No choice returned");
-            return Ok(());
-        }
+    let Some(choice) = response.choices.first() else {
+        warn!("No choice returned");
+        return Ok(());
     };
 
     // Check for tool calls in the response
-    if let Some(tool_calls) = &choice.message.tool_calls {
-        // Create a new conversation starting with the initial messages
+    if !choice.message.tool_calls.is_empty() {
+        // Echo the assistant turn (with the tool_calls) before the tool replies.
+        let mut assistant_turn = choice.message.clone();
+        // Tool-call assistant messages typically have empty content; keep what
+        // the model sent so providers that include explanatory text round-trip.
         let mut follow_up_convo = vec![
-            Message {
-                role: MessageRole::System,
-                content: "You are a helpful assistant that can check the weather.".to_string(),
-                ..Default::default()
-            },
-            Message {
-                role: MessageRole::User,
-                content: "What is the current weather in Berlin?".to_string(),
-                ..Default::default()
-            },
-            Message {
-                role: MessageRole::Assistant,
-                content: choice.message.content.clone(),
-                tool_calls: choice.message.tool_calls.clone(),
-                ..Default::default()
-            },
+            message(
+                MessageRole::System,
+                "You are a helpful assistant that can check the weather.",
+            ),
+            message(MessageRole::User, "What is the current weather in Berlin?"),
         ];
+        // Take the assistant message verbatim so tool_calls are preserved.
+        assistant_turn.role = MessageRole::Assistant;
+        follow_up_convo.push(assistant_turn);
 
         // Process each tool call
-        for tool_call in tool_calls {
+        for tool_call in &choice.message.tool_calls {
             info!("Tool Call Requested: {}", tool_call.function.name);
 
             if tool_call.function.name == "get_current_weather" {
-                // Parse arguments
-                let args = tool_call.function.parse_arguments()?;
-
-                // Call our function
-                let weather_result = get_current_weather(args)?;
+                // Parse arguments into a typed value
+                let args: Weather = tool_call.function.parse_arguments()?;
+                let weather_result = get_current_weather(args);
 
                 // Add the tool response to the conversation
                 follow_up_convo.push(Message {
                     role: MessageRole::Tool,
-                    content: weather_result,
+                    content: MessageContent::String(weather_result),
+                    reasoning: None,
+                    reasoning_content: None,
                     tool_call_id: Some(tool_call.id.clone()),
-                    ..Default::default()
+                    tool_calls: Vec::new(),
                 });
             }
         }
@@ -454,22 +464,20 @@ async fn main() -> Result<(), GatewayError> {
         // Send the follow-up request with the tool results
         info!("Sending follow-up request with tool results");
 
-        // Create a new client for the follow-up request
         let follow_up_client = InferenceGatewayClient::new(api_endpoint);
-
         let follow_up_response = follow_up_client
             .with_tools(Some(tools))
             .generate_content(provider, model, follow_up_convo)
             .await?;
 
-        if let Some(choice) = follow_up_response.choices.get(0) {
-            info!("Final response: {}", choice.message.content);
+        if let Some(choice) = follow_up_response.choices.first() {
+            info!("Final response: {:?}", choice.message.content);
         } else {
             warn!("No response in follow-up");
         }
     } else {
         info!("No tool calls in the response");
-        info!("Model response: {}", choice.message.content);
+        info!("Model response: {:?}", choice.message.content);
     }
 
     Ok(())
@@ -480,21 +488,18 @@ struct Weather {
     location: String,
 }
 
-fn get_current_weather(args: Value) -> Result<String, GatewayError> {
-    // Parse the location from the arguments
-    let weather: Weather = serde_json::from_value(args)?;
+fn get_current_weather(args: Weather) -> String {
     info!(
         "Getting weather function was called for {}",
-        weather.location
+        args.location
     );
 
-    // In a real application, we would call an actual weather API here
-    // For this example, we'll just return a mock response
-    let location = weather.location;
-    Ok(format!(
+    // In a real application, we would call an actual weather API here.
+    // For this example, we'll just return a mock response.
+    format!(
         "The weather in {} is currently sunny with a temperature of 22°C",
-        location
-    ))
+        args.location
+    )
 }
 ```
 
@@ -516,13 +521,16 @@ info!("API is healthy: {}", is_healthy);
 The Inference Gateway Rust SDK supports the following providers:
 
 - **Ollama** (`Provider::Ollama`) - Local language model server
+- **Ollama Cloud** (`Provider::OllamaCloud`) - Ollama Cloud-hosted models
 - **Groq** (`Provider::Groq`) - High-speed inference provider
-- **OpenAI** (`Provider::OpenAI`) - GPT models and other OpenAI services
+- **OpenAI** (`Provider::Openai`) - GPT models and other OpenAI services
 - **Cloudflare** (`Provider::Cloudflare`) - Cloudflare Workers AI
 - **Cohere** (`Provider::Cohere`) - Cohere language models
 - **Anthropic** (`Provider::Anthropic`) - Claude models
 - **DeepSeek** (`Provider::Deepseek`) - DeepSeek models
 - **Google** (`Provider::Google`) - Google Gemini models via Generative AI API
+- **Mistral** (`Provider::Mistral`) - Mistral AI models
+- **Moonshot** (`Provider::Moonshot`) - Moonshot AI models
 
 Each provider may support different models and capabilities. Use the
 `list_models_by_provider()` method to discover available models for each

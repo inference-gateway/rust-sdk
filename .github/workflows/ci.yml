@@ -23,10 +23,18 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Static Analysis
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Build
         run: cargo build --verbose
 
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test --all-targets --all-features --verbose
+
+      - name: Verify generated types are in sync with openapi.yaml
+        run: |
+          cargo run -p gen-types --release
+          if ! git diff --exit-code src/generated/; then
+            echo "::error::src/generated/ is out of sync with openapi.yaml. Run 'task generate-types' and commit the result."
+            exit 1
+          fi
