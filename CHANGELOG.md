@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0](https://github.com/inference-gateway/rust-sdk/compare/0.12.0...0.13.0) (2026-05-06)
+
+### ✨ Features
+
+* **examples:** Add list and chat example crates ([a608f4b](https://github.com/inference-gateway/rust-sdk/commit/a608f4b0a2d0af1f86cedef7ddc78015622f922c))
+
+### ♻️ Improvements
+
+* Generate the types and use them in the client ([64c598a](https://github.com/inference-gateway/rust-sdk/commit/64c598a72dbf7a22519b6dbccd404cf2e0b3528f))
+* Rename all instances of deepseek-chat to deepseek-v4-flash ([e6aca0e](https://github.com/inference-gateway/rust-sdk/commit/e6aca0e9d688076366dea19f7bfd596782b7d21f))
+
+### 🐛 Bug Fixes
+
+* **client:** Route health_check past versioned base URL ([6b93421](https://github.com/inference-gateway/rust-sdk/commit/6b9342137d6f226079b845736040ad0ceba58302))
+
+### 📚 Documentation
+
+* **readme:** Add centered title, badges, and Examples link ([ba4db93](https://github.com/inference-gateway/rust-sdk/commit/ba4db934417913b392bf3b3dece3979ffd114810))
+* Update AGENTS.md with comprehensive guidance ([9db7b62](https://github.com/inference-gateway/rust-sdk/commit/9db7b6250ddac07399f7ebca0182d3dc0fb088b7))
+
+### 🔧 Miscellaneous
+
+* **deps:** Bump all versions to latest ([169bda0](https://github.com/inference-gateway/rust-sdk/commit/169bda006db593aec85e88778438a155d6deabdf))
+* **env:** Add MOONSHOT_API_KEY to .env.example ([a424ea3](https://github.com/inference-gateway/rust-sdk/commit/a424ea3981a0875dc22a0fe7c6cc4b8831bcf24a))
+* **infer:** Regenerate configs ([0e8b88d](https://github.com/inference-gateway/rust-sdk/commit/0e8b88df450f84ad11342dd12542a9a783de3596))
+* **infer:** Sync openapi.yaml and drop ChatCompletionChoice patch ([c73906b](https://github.com/inference-gateway/rust-sdk/commit/c73906b62b553289a67e8bdd5314343ea6d7bc67)), closes [inference-gateway/schemas#28](https://github.com/inference-gateway/schemas/issues/28)
+
 ## [0.12.0](https://github.com/inference-gateway/rust-sdk/compare/0.11.0...0.12.0) (2025-11-21)
 
 ### ✨ Features
