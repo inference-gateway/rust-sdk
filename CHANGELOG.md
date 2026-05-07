@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.3](https://github.com/inference-gateway/rust-sdk/compare/0.13.2...0.13.3) (2026-05-07)
+
+### 👷 CI
+
+* **claude:** Update claude-code-action version and refine system prompt instructions ([16cc917](https://github.com/inference-gateway/rust-sdk/commit/16cc917469c03406452bb60a622045c98e7f0d64))
+
 ## [0.13.2](https://github.com/inference-gateway/rust-sdk/compare/0.13.1...0.13.2) (2026-05-06)
 
 ### 👷 CI
