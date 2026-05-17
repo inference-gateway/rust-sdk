@@ -8,7 +8,7 @@ description = "Internal codegen binary: turns openapi.yaml schemas into src/gene
 [dependencies]
 anyhow = "1"
 prettyplease = "0.2"
-schemars = "0.8"
+schemars = "1.2"
 serde_json = "1"
 serde_yaml = "0.9"
 syn = { version = "2", features = ["full"] }
