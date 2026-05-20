@@ -3,7 +3,7 @@ members = [".", "tools/gen-types", "examples/list", "examples/chat"]
 
 [package]
 name = "inference-gateway-sdk"
-version = "0.13.3"
+version = "0.13.4"
 edition = "2024"
 description = "Rust SDK for interacting with various language models through the Inference Gateway"
 license = "MIT"

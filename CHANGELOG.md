@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.4](https://github.com/inference-gateway/rust-sdk/compare/0.13.3...0.13.4) (2026-05-20)
+
+### 👷 CI
+
+* **dependabot:** Add dependabot to help with dependecies upgrades ([51c3478](https://github.com/inference-gateway/rust-sdk/commit/51c3478d42d7588e0e0b5481a70c01e5a819034b))
+* **deps:** Bump anthropics/claude-code-action in the github-actions group ([#24](https://github.com/inference-gateway/rust-sdk/issues/24)) ([e01e3b3](https://github.com/inference-gateway/rust-sdk/commit/e01e3b355aad1d683003da513e59c50dbce3eb26))
+* **deps:** Bump the cargo group with 2 updates ([#23](https://github.com/inference-gateway/rust-sdk/issues/23)) ([9574356](https://github.com/inference-gateway/rust-sdk/commit/9574356fc1d517c910e8edcb849b53c4d9bc08eb))
+* **deps:** Bump the github-actions group with 2 updates ([#20](https://github.com/inference-gateway/rust-sdk/issues/20)) ([2db874b](https://github.com/inference-gateway/rust-sdk/commit/2db874b5484ae1603bfb278aceee8b1079bec89f))
+* Enable display report for Claude Code action ([b5c1a40](https://github.com/inference-gateway/rust-sdk/commit/b5c1a40e25ca2847fa02a6b89cabc64e4b34516d))
+* Update task installation method in Claude workflow ([72b6ddd](https://github.com/inference-gateway/rust-sdk/commit/72b6dddc8d38c659e95b4459ac26e0ba4931d92c))
+
+### 🔧 Miscellaneous
+
+* Add flox manifest.lock file ([19bd012](https://github.com/inference-gateway/rust-sdk/commit/19bd012832ab9a5f0c46f38bf86e3bb26544c81e))
+* **deps:** Bump claude-code version to latest and add infer CLI to flox environment ([63326b8](https://github.com/inference-gateway/rust-sdk/commit/63326b8fdc78c467e07f44e86c87fba25f596c32))
+* Remove outdated issue templates for bug reports, feature requests, and refactor requests ([65ee4e6](https://github.com/inference-gateway/rust-sdk/commit/65ee4e6e27e6b2f07546427265f17215450e5f5b))
+
+### 📦 Miscellaneous
+
+* **deps): Revert "build(deps:** Bump the cargo group with 2 updates ([#21](https://github.com/inference-gateway/rust-sdk/issues/21))" ([#22](https://github.com/inference-gateway/rust-sdk/issues/22)) ([2f69a6f](https://github.com/inference-gateway/rust-sdk/commit/2f69a6fdc4e3203924c903f68d5d8bee9be17141))
+* **deps:** Bump the cargo group with 2 updates ([#21](https://github.com/inference-gateway/rust-sdk/issues/21)) ([be95962](https://github.com/inference-gateway/rust-sdk/commit/be95962f5d75535c3fe7e06880b5d5c7d7139883))
+
 ## [0.13.3](https://github.com/inference-gateway/rust-sdk/compare/0.13.2...0.13.3) (2026-05-07)
 
 ### 👷 CI
