@@ -11,4 +11,4 @@ path = "src/main.rs"
 [dependencies]
 inference-gateway-sdk = { path = "../.." }
 tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
-serde_json = "1.0.149"
+serde_json = "1.0.150"

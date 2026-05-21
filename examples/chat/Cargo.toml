@@ -13,4 +13,4 @@ inference-gateway-sdk = { path = "../.." }
 tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
 futures-util = "0.3.32"
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
+serde_json = "1.0.150"
