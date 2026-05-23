@@ -73,7 +73,7 @@ single, OpenAI-compatible interface.
 ├── CONTRIBUTING.md             # Contribution guidelines
 ├── CHANGELOG.md                # Auto-generated release changelog
 ├── README.md                   # User documentation with examples
-└── LICENSE                     # MIT
+└── LICENSE                     # Apache-2.0
 ```
 
 ### Core Components

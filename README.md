@@ -6,7 +6,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/inference-gateway-sdk.svg)](https://crates.io/crates/inference-gateway-sdk)
 [![Docs.rs](https://img.shields.io/docsrs/inference-gateway-sdk)](https://docs.rs/inference-gateway-sdk)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Release](https://img.shields.io/github/release/inference-gateway/rust-sdk.svg)](https://github.com/inference-gateway/rust-sdk/releases)
 [![Rust Edition](https://img.shields.io/badge/rust-2024-orange.svg)](https://doc.rust-lang.org/edition-guide/rust-2024/)
 
@@ -583,4 +583,4 @@ about how to get involved. We welcome issues, questions, and pull requests.
 
 ## License
 
-This SDK is distributed under the MIT License, see [LICENSE](LICENSE) for more information.
+This SDK is distributed under the Apache 2.0 License, see [LICENSE](LICENSE) for more information.
