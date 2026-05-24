@@ -536,7 +536,7 @@ info!("API is healthy: {}", is_healthy);
 
 ## Examples
 
-Runnable examples live in the [examples directory](./examples/) — see its [README](./examples/README.md) for the full list and instructions.
+Runnable examples live in the [examples directory](./examples/) - see its [README](./examples/README.md) for the full list and instructions.
 
 ## Supported Providers
 

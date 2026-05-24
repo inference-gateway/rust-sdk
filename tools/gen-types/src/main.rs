@@ -15,7 +15,7 @@ use serde_json::Value;
 use typify::{TypeSpace, TypeSpaceSettings};
 
 const HEADER: &str = "\
-// @generated — DO NOT EDIT.
+// @generated - DO NOT EDIT.
 // Regenerate with `task generate-types` (or `cargo run -p gen-types --release`).
 // Source: openapi.yaml (components.schemas).
 
@@ -113,7 +113,7 @@ fn cargo_fmt_file(workspace_root: &std::path::Path, file: &std::path::Path) -> R
             .arg(file)
             .current_dir(workspace_root)
             .status()
-            .context("spawning rustfmt — is the rustfmt component installed?")?;
+            .context("spawning rustfmt - is the rustfmt component installed?")?;
         if !status.success() {
             return Err(anyhow!("rustfmt exited with {status}"));
         }
@@ -193,7 +193,7 @@ fn strip_vendor_extensions(value: &mut Value) {
 
 /// Patch known divergences between the spec and the wire format.
 ///
-/// Each patch must include a comment explaining *why* — this is the seam where
+/// Each patch must include a comment explaining *why* - this is the seam where
 /// hand-maintenance can creep back in, so keep it auditable. Prefer fixing the
 /// spec upstream over adding patches here.
 fn apply_known_patches(value: &mut Value) -> Result<()> {

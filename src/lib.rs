@@ -22,7 +22,7 @@ use thiserror::Error;
 /// Stream of Server-Sent Events (SSE) yielded by [`InferenceGatewayAPI::generate_content_stream`].
 ///
 /// This is the SDK's own SSE wrapper used by the streaming function. It is distinct
-/// from the spec's [`SsEvent`] (which constrains `event` to a fixed enum) — the
+/// from the spec's [`SsEvent`] (which constrains `event` to a fixed enum) - the
 /// streaming function may surface arbitrary event names produced by upstream providers.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct SSEvents {
@@ -121,7 +121,7 @@ pub trait InferenceGatewayAPI {
     /// Lists available MCP tools (only when `EXPOSE_MCP=true` server-side)
     fn list_tools(&self) -> impl Future<Output = Result<ListToolsResponse, GatewayError>> + Send;
 
-    /// Health probe — returns true on HTTP 200, false otherwise.
+    /// Health probe - returns true on HTTP 200, false otherwise.
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
 }
 

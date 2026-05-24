@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Rust SDK (`inference-gateway-sdk`) for the [Inference Gateway][ig] — a unified
+Rust SDK (`inference-gateway-sdk`) for the [Inference Gateway][ig] - a unified
 HTTP interface for interacting with various LLM providers (Ollama, OllamaCloud,
 Groq, OpenAI, Cloudflare, Cohere, Anthropic, DeepSeek, Google, Mistral, Moonshot).
 Edition 2024.
@@ -13,7 +13,7 @@ Edition 2024.
 
 ## Build & Development Commands
 
-Prefer `task` (Taskfile.yml) — the underlying `cargo` invocations are equivalent.
+Prefer `task` (Taskfile.yml) - the underlying `cargo` invocations are equivalent.
 
 ```bash
 task test         # cargo test --all-targets --all-features
@@ -26,7 +26,7 @@ cargo test <name> # run a single test by name
 ### Regenerating types from OpenAPI
 
 `src/generated/schemas.rs` is produced by `tools/gen-types` (typify) from
-`openapi.yaml`. **Do not hand-edit it** — the `@generated` header is enforced
+`openapi.yaml`. **Do not hand-edit it** - the `@generated` header is enforced
 and CI checks for drift.
 
 ```bash
@@ -42,17 +42,17 @@ Cargo workspace. Members: `.` (the SDK), `tools/gen-types` (codegen binary),
 
 ### Source layout
 
-- `src/lib.rs` — `InferenceGatewayClient`, the `InferenceGatewayAPI` trait,
+- `src/lib.rs` - `InferenceGatewayClient`, the `InferenceGatewayAPI` trait,
   `GatewayError`, the `SSEvents` SSE wrapper, and HTTP plumbing.
-- `src/tests.rs` — all unit/integration tests (mockito-based). Tests live in
+- `src/tests.rs` - all unit/integration tests (mockito-based). Tests live in
   this separate file, **not** inline at the bottom of `lib.rs`.
-- `src/generated/schemas.rs` — generated request/response/enum types
+- `src/generated/schemas.rs` - generated request/response/enum types
   (`Provider`, `Message`, `MessageRole`, `MessageContent`, `ChatCompletionTool`,
   `ChatCompletionToolType`, `FunctionObject`, `FunctionParameters`,
   `CreateChatCompletionRequest`/`Response`, `CreateChatCompletionStreamResponse`,
   `ListModelsResponse`, `ListToolsResponse`, `FinishReason`, …). Re-exported
   from the crate root via `pub use generated::schemas::*;`.
-- `src/ext/` — hand-written impls layered on top of generated types
+- `src/ext/` - hand-written impls layered on top of generated types
   (currently just `tool_call.rs::parse_arguments()`). Add new impls here when
   the schema cannot describe the behavior; do not patch `schemas.rs`.
 
@@ -70,7 +70,7 @@ Cargo workspace. Members: `.` (the SDK), `tools/gen-types` (codegen binary),
   `impl Stream<Item = Result<SSEvents, GatewayError>>`. Consumers `pin_mut!`
   and use `futures_util::StreamExt`. SSE parsing is line-based on
   `event:` / `data:` prefixes, with `[DONE]` as the sentinel.
-- **`SSEvents` (SDK type) ≠ `SsEvent` (generated)** — the generated type
+- **`SSEvents` (SDK type) ≠ `SsEvent` (generated)** - the generated type
   constrains `event` to a fixed enum; the SDK wrapper accepts arbitrary
   upstream event names.
 - **Error mapping**: `map_error_status` translates HTTP status codes to

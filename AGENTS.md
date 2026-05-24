@@ -1,4 +1,4 @@
-# AGENTS.md — Inference Gateway Rust SDK
+# AGENTS.md - Inference Gateway Rust SDK
 
 This document provides comprehensive guidance for AI agents working with the
 Inference Gateway Rust SDK project. It covers the project structure, architecture,
@@ -10,7 +10,7 @@ development workflow, conventions, and actionable instructions.
 
 **Inference Gateway Rust SDK** is a Rust client library (`inference-gateway-sdk`)
 for the [Inference Gateway](https://github.com/inference-gateway/inference-gateway)
-— a unified API gateway for interacting with various LLM providers through a
+- a unified API gateway for interacting with various LLM providers through a
 single, OpenAI-compatible interface.
 
 ### Key Technologies
@@ -45,7 +45,7 @@ single, OpenAI-compatible interface.
 │   │   └── tool_call.rs        # ChatCompletionMessageToolCallFunction::parse_arguments()
 │   └── generated/
 │       ├── mod.rs              # Re-exports schemas module
-│       └── schemas.rs          # @generated — DO NOT EDIT. From openapi.yaml via typify
+│       └── schemas.rs          # @generated - DO NOT EDIT. From openapi.yaml via typify
 ├── tools/
 │   └── gen-types/
 │       ├── Cargo.toml          # Internal codegen binary deps (typify, syn, schemars)
@@ -94,15 +94,15 @@ pub struct InferenceGatewayClient {
 
 **Builder methods:**
 
-- `new(base_url)` — create client targeting a specific URL
-- `new_default()` — uses `INFERENCE_GATEWAY_URL` env var or `http://localhost:8080/v1`
-- `.with_token(token)` — set bearer auth
-- `.with_tools(tools)` — set tools for function calling
-- `.with_max_tokens(max_tokens)` — set token limit
+- `new(base_url)` - create client targeting a specific URL
+- `new_default()` - uses `INFERENCE_GATEWAY_URL` env var or `http://localhost:8080/v1`
+- `.with_token(token)` - set bearer auth
+- `.with_tools(tools)` - set tools for function calling
+- `.with_max_tokens(max_tokens)` - set token limit
 
 #### `InferenceGatewayAPI` Trait (src/lib.rs)
 
-Defines the API surface — all methods are async:
+Defines the API surface - all methods are async:
 
 | Method | HTTP | URL Pattern | Description |
 | --- | --- | --- | --- |
@@ -154,12 +154,12 @@ GatewayError::Other(Box<dyn Error + Send + Sync>)
 
 #### Module Organization
 
-- **`crate::generated::schemas`** — Auto-generated types from `openapi.yaml`.
+- **`crate::generated::schemas`** - Auto-generated types from `openapi.yaml`.
   Contains all request/response structs, enums, and nested types. DO NOT modify
-  directly — regenerate via `task generate-types`.
-- **`crate::ext::tool_call`** — Hand-written extension methods on generated
+  directly - regenerate via `task generate-types`.
+- **`crate::ext::tool_call`** - Hand-written extension methods on generated
   types (e.g., `parse_arguments()` on tool-call function objects).
-- **`crate::lib`** — Client implementation, API trait, SSE parser, error types.
+- **`crate::lib`** - Client implementation, API trait, SSE parser, error types.
   Re-exports everything from `generated::schemas` at crate root.
 
 ### Key Generated Types (src/generated/schemas.rs)
@@ -189,9 +189,9 @@ GatewayError::Other(Box<dyn Error + Send + Sync>)
 The file `src/generated/schemas.rs` is **auto-generated** and must never be
 edited by hand. The pipeline is:
 
-1. **`task oas-download`** — Fetches `openapi.yaml` from upstream
+1. **`task oas-download`** - Fetches `openapi.yaml` from upstream
    `inference-gateway/schemas` repository.
-2. **`task generate-types`** — Runs `cargo run -p gen-types --release` which:
+2. **`task generate-types`** - Runs `cargo run -p gen-types --release` which:
    - Parses `openapi.yaml`
    - Extracts `components.schemas`
    - Rewrites `$ref` paths from OpenAPI convention to typify's `#/definitions/...`
@@ -201,7 +201,7 @@ edited by hand. The pipeline is:
    - Runs typify to generate Rust types
    - Formats with prettyplease and rustfmt
    - Writes to `src/generated/schemas.rs`
-3. **`task oas-sync`** — Runs both steps together.
+3. **`task oas-sync`** - Runs both steps together.
 
 The CI pipeline (`ci.yml`) verifies that generated types are in sync with the
 spec by running the generator and checking for a clean `git diff`.
@@ -212,8 +212,8 @@ spec by running the generator and checking for a clean `git diff`.
 
 ### Prerequisites
 
-- [flox](https://flox.dev/) — manages Rust toolchain and system dependencies
-- `task` command — [Task runner](https://taskfile.dev/) v3.48+
+- [flox](https://flox.dev/) - manages Rust toolchain and system dependencies
+- `task` command - [Task runner](https://taskfile.dev/) v3.48+
 - Rust toolchain (installed via flox or [rustup](https://rustup.rs/))
 
 ### Quick Setup
@@ -293,7 +293,7 @@ cargo test --all-targets --all-features
 
 ### Test Patterns
 
-**Mockito Setup** — Every async test creates a mock server:
+**Mockito Setup** - Every async test creates a mock server:
 
 ```rust
 #[tokio::test]
@@ -317,7 +317,7 @@ async fn test_list_models() -> Result<(), GatewayError> {
 }
 ```
 
-**Helper Functions** — Test helpers are defined at the top of `tests.rs`:
+**Helper Functions** - Test helpers are defined at the top of `tests.rs`:
 
 ```rust
 fn user_message(text: &str) -> Message { /* ... */ }
@@ -325,7 +325,7 @@ fn system_message(text: &str) -> Message { /* ... */ }
 fn function_params(value: serde_json::Value) -> FunctionParameters { /* ... */ }
 ```
 
-**Streaming Tests** — Use `with_chunked_body()` on mockito mocks:
+**Streaming Tests** - Use `with_chunked_body()` on mockito mocks:
 
 ```rust
 let mock = server
@@ -359,32 +359,32 @@ cargo test -- --nocapture
 
 The test suite comprehensively covers:
 
-- **Provider enum** — Serialization, deserialization, Display, TryFrom
-- **Message serialization** — With/without tool_call_id, role variants
-- **Client configuration** — base_url, default URL, auth token
-- **Error handling** — 401, 400, 403, 404, 500 status codes with error bodies
-- **Model listing** — All models, by provider
-- **Content generation** — Basic, with tools, without tools, serialization
-- **Streaming** — SSE event parsing, [DONE] termination, error events
-- **Tool use** — Tool call response parsing, argument parsing
-- **Health check** — Healthy/unhealthy responses
-- **MCP tools** — List tools, auth headers, 403 when MCP not exposed
+- **Provider enum** - Serialization, deserialization, Display, TryFrom
+- **Message serialization** - With/without tool_call_id, role variants
+- **Client configuration** - base_url, default URL, auth token
+- **Error handling** - 401, 400, 403, 404, 500 status codes with error bodies
+- **Model listing** - All models, by provider
+- **Content generation** - Basic, with tools, without tools, serialization
+- **Streaming** - SSE event parsing, [DONE] termination, error events
+- **Tool use** - Tool call response parsing, argument parsing
+- **Health check** - Healthy/unhealthy responses
+- **MCP tools** - List tools, auth headers, 403 when MCP not exposed
 
 ---
 
 ## CI/CD Pipeline
 
-### CI (`ci.yml`) — Runs on push/PR to `main`
+### CI (`ci.yml`) - Runs on push/PR to `main`
 
 Steps in order:
 
-1. **Lint** — `cargo fmt --all -- --check`
-2. **Static Analysis** — `cargo clippy --all-targets --all-features -- -D warnings`
-3. **Build** — `cargo build --verbose`
-4. **Test** — `cargo test --all-targets --all-features --verbose`
-5. **Drift Check** — Regenerates types, fails if `src/generated/` differs from committed version
+1. **Lint** - `cargo fmt --all -- --check`
+2. **Static Analysis** - `cargo clippy --all-targets --all-features -- -D warnings`
+3. **Build** - `cargo build --verbose`
+4. **Test** - `cargo test --all-targets --all-features --verbose`
+5. **Drift Check** - Regenerates types, fails if `src/generated/` differs from committed version
 
-### Release (`release.yml`) — Manual trigger
+### Release (`release.yml`) - Manual trigger
 
 1. **GitHub Release job:**
    - Configures GPG signing
@@ -405,10 +405,10 @@ Anthropic Claude Code action to respond. Has access to `task:*`, `go:*`,
 
 ### Branch Strategy
 
-- **`main`** — Production branch, protected
-- **`rc/*`** — Release candidate branches (pre-release via semantic-release)
-- **`feature/*`** — Feature branches for development
-- **`claude/*`** — Auto-created branches by Claude Code action
+- **`main`** - Production branch, protected
+- **`rc/*`** - Release candidate branches (pre-release via semantic-release)
+- **`feature/*`** - Feature branches for development
+- **`claude/*`** - Auto-created branches by Claude Code action
 
 ---
 
@@ -426,10 +426,10 @@ Anthropic Claude Code action to respond. Has access to `task:*`, `go:*`,
 
 ### Code Organization
 
-- Generated code lives in `src/generated/` — never edit manually
+- Generated code lives in `src/generated/` - never edit manually
 - Hand-written extensions on generated types go in `src/ext/`
 - The main library (`lib.rs`) should remain focused on client implementation
-  — if it grows significantly, split into submodules
+  - if it grows significantly, split into submodules
 - Re-export generated types at crate root so consumers use
   `inference_gateway_sdk::Message` not `inference_gateway_sdk::generated::schemas::Message`
 
@@ -526,33 +526,33 @@ let client = InferenceGatewayClient::new("http://localhost:8080/v1")
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `INFERENCE_GATEWAY_URL` | `http://localhost:8080/v1` | Client base URL (used by `new_default()`) |
-| `RUST_LOG` | — | Log level for env_logger |
+| `RUST_LOG` | - | Log level for env_logger |
 
 ### Dependencies (Cargo.toml)
 
 **Runtime:**
 
-- `reqwest 0.13` (features: json, stream) — HTTP client
-- `serde 1.0` (features: derive) — Serialization
-- `serde_json 1.0` — JSON handling
-- `tokio 1.52` (features: macros, rt-multi-thread) — Async runtime
-- `async-stream 0.3` — Streaming support
-- `futures-util 0.3` — Stream utilities
-- `thiserror 2.0` — Error type derivation
+- `reqwest 0.13` (features: json, stream) - HTTP client
+- `serde 1.0` (features: derive) - Serialization
+- `serde_json 1.0` - JSON handling
+- `tokio 1.52` (features: macros, rt-multi-thread) - Async runtime
+- `async-stream 0.3` - Streaming support
+- `futures-util 0.3` - Stream utilities
+- `thiserror 2.0` - Error type derivation
 
 **Dev:**
 
-- `mockito 1.7` — HTTP mocking for tests
-- `tokio 1.52` (features: macros, rt) — Async test runtime
+- `mockito 1.7` - HTTP mocking for tests
+- `tokio 1.52` (features: macros, rt) - Async test runtime
 
 **Internal tool (`tools/gen-types/`):**
 
-- `typify 0.6` — OpenAPI to Rust type generation
-- `schemars 0.8` — JSON Schema handling
-- `syn 2` — Rust syntax parsing
-- `prettyplease 0.2` — Rust code formatting
-- `serde_yaml 0.9` — YAML parsing for openapi.yaml
-- `anyhow 1` — Error handling in codegen
+- `typify 0.6` - OpenAPI to Rust type generation
+- `schemars 0.8` - JSON Schema handling
+- `syn 2` - Rust syntax parsing
+- `prettyplease 0.2` - Rust code formatting
+- `serde_yaml 0.9` - YAML parsing for openapi.yaml
+- `anyhow 1` - Error handling in codegen
 
 ---
 
@@ -599,7 +599,7 @@ task generate-types  # Regenerate types
 
 ### Releasing a New Version
 
-Releases are handled via the GitHub Actions workflow — **do not manually bump
+Releases are handled via the GitHub Actions workflow - **do not manually bump
 versions**:
 
 1. Ensure `main` has the desired commits with conventional commit messages
@@ -614,17 +614,17 @@ versions**:
 
 When working with this codebase as an AI agent:
 
-1. **Never edit `src/generated/schemas.rs` directly** — it is auto-generated.
+1. **Never edit `src/generated/schemas.rs` directly** - it is auto-generated.
    Edit `openapi.yaml` and regenerate.
 2. **Hand-written code that depends on generated types** goes in `src/ext/`.
-3. **Tests live in `src/tests.rs`** — add tests there for new functionality.
+3. **Tests live in `src/tests.rs`** - add tests there for new functionality.
 4. **Follow the builder pattern** for any new client configuration options.
-5. **Use `GatewayError`** for all error types — do not introduce new error enums.
+5. **Use `GatewayError`** for all error types - do not introduce new error enums.
 6. **Serde derives** (`Serialize`/`Deserialize`) and field attributes must match
    the OpenAI-compatible JSON wire format.
-7. **Keep the API OpenAI-compatible** — new features should align with OpenAI's
+7. **Keep the API OpenAI-compatible** - new features should align with OpenAI's
    chat completion API shape where possible.
 8. **Run `task oas-sync`** after any upstream spec changes to keep types in sync.
-9. **CI is strict** — `cargo fmt --check` and `cargo clippy -D warnings` must
+9. **CI is strict** - `cargo fmt --check` and `cargo clippy -D warnings` must
    pass, and generated types must not drift from the spec.
-10. **Markdown files** must pass markdownlint — check with `task lint`.
+10. **Markdown files** must pass markdownlint - check with `task lint`.

@@ -1,4 +1,4 @@
-// @generated — DO NOT EDIT.
+// @generated - DO NOT EDIT.
 // Regenerate with `task generate-types` (or `cargo run -p gen-types --release`).
 // Source: openapi.yaml (components.schemas).
 
