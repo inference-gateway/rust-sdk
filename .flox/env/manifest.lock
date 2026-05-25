@@ -5,18 +5,24 @@
     "install": {
       "cargo": {
         "pkg-path": "cargo",
-        "version": "^1.94.1"
+        "version": "^1.95.0"
       },
       "claude-code": {
         "pkg-path": "claude-code",
-        "version": "^2.1.141"
+        "pkg-group": "ai",
+        "version": "^2.1.148"
       },
       "clippy": {
         "pkg-path": "clippy",
-        "version": "^1.94.1"
+        "version": "^1.95.0"
+      },
+      "codex": {
+        "pkg-path": "codex",
+        "pkg-group": "ai",
+        "version": "^0.133.0"
       },
       "infer": {
-        "flake": "github:inference-gateway/cli/v0.109.11"
+        "flake": "github:inference-gateway/cli/v0.112.1"
       },
       "markdownlint-cli": {
         "pkg-path": "markdownlint-cli",
@@ -24,7 +30,7 @@
       },
       "openssl": {
         "pkg-path": "openssl",
-        "version": "^3.6.1",
+        "version": "^3.6.2",
         "outputs": "all"
       },
       "pkg-config": {
@@ -34,12 +40,12 @@
       },
       "rustc": {
         "pkg-path": "rustc",
-        "version": "^1.94.1",
+        "version": "^1.95.0",
         "outputs": "all"
       },
       "rustfmt": {
         "pkg-path": "rustfmt",
-        "version": "^1.94.1"
+        "version": "^1.95.0"
       }
     },
     "profile": {
@@ -49,29 +55,261 @@
   },
   "packages": [
     {
-      "attr_path": "cargo",
+      "attr_path": "claude-code",
       "broken": false,
-      "derivation": "/nix/store/mhfz9lksz7j42p6p12qf01jvhxkza56b-cargo-1.94.1.drv",
-      "description": "Downloads your Rust project's dependencies and builds your project",
-      "install_id": "cargo",
-      "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "cargo-1.94.1",
-      "pname": "cargo",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:05:50.676269Z",
+      "derivation": "/nix/store/hkv01r9vn9xda8hl7140bmwyhxmrl3ip-claude-code-2.1.148.drv",
+      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
+      "install_id": "claude-code",
+      "license": "Unfree",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "claude-code-2.1.148",
+      "pname": "claude-code",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:05:50.722005Z",
       "stabilities": [
         "unstable"
       ],
-      "unfree": false,
-      "version": "1.94.1",
+      "unfree": true,
+      "version": "2.1.148",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/mlrgd5zljyrxl15ryn31w15w48f6yii5-cargo-1.94.1"
+        "out": "/nix/store/gjssdifza75w53qfsl8r360cyjncyg6p-claude-code-2.1.148"
+      },
+      "system": "aarch64-darwin",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "claude-code",
+      "broken": false,
+      "derivation": "/nix/store/dwmxxg3l8kaifqdk6pf56whf5ipwm0kn-claude-code-2.1.148.drv",
+      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
+      "install_id": "claude-code",
+      "license": "Unfree",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "claude-code-2.1.148",
+      "pname": "claude-code",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:34:04.493128Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": true,
+      "version": "2.1.148",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/hhf569wsfi0qfdgcig7myr4glpj364h9-claude-code-2.1.148"
+      },
+      "system": "aarch64-linux",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "claude-code",
+      "broken": false,
+      "derivation": "/nix/store/r0bnbh84w3yp6hdz0d47xcg8b6jfcdfy-claude-code-2.1.148.drv",
+      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
+      "install_id": "claude-code",
+      "license": "Unfree",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "claude-code-2.1.148",
+      "pname": "claude-code",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:01:32.339932Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": true,
+      "version": "2.1.148",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/h93fir627xprgx0nvbrbz3r249lrwnih-claude-code-2.1.148"
+      },
+      "system": "x86_64-darwin",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "claude-code",
+      "broken": false,
+      "derivation": "/nix/store/spq4hd5z94iqn7zqald03p4p885gffll-claude-code-2.1.148.drv",
+      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
+      "install_id": "claude-code",
+      "license": "Unfree",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "claude-code-2.1.148",
+      "pname": "claude-code",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:31:55.741217Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": true,
+      "version": "2.1.148",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ijd85fy5wk37ivff4s8d32pmm540r6cp-claude-code-2.1.148"
+      },
+      "system": "x86_64-linux",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "codex",
+      "broken": false,
+      "derivation": "/nix/store/5dz189nj9xw1pqc4f7d2r9ar53id5gi4-codex-0.133.0.drv",
+      "description": "Lightweight coding agent that runs in your terminal",
+      "install_id": "codex",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "codex-0.133.0",
+      "pname": "codex",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:05:50.764279Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.133.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/3989mh54c44d6lrjyrapk37187brwkgf-codex-0.133.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "codex",
+      "broken": false,
+      "derivation": "/nix/store/8ihs927bfq5g61psjhjj4adf6w5y35px-codex-0.133.0.drv",
+      "description": "Lightweight coding agent that runs in your terminal",
+      "install_id": "codex",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "codex-0.133.0",
+      "pname": "codex",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:34:04.560076Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.133.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/4jgv6y03chvad2qh77xnbi9805vdb8sc-codex-0.133.0"
+      },
+      "system": "aarch64-linux",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "codex",
+      "broken": false,
+      "derivation": "/nix/store/qj0s11mbagm6cda86nspd4k0008jg7k4-codex-0.133.0.drv",
+      "description": "Lightweight coding agent that runs in your terminal",
+      "install_id": "codex",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "codex-0.133.0",
+      "pname": "codex",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:01:32.382001Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.133.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/mb01qnylk0q6vdzq6v6wlkw4w0pmd1fl-codex-0.133.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "codex",
+      "broken": false,
+      "derivation": "/nix/store/q7gzwxqks72r9czqxy7va057xqiji8cf-codex-0.133.0.drv",
+      "description": "Lightweight coding agent that runs in your terminal",
+      "install_id": "codex",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "codex-0.133.0",
+      "pname": "codex",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:31:55.803341Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.133.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/397dbj9vas9p2yb905wsnx4jvskjnx3h-codex-0.133.0"
+      },
+      "system": "x86_64-linux",
+      "group": "ai",
+      "priority": 5
+    },
+    {
+      "attr_path": "cargo",
+      "broken": false,
+      "derivation": "/nix/store/04ili1yy79h13xnpghs37y28vns8r69x-cargo-1.95.0.drv",
+      "description": "Downloads your Rust project's dependencies and builds your project",
+      "install_id": "cargo",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "cargo-1.95.0",
+      "pname": "cargo",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:05:50.468865Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.95.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/2vdxz4xwplgb5rgfhqr0jr85fd7qqgmb-cargo-1.95.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -80,27 +318,27 @@
     {
       "attr_path": "cargo",
       "broken": false,
-      "derivation": "/nix/store/6bfplk5v76lnh4hi247n3hpkdn6wmvd2-cargo-1.94.1.drv",
+      "derivation": "/nix/store/ddzw6symm08w2hn3nghsi3gmvgyzjphb-cargo-1.95.0.drv",
       "description": "Downloads your Rust project's dependencies and builds your project",
       "install_id": "cargo",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "cargo-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "cargo-1.95.0",
       "pname": "cargo",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:33:29.033651Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:34:04.263354Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/fvmmpmsik6551c334wgvx8smifj2fibf-cargo-1.94.1"
+        "out": "/nix/store/f8rxcxfwk1qhazprqnfji401x08xp9dr-cargo-1.95.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -109,27 +347,27 @@
     {
       "attr_path": "cargo",
       "broken": false,
-      "derivation": "/nix/store/a1c18rdz7lv7ljs5di5pc0qjv4c54jcl-cargo-1.94.1.drv",
+      "derivation": "/nix/store/mdzqay9axyaj4x840qld6wq2g0ha1frw-cargo-1.95.0.drv",
       "description": "Downloads your Rust project's dependencies and builds your project",
       "install_id": "cargo",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "cargo-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "cargo-1.95.0",
       "pname": "cargo",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:01:17.202188Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:01:32.155387Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/10bhh3gsrw2xfg3fr53pip6rdzcz2sfp-cargo-1.94.1"
+        "out": "/nix/store/5z8rq35zk9jqnnfw4m49fwpgq7phdhai-cargo-1.95.0"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -138,172 +376,56 @@
     {
       "attr_path": "cargo",
       "broken": false,
-      "derivation": "/nix/store/c9l4gcfchsfff7xgn5a5b258jdlncpwk-cargo-1.94.1.drv",
+      "derivation": "/nix/store/f61lsy7bpya0azm8z6cxw05nj79g2dn9-cargo-1.95.0.drv",
       "description": "Downloads your Rust project's dependencies and builds your project",
       "install_id": "cargo",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "cargo-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "cargo-1.95.0",
       "pname": "cargo",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:32:09.233452Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:31:55.496300Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/z382dzkk7snk51ka6n4f3b953dcdm8fc-cargo-1.94.1"
+        "out": "/nix/store/z480b23kymbmrijrl49246mrzyphli15-cargo-1.95.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
       "priority": 5
     },
     {
-      "attr_path": "claude-code",
-      "broken": false,
-      "derivation": "/nix/store/dslr7iy5pdmzkf3igd564g5pyvdxzh0x-claude-code-2.1.141.drv",
-      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
-      "install_id": "claude-code",
-      "license": "Unfree",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "claude-code-2.1.141",
-      "pname": "claude-code",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:05:50.859300Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": true,
-      "version": "2.1.141",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/gb1c61q8d4hl3i2d11ymfplwkhzsynbw-claude-code-2.1.141"
-      },
-      "system": "aarch64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "claude-code",
-      "broken": false,
-      "derivation": "/nix/store/fb24vx3f5nb41m3mq5v78flmdvy5frnz-claude-code-2.1.141.drv",
-      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
-      "install_id": "claude-code",
-      "license": "Unfree",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "claude-code-2.1.141",
-      "pname": "claude-code",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:33:29.259858Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": true,
-      "version": "2.1.141",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/f1x1z4aswxy77kxr0xqs802qcqwj1ysq-claude-code-2.1.141"
-      },
-      "system": "aarch64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "claude-code",
-      "broken": false,
-      "derivation": "/nix/store/nf2m0vmv2724ixgblv96slzv99kalc13-claude-code-2.1.141.drv",
-      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
-      "install_id": "claude-code",
-      "license": "Unfree",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "claude-code-2.1.141",
-      "pname": "claude-code",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:01:17.387619Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": true,
-      "version": "2.1.141",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/52a2b332fsb2nd9bhqrz4hcbvj5ssrqw-claude-code-2.1.141"
-      },
-      "system": "x86_64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "claude-code",
-      "broken": false,
-      "derivation": "/nix/store/2k4im1nqqbqk5dz4p59qb4mb3v88piiy-claude-code-2.1.141.drv",
-      "description": "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster",
-      "install_id": "claude-code",
-      "license": "Unfree",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "claude-code-2.1.141",
-      "pname": "claude-code",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:32:09.481493Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": true,
-      "version": "2.1.141",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/lfwc0k70hjnl007xi7fn8fv8xi2alfz4-claude-code-2.1.141"
-      },
-      "system": "x86_64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
       "attr_path": "clippy",
       "broken": false,
-      "derivation": "/nix/store/v4nlcfsnm4hgb5bk5anhm5m6mgb7rky5-clippy-1.94.1.drv",
+      "derivation": "/nix/store/5isy9w2vfi8fawwfyrpa5ym7zqbz2qfb-clippy-1.95.0.drv",
       "description": "Bunch of lints to catch common mistakes and improve your Rust code",
       "install_id": "clippy",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "clippy-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "clippy-1.95.0",
       "pname": "clippy",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:05:50.868596Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:05:50.730841Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/z9jrilf49s8prkiicxlfapbi6hj9dz03-clippy-1.94.1"
+        "out": "/nix/store/zzzj3civ800ml2hv9czssyzsbfxl2ss7-clippy-1.95.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -312,28 +434,28 @@
     {
       "attr_path": "clippy",
       "broken": false,
-      "derivation": "/nix/store/3z09y3m9np8c146bqzkrks87dcaczlp4-clippy-1.94.1.drv",
+      "derivation": "/nix/store/01cf8xvhif784a2lkklk6ba8vabls7x0-clippy-1.95.0.drv",
       "description": "Bunch of lints to catch common mistakes and improve your Rust code",
       "install_id": "clippy",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "clippy-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "clippy-1.95.0",
       "pname": "clippy",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:33:29.273156Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:34:04.509864Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "debug": "/nix/store/svpaxsn34mgdzhgyrgdvw68fl14g1s8x-clippy-1.94.1-debug",
-        "out": "/nix/store/0ag0s1wxh9l5fldh6j0318qpmzy7sn5r-clippy-1.94.1"
+        "debug": "/nix/store/a9j78978hxxwwbr7nbbmwl110ljsv192-clippy-1.95.0-debug",
+        "out": "/nix/store/03g145gvrijz5wryc6538m3ayzgbmlq0-clippy-1.95.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -342,27 +464,27 @@
     {
       "attr_path": "clippy",
       "broken": false,
-      "derivation": "/nix/store/llmw9bxfgnidg9k3v97iplml2pba090r-clippy-1.94.1.drv",
+      "derivation": "/nix/store/3qlm2j9am5x989rn5hy99j3l59dkb0lk-clippy-1.95.0.drv",
       "description": "Bunch of lints to catch common mistakes and improve your Rust code",
       "install_id": "clippy",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "clippy-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "clippy-1.95.0",
       "pname": "clippy",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:01:17.396754Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:01:32.348846Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/874dlfzia6nhc8f9iwqnh8cg79ga3rw4-clippy-1.94.1"
+        "out": "/nix/store/ipr8v8md5glz2c6nd1zi7193s62va753-clippy-1.95.0"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -371,28 +493,28 @@
     {
       "attr_path": "clippy",
       "broken": false,
-      "derivation": "/nix/store/8ywplcds2ark9vaq3804hc6zskird1c4-clippy-1.94.1.drv",
+      "derivation": "/nix/store/60ir1zyzn8dj2fgn2zhy1pbgyhmf5gl5-clippy-1.95.0.drv",
       "description": "Bunch of lints to catch common mistakes and improve your Rust code",
       "install_id": "clippy",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "clippy-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "clippy-1.95.0",
       "pname": "clippy",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:32:09.496202Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:31:55.755712Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "debug": "/nix/store/2970l2zp3wwb361mabagg9gfgnwkn9s2-clippy-1.94.1-debug",
-        "out": "/nix/store/wavkh1sj2fb7cclydhj1q15k7dcha91x-clippy-1.94.1"
+        "debug": "/nix/store/clml4f18gybrzp40n0mhq8kv0rw98rmq-clippy-1.95.0-debug",
+        "out": "/nix/store/42vpa7gg09gs6x9v4y7aizmxwmrc35ac-clippy-1.95.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -401,17 +523,17 @@
     {
       "attr_path": "markdownlint-cli",
       "broken": false,
-      "derivation": "/nix/store/73s87kdamnsl4ap23f0d0zkxh3pfp2ja-markdownlint-cli-0.48.0.drv",
+      "derivation": "/nix/store/vn613bx62f63jrvj9lhqfnjm6m9604fj-markdownlint-cli-0.48.0.drv",
       "description": "Command line interface for MarkdownLint",
       "install_id": "markdownlint-cli",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "markdownlint-cli-0.48.0",
       "pname": "markdownlint-cli",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:06:12.980239Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:06:12.912643Z",
       "stabilities": [
         "unstable"
       ],
@@ -421,7 +543,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/375943y8zpzmxipls055d6bkp48yy68k-markdownlint-cli-0.48.0"
+        "out": "/nix/store/j3p42am9dcz8zm44hic71k1cdcffyd1a-markdownlint-cli-0.48.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -430,17 +552,17 @@
     {
       "attr_path": "markdownlint-cli",
       "broken": false,
-      "derivation": "/nix/store/0hknmdjnz90vd1mjx0ka35k54dgdmwry-markdownlint-cli-0.48.0.drv",
+      "derivation": "/nix/store/l9k5y4cp8i5y0x5n78bqhqi0sygsy2a2-markdownlint-cli-0.48.0.drv",
       "description": "Command line interface for MarkdownLint",
       "install_id": "markdownlint-cli",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "markdownlint-cli-0.48.0",
       "pname": "markdownlint-cli",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:34:02.304350Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:34:38.589451Z",
       "stabilities": [
         "unstable"
       ],
@@ -450,7 +572,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/nh1iablhmj7n806b6y72bmh0c9aix7d0-markdownlint-cli-0.48.0"
+        "out": "/nix/store/f1zjqs6fsa76am4zziv75q9gxv2lqgf6-markdownlint-cli-0.48.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -459,17 +581,17 @@
     {
       "attr_path": "markdownlint-cli",
       "broken": false,
-      "derivation": "/nix/store/1jz4sryli1vdzajqmbq9fdsnp82ifvry-markdownlint-cli-0.48.0.drv",
+      "derivation": "/nix/store/yb68dnlw25z0n4xa02z9nm4wf6xvi9gf-markdownlint-cli-0.48.0.drv",
       "description": "Command line interface for MarkdownLint",
       "install_id": "markdownlint-cli",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "markdownlint-cli-0.48.0",
       "pname": "markdownlint-cli",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:01:40.313979Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:01:54.997748Z",
       "stabilities": [
         "unstable"
       ],
@@ -479,7 +601,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/b0wcf7mlj7pa5r5al36i84jjgr7l9802-markdownlint-cli-0.48.0"
+        "out": "/nix/store/ql50d70jz9r66a0ry0cgq8bjl1spd6zx-markdownlint-cli-0.48.0"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -488,17 +610,17 @@
     {
       "attr_path": "markdownlint-cli",
       "broken": false,
-      "derivation": "/nix/store/rn9qpib508cxcyi4gavfln1s9a3xlq7c-markdownlint-cli-0.48.0.drv",
+      "derivation": "/nix/store/ycs1ar01r257saxvrf4kb3w3sy9llms4-markdownlint-cli-0.48.0.drv",
       "description": "Command line interface for MarkdownLint",
       "install_id": "markdownlint-cli",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "markdownlint-cli-0.48.0",
       "pname": "markdownlint-cli",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:32:46.207563Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:32:31.977045Z",
       "stabilities": [
         "unstable"
       ],
@@ -508,7 +630,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/fa2dd63i6mg5ny73799ndmm20yin8575-markdownlint-cli-0.48.0"
+        "out": "/nix/store/0rlnhilgb2h9vjr00i3vjmqvw885dwaq-markdownlint-cli-0.48.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -517,33 +639,32 @@
     {
       "attr_path": "openssl",
       "broken": false,
-      "derivation": "/nix/store/7s10wr4rqld3yf5xf76nyagkasgy23nw-openssl-3.6.1.drv",
+      "derivation": "/nix/store/r1fqhfkxr6q1h01fv54kr7mynp0jg5wi-openssl-3.6.2.drv",
       "description": "Cryptographic library that implements the SSL and TLS protocols",
       "install_id": "openssl",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "openssl-3.6.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "openssl-3.6.2",
       "pname": "openssl",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:06:20.389779Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:06:20.362138Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "3.6.1",
+      "version": "3.6.2",
       "outputs_to_install": [
-        "bin",
         "bin",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/hx6q7n0nkahf43y6q9wgiglwzc8v9s50-openssl-3.6.1-bin",
-        "dev": "/nix/store/w2zd8g8k3nqp1lg5niwdxnj06p9sdbi9-openssl-3.6.1-dev",
-        "doc": "/nix/store/9xc8imvrza5bcq00w3xfm3617jnyqn51-openssl-3.6.1-doc",
-        "man": "/nix/store/i3k8sj5kwzizrb2gg097n172j8b3qq2v-openssl-3.6.1-man",
-        "out": "/nix/store/ykkcc3jfp3hhxgvvgji9bkrl174ynldj-openssl-3.6.1"
+        "bin": "/nix/store/r51ad62j4z7xzqa2svcb6d1b443kphzr-openssl-3.6.2-bin",
+        "dev": "/nix/store/8g69q86jfk5rpa34gny4rh057h5yb1nw-openssl-3.6.2-dev",
+        "doc": "/nix/store/jygjy36g9lqfxvvchydd1c1zjs7pmcp1-openssl-3.6.2-doc",
+        "man": "/nix/store/f8c4k06h4kbcpdy4vbw8dq5xiypbhcfp-openssl-3.6.2-man",
+        "out": "/nix/store/a3hhkd5vzw97issax60xx47qfnkl6ddf-openssl-3.6.2"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -552,36 +673,34 @@
     {
       "attr_path": "openssl",
       "broken": false,
-      "derivation": "/nix/store/65why704dl2drrgvkbsdxg61s7q8sg9m-openssl-3.6.1.drv",
+      "derivation": "/nix/store/g4jrp8mgfp7sp5qx8g4fp3spk2z62dh9-openssl-3.6.2.drv",
       "description": "Cryptographic library that implements the SSL and TLS protocols",
       "install_id": "openssl",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "openssl-3.6.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "openssl-3.6.2",
       "pname": "openssl",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:34:13.062418Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:34:50.100936Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "3.6.1",
+      "version": "3.6.2",
       "outputs_to_install": [
         "bin",
         "bin",
-        "bin",
-        "man",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/yy3py3r7b94b5vx68j1w41rwdlgczk1n-openssl-3.6.1-bin",
-        "debug": "/nix/store/2q0xk6qvn4f8xkg2lvxp6x7lyhnkayzr-openssl-3.6.1-debug",
-        "dev": "/nix/store/y6nir2d88sd6qdmnabrhxpw2zhmkvd3y-openssl-3.6.1-dev",
-        "doc": "/nix/store/4fwmyn2j9c8wpnb0z3w78d01z03z4sbn-openssl-3.6.1-doc",
-        "man": "/nix/store/zhpf9p0hd7szgibkvzswf3zfbf6p42ic-openssl-3.6.1-man",
-        "out": "/nix/store/kwclb3j7xwxl2fm8f2x9xxr32qn0f5jq-openssl-3.6.1"
+        "bin": "/nix/store/qah6sg7gj1kks5qcawgkrpxlc4dlv90q-openssl-3.6.2-bin",
+        "debug": "/nix/store/csb2j07fl5qx2k5qxg0bzd2dn6d97799-openssl-3.6.2-debug",
+        "dev": "/nix/store/is2mz9ln2mszv2fl59wg5rr7casdqyk5-openssl-3.6.2-dev",
+        "doc": "/nix/store/a3ww9j6xvhxbiadfhqspd9pbanax7mda-openssl-3.6.2-doc",
+        "man": "/nix/store/6lam03sf9sngz205fmjvlnwapj0dkha3-openssl-3.6.2-man",
+        "out": "/nix/store/bl7rmhhsy7vjb9qm3jfwgqpv3cn7wfb1-openssl-3.6.2"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -590,33 +709,32 @@
     {
       "attr_path": "openssl",
       "broken": false,
-      "derivation": "/nix/store/rwd0mqyqzb8pdwny7zizgy6425ghbh60-openssl-3.6.1.drv",
+      "derivation": "/nix/store/6dkb3215v5jlnr6w720l7gfxgsvvsx6z-openssl-3.6.2.drv",
       "description": "Cryptographic library that implements the SSL and TLS protocols",
       "install_id": "openssl",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "openssl-3.6.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "openssl-3.6.2",
       "pname": "openssl",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:01:48.043800Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:02:02.773646Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "3.6.1",
+      "version": "3.6.2",
       "outputs_to_install": [
-        "bin",
         "bin",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/rmd1483xzhpai55kw102apa7piyn6bj6-openssl-3.6.1-bin",
-        "dev": "/nix/store/wyvbr6mwybyv72kk0zznglxzy29p60lj-openssl-3.6.1-dev",
-        "doc": "/nix/store/xjkrhzp9wlfwkzpzrqap7m2irx7423xh-openssl-3.6.1-doc",
-        "man": "/nix/store/bxnm2mvh8q6588wz5dkh3an3fzxbxsv9-openssl-3.6.1-man",
-        "out": "/nix/store/9f336l78npy4ipqkyw4wfc3h158mxmzl-openssl-3.6.1"
+        "bin": "/nix/store/yvchmpk2820sv464gn31gh606yj3iwaj-openssl-3.6.2-bin",
+        "dev": "/nix/store/344ipmn38akr4xfnfccbpvh5d54sjjnn-openssl-3.6.2-dev",
+        "doc": "/nix/store/sa017appbz8cy3lyvjc99m0y285axdas-openssl-3.6.2-doc",
+        "man": "/nix/store/z7c44v0zyydx17r50k0jlp3cw7z9pdvw-openssl-3.6.2-man",
+        "out": "/nix/store/ly6s18plvybyggy2m862bkdg3ghghx2j-openssl-3.6.2"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -625,38 +743,34 @@
     {
       "attr_path": "openssl",
       "broken": false,
-      "derivation": "/nix/store/9qch6x95hvpx1vhmfdqgyqmx8c1r28bv-openssl-3.6.1.drv",
+      "derivation": "/nix/store/h4fkx5vvws4bnpfhhk07k0scjymj189x-openssl-3.6.2.drv",
       "description": "Cryptographic library that implements the SSL and TLS protocols",
       "install_id": "openssl",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "openssl-3.6.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "openssl-3.6.2",
       "pname": "openssl",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:32:58.279662Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:32:43.723339Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "3.6.1",
+      "version": "3.6.2",
       "outputs_to_install": [
         "bin",
         "bin",
-        "bin",
-        "bin",
-        "bin",
-        "man",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/2di90l89y2ygdy3rbws7dhg9nrvd3pnx-openssl-3.6.1-bin",
-        "debug": "/nix/store/yj8w2x2b7mb66zb8liig4hl6bn3cbdks-openssl-3.6.1-debug",
-        "dev": "/nix/store/dy64cxaygvmjfznysgxk501yds8jij6s-openssl-3.6.1-dev",
-        "doc": "/nix/store/psa908lfcckdz5kdd9kmy1lwwad9qjpa-openssl-3.6.1-doc",
-        "man": "/nix/store/7c6zx5zywq6ndcbamp8mz4509z1kaaip-openssl-3.6.1-man",
-        "out": "/nix/store/wbyqkb1vpm41s4jb8pv0i9h4jv08xdrv-openssl-3.6.1"
+        "bin": "/nix/store/zyrxhd7nwmkcs11m144jagxcmddw2i41-openssl-3.6.2-bin",
+        "debug": "/nix/store/bw61f4m3imcwdwpc8011rj9db6pmkfdl-openssl-3.6.2-debug",
+        "dev": "/nix/store/wxws7pwyzk8mbmjc1rwwwx9v184hh67v-openssl-3.6.2-dev",
+        "doc": "/nix/store/davd7p64vvlg309ydxws2xc7z0ck9vvv-openssl-3.6.2-doc",
+        "man": "/nix/store/lnqjx5rpvid4ancfjxln38bwswmpvg8y-openssl-3.6.2-man",
+        "out": "/nix/store/y18pnbvfarnilsmgayswvi1khaw9wbsc-openssl-3.6.2"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -665,17 +779,17 @@
     {
       "attr_path": "pkg-config",
       "broken": false,
-      "derivation": "/nix/store/awa1zar3xcb7m0d0s2bm6yjp51mf6rgd-pkg-config-wrapper-0.29.2.drv",
+      "derivation": "/nix/store/spaf8jq1bx4kjig7xgf4h1l6zpwq5m8b-pkg-config-wrapper-0.29.2.drv",
       "description": "Tool that allows packages to find out information about other packages (wrapper script)",
       "install_id": "pkg-config",
       "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "pkg-config-wrapper-0.29.2",
       "pname": "pkg-config",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:06:29.015999Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:06:29.083255Z",
       "stabilities": [
         "unstable"
       ],
@@ -686,9 +800,9 @@
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/3ra1a1p9jhxky99x5mbnyvzrm3f6g6kj-pkg-config-wrapper-0.29.2-doc",
-        "man": "/nix/store/hl4fhxp8w3lv1nfrj5ss6dlwlr7cnk3l-pkg-config-wrapper-0.29.2-man",
-        "out": "/nix/store/7693fhfqg2hddwl3kbbpinrdqdp71nq2-pkg-config-wrapper-0.29.2"
+        "doc": "/nix/store/29wlw531i4q0da4maa5bab1hy8p58d6v-pkg-config-wrapper-0.29.2-doc",
+        "man": "/nix/store/pk37i8cqgq803ni2gc7fx8j8dmnlq4hz-pkg-config-wrapper-0.29.2-man",
+        "out": "/nix/store/lzrwr375jqhhbca116kja96xf1md83l8-pkg-config-wrapper-0.29.2"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -697,17 +811,17 @@
     {
       "attr_path": "pkg-config",
       "broken": false,
-      "derivation": "/nix/store/l8wczzfk1ggc1ng1k82579m1j274llc8-pkg-config-wrapper-0.29.2.drv",
+      "derivation": "/nix/store/zi6fsgrz6swg8zdqqs2jq264756q5bpf-pkg-config-wrapper-0.29.2.drv",
       "description": "Tool that allows packages to find out information about other packages (wrapper script)",
       "install_id": "pkg-config",
       "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "pkg-config-wrapper-0.29.2",
       "pname": "pkg-config",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:34:24.552660Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:35:02.423714Z",
       "stabilities": [
         "unstable"
       ],
@@ -719,9 +833,9 @@
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/a614wyav8j0q5a1kh2gzhy41g4y1lv2j-pkg-config-wrapper-0.29.2-doc",
-        "man": "/nix/store/knhjp3ik00llr0xvlknw3bi0whbd69c9-pkg-config-wrapper-0.29.2-man",
-        "out": "/nix/store/kgz9d6ywgjb2wswd1bw5in3ffzs3mdqw-pkg-config-wrapper-0.29.2"
+        "doc": "/nix/store/h67f59js5mciz53frb0m71jlbzkvv0y2-pkg-config-wrapper-0.29.2-doc",
+        "man": "/nix/store/wg08qnsfqmyy5mgx74jiid7h1bnv8a8b-pkg-config-wrapper-0.29.2-man",
+        "out": "/nix/store/c7vwy0gl1q0agl2h22gi0m9dg7xxad2l-pkg-config-wrapper-0.29.2"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -730,17 +844,17 @@
     {
       "attr_path": "pkg-config",
       "broken": false,
-      "derivation": "/nix/store/p0sm511w8y8yisw1139bx6xhv0s2iyj9-pkg-config-wrapper-0.29.2.drv",
+      "derivation": "/nix/store/ms89yx4y91z0lhw83sf9hadqw2w5h9zx-pkg-config-wrapper-0.29.2.drv",
       "description": "Tool that allows packages to find out information about other packages (wrapper script)",
       "install_id": "pkg-config",
       "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "pkg-config-wrapper-0.29.2",
       "pname": "pkg-config",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:01:57.430475Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:02:12.017562Z",
       "stabilities": [
         "unstable"
       ],
@@ -751,9 +865,9 @@
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/4nabmxn3icdkc5xh2pd3x8hf6armf1v1-pkg-config-wrapper-0.29.2-doc",
-        "man": "/nix/store/c3xapphpjndny9q73q2z9zcdpxnjvgaw-pkg-config-wrapper-0.29.2-man",
-        "out": "/nix/store/pc7g2z1vjmqg68ic2xq1jgd4ml255ci8-pkg-config-wrapper-0.29.2"
+        "doc": "/nix/store/lmzgf4hlx26dxbsl6hnqr0imwkygq6zb-pkg-config-wrapper-0.29.2-doc",
+        "man": "/nix/store/masw8xvkn6ygkbi35myxy0ngzxknpva6-pkg-config-wrapper-0.29.2-man",
+        "out": "/nix/store/8cs8a12z75g9lnpch92y1f7bb9kqmgrz-pkg-config-wrapper-0.29.2"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -762,17 +876,17 @@
     {
       "attr_path": "pkg-config",
       "broken": false,
-      "derivation": "/nix/store/033f00lp1fj6h3m9abzbxn3i2m76dhsg-pkg-config-wrapper-0.29.2.drv",
+      "derivation": "/nix/store/gfzk85k58qbgzfw0ymjz8w3z8cfjf0m1-pkg-config-wrapper-0.29.2.drv",
       "description": "Tool that allows packages to find out information about other packages (wrapper script)",
       "install_id": "pkg-config",
       "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
       "name": "pkg-config-wrapper-0.29.2",
       "pname": "pkg-config",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:33:10.951641Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:32:55.642309Z",
       "stabilities": [
         "unstable"
       ],
@@ -784,9 +898,9 @@
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/18hx89ypx3y5jiyvpma5cv9q05avmhiv-pkg-config-wrapper-0.29.2-doc",
-        "man": "/nix/store/kb3cgnjs38aj2kjslwvyg40jy7b5zgyw-pkg-config-wrapper-0.29.2-man",
-        "out": "/nix/store/v7mjkia7ki79s5i24ldbzq1khalhgzk0-pkg-config-wrapper-0.29.2"
+        "doc": "/nix/store/lghsjphn6xrfac5q2zqnbbxvrmj6c3s7-pkg-config-wrapper-0.29.2-doc",
+        "man": "/nix/store/6ki0phq7gff15ywxghxbhpcg3390x0hp-pkg-config-wrapper-0.29.2-man",
+        "out": "/nix/store/1m05k7xgfnw6jc21xxk5681ni3ar97wf-pkg-config-wrapper-0.29.2"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -795,30 +909,30 @@
     {
       "attr_path": "rustc",
       "broken": false,
-      "derivation": "/nix/store/3msjq4z6a0qs0mxnd1xppwv1wphr4f5v-rustc-wrapper-1.94.1.drv",
+      "derivation": "/nix/store/ga3xdqky2y8bx8l0cp34yjpqwnwgfa6m-rustc-wrapper-1.95.0.drv",
       "description": "Safe, concurrent, practical language (wrapper script)",
       "install_id": "rustc",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustc-wrapper-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustc-wrapper-1.95.0",
       "pname": "rustc",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:07:23.110921Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:07:23.369208Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "man",
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/d0h4z9rx30ipgxb0r8pp2iy01fqmbvdn-rustc-wrapper-1.94.1-doc",
-        "man": "/nix/store/gljrw9zcrgnbmwgdxpw75klxf26i81sa-rustc-wrapper-1.94.1-man",
-        "out": "/nix/store/ldg6i5q2wwb0j4nnd1939cn7hdlsf8xl-rustc-wrapper-1.94.1"
+        "doc": "/nix/store/2wiph2c9mpr0gbgan0ixpnr51pdfhlhj-rustc-wrapper-1.95.0-doc",
+        "man": "/nix/store/zwylsaxwxgmbl38n3n38ym2yp8d4vh3l-rustc-wrapper-1.95.0-man",
+        "out": "/nix/store/z8dhxkw9d2bclp4hj4byyxmbihr8w4an-rustc-wrapper-1.95.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -827,30 +941,30 @@
     {
       "attr_path": "rustc",
       "broken": false,
-      "derivation": "/nix/store/fvbwagcgcii8wyiqsnzcqwg7298504zm-rustc-wrapper-1.94.1.drv",
+      "derivation": "/nix/store/31cmzg65yvkdiy8jq66q84mxkbfqvagx-rustc-wrapper-1.95.0.drv",
       "description": "Safe, concurrent, practical language (wrapper script)",
       "install_id": "rustc",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustc-wrapper-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustc-wrapper-1.95.0",
       "pname": "rustc",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:35:31.925909Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:36:14.078872Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "man",
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/impmc1i7ifkbd4wvlxcybi0jhrafwxgb-rustc-wrapper-1.94.1-doc",
-        "man": "/nix/store/fvzjq79fryqp523s5dyqfwyfj2wi8afb-rustc-wrapper-1.94.1-man",
-        "out": "/nix/store/ixn1awaxpvayfp5na0b2gr0kianim6g8-rustc-wrapper-1.94.1"
+        "doc": "/nix/store/wqzfi80f80r689n3knjqsn31zqz68z4q-rustc-wrapper-1.95.0-doc",
+        "man": "/nix/store/p3azdhlb0nk5kz1wqc22v7srwsb37m24-rustc-wrapper-1.95.0-man",
+        "out": "/nix/store/nh052ln9q9r24p3rb6zxiqqjy4anxa56-rustc-wrapper-1.95.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -859,30 +973,30 @@
     {
       "attr_path": "rustc",
       "broken": false,
-      "derivation": "/nix/store/y0y11mhs509vyffn4adc2vbjlhrl7pn0-rustc-wrapper-1.94.1.drv",
+      "derivation": "/nix/store/52f1rv87m574qginv1djl7daf3zvd20v-rustc-wrapper-1.95.0.drv",
       "description": "Safe, concurrent, practical language (wrapper script)",
       "install_id": "rustc",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustc-wrapper-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustc-wrapper-1.95.0",
       "pname": "rustc",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:02:55.228207Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:03:06.693971Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "man",
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/f2iqkj8xgpjqsh9idpywrg7bgh16jw2i-rustc-wrapper-1.94.1-doc",
-        "man": "/nix/store/wzrjq7km3gicbw2ag873hd9yf8qk2rn8-rustc-wrapper-1.94.1-man",
-        "out": "/nix/store/szlbg4mqziywqn196x89q6n7xqdbx7dz-rustc-wrapper-1.94.1"
+        "doc": "/nix/store/z0jj0z80mr79c8z5mrw8k8rmp9jn43zh-rustc-wrapper-1.95.0-doc",
+        "man": "/nix/store/2cvnw62k02n4afiahfrip1ambv8c2489-rustc-wrapper-1.95.0-man",
+        "out": "/nix/store/6b0k5kdmlfl91qa8mk3ssfgvskqkvy4r-rustc-wrapper-1.95.0"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -891,30 +1005,30 @@
     {
       "attr_path": "rustc",
       "broken": false,
-      "derivation": "/nix/store/34lw9r8f40vpbldnjl63yvbfcijid75z-rustc-wrapper-1.94.1.drv",
+      "derivation": "/nix/store/hz2z45zb9m1m6681n1qpcq2k6b63ardp-rustc-wrapper-1.95.0.drv",
       "description": "Safe, concurrent, practical language (wrapper script)",
       "install_id": "rustc",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustc-wrapper-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustc-wrapper-1.95.0",
       "pname": "rustc",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:34:23.228115Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:34:04.743640Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "man",
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/kbnirgis5p5wlqb3wk11vgxa0c966lck-rustc-wrapper-1.94.1-doc",
-        "man": "/nix/store/h68fmikviqzaspyx3ccghx6cvr69cds3-rustc-wrapper-1.94.1-man",
-        "out": "/nix/store/ph8jb0mw89p4lfshpp36z70l6r4kg3vh-rustc-wrapper-1.94.1"
+        "doc": "/nix/store/m4rhqgg9qqkjy7zv9jg4z21fm92y82r2-rustc-wrapper-1.95.0-doc",
+        "man": "/nix/store/ivd567y3li0c80h3z5w77nh8m1ga340h-rustc-wrapper-1.95.0-man",
+        "out": "/nix/store/wnhmqix7bippbbzasj29qiyb422g9asg-rustc-wrapper-1.95.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -923,27 +1037,27 @@
     {
       "attr_path": "rustfmt",
       "broken": false,
-      "derivation": "/nix/store/yf6l5qa8dh4r7k9qw5pjykkhw0v50rrx-rustfmt-1.94.1.drv",
+      "derivation": "/nix/store/j8864zjq9m4n4ls5r4g8yyhr78zk6923-rustfmt-1.95.0.drv",
       "description": "Tool for formatting Rust code according to style guidelines",
       "install_id": "rustfmt",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustfmt-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustfmt-1.95.0",
       "pname": "rustfmt",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:07:23.135433Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:07:23.396359Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/371msib7kcxjsjhck6562pfa0q9nn8mw-rustfmt-1.94.1"
+        "out": "/nix/store/mpb5lx4grh44xg95mim3f2sbarwl13hv-rustfmt-1.95.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -952,27 +1066,27 @@
     {
       "attr_path": "rustfmt",
       "broken": false,
-      "derivation": "/nix/store/1f1bfph1l9a0m5pn995ig3q7w3qwd2fk-rustfmt-1.94.1.drv",
+      "derivation": "/nix/store/1mzq7dy87b64x2lyb2d1fzpwsh5ywxz6-rustfmt-1.95.0.drv",
       "description": "Tool for formatting Rust code according to style guidelines",
       "install_id": "rustfmt",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustfmt-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustfmt-1.95.0",
       "pname": "rustfmt",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T07:35:31.959158Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T07:36:14.112044Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/y466x0p4r8qjz5z4qpcjd16y8vmlzhl3-rustfmt-1.94.1"
+        "out": "/nix/store/lyppkpp50famfpbbmmravahq85rjbz48-rustfmt-1.95.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -981,27 +1095,27 @@
     {
       "attr_path": "rustfmt",
       "broken": false,
-      "derivation": "/nix/store/jrs8w47rpisa1czwymgjrzah4nr6bp6n-rustfmt-1.94.1.drv",
+      "derivation": "/nix/store/yk6r3rsygar3k2iw9iwl7vx43ihpfg4y-rustfmt-1.95.0.drv",
       "description": "Tool for formatting Rust code according to style guidelines",
       "install_id": "rustfmt",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustfmt-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustfmt-1.95.0",
       "pname": "rustfmt",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:02:55.254405Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:03:06.718170Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/xz887wb672i5sb1p5yj8mjm1190np784-rustfmt-1.94.1"
+        "out": "/nix/store/3w8bdmiz9xjr7yyggvpkf60pg8rm8km3-rustfmt-1.95.0"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -1010,27 +1124,27 @@
     {
       "attr_path": "rustfmt",
       "broken": false,
-      "derivation": "/nix/store/5xygardg1xh6kqd7rz89dy522n4bsisq-rustfmt-1.94.1.drv",
+      "derivation": "/nix/store/3vypbsj8kvajnp58il4718mp498id4k0-rustfmt-1.95.0.drv",
       "description": "Tool for formatting Rust code according to style guidelines",
       "install_id": "rustfmt",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d233902339c02a9c334e7e593de68855ad26c4cb",
-      "name": "rustfmt-1.94.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=29916453413845e54a65b8a1cf996842300cd299",
+      "name": "rustfmt-1.95.0",
       "pname": "rustfmt",
-      "rev": "d233902339c02a9c334e7e593de68855ad26c4cb",
-      "rev_count": 998534,
-      "rev_date": "2026-05-15T18:21:44Z",
-      "scrape_date": "2026-05-17T08:34:23.261065Z",
+      "rev": "29916453413845e54a65b8a1cf996842300cd299",
+      "rev_count": 1003640,
+      "rev_date": "2026-05-23T03:54:30Z",
+      "scrape_date": "2026-05-24T08:34:04.775751Z",
       "stabilities": [
         "unstable"
       ],
       "unfree": false,
-      "version": "1.94.1",
+      "version": "1.95.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/rsshbz486a0ka567awpbkbawaqdr40pd-rustfmt-1.94.1"
+        "out": "/nix/store/1x0ba5x31jqzhhk02qz4lxkznmp6q3nl-rustfmt-1.95.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -1038,12 +1152,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
+      "locked-url": "github:inference-gateway/cli/195e4c6b05558c865652e5c8c87d71a46b88e684?narHash=sha256-wYB3ZUafz68uBTpVkJE8SW8cGhbhHUd4u6ocxy55JfI%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.aarch64-darwin.default",
-      "derivation": "/nix/store/80v5r9c3d56djgykcb66j0hschadbh1d-infer-0.109.11.drv",
+      "derivation": "/nix/store/imip99cav6xn2xzm8f0374772mgghgxr-infer-0.112.1.drv",
       "outputs": {
-        "out": "/nix/store/y378g3ardzhdm185xzs9hpxzrhdaz4vc-infer-0.109.11"
+        "out": "/nix/store/j7a98dpllvv2b0ahm5kx983c57zafj99-infer-0.112.1"
       },
       "output-names": [
         "out"
@@ -1054,9 +1168,9 @@
       "requested-outputs-to-install": [],
       "package-system": "aarch64-darwin",
       "system": "aarch64-darwin",
-      "name": "infer-0.109.11",
+      "name": "infer-0.112.1",
       "pname": "infer",
-      "version": "0.109.11",
+      "version": "0.112.1",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
@@ -1067,12 +1181,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
+      "locked-url": "github:inference-gateway/cli/195e4c6b05558c865652e5c8c87d71a46b88e684?narHash=sha256-wYB3ZUafz68uBTpVkJE8SW8cGhbhHUd4u6ocxy55JfI%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.aarch64-linux.default",
-      "derivation": "/nix/store/a0ks779h5pcxzavj9vjm2ggik81gqn1h-infer-0.109.11.drv",
+      "derivation": "/nix/store/0x7v07q68qdxwyzf22x70h1f71y355dw-infer-0.112.1.drv",
       "outputs": {
-        "out": "/nix/store/71fj6d5bjpj6c0axhmlmym50a2hz8r1a-infer-0.109.11"
+        "out": "/nix/store/2hhj2ab592cid28nbpwc81qryjrvicv2-infer-0.112.1"
       },
       "output-names": [
         "out"
@@ -1083,9 +1197,9 @@
       "requested-outputs-to-install": [],
       "package-system": "aarch64-linux",
       "system": "aarch64-linux",
-      "name": "infer-0.109.11",
+      "name": "infer-0.112.1",
       "pname": "infer",
-      "version": "0.109.11",
+      "version": "0.112.1",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
@@ -1096,12 +1210,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
+      "locked-url": "github:inference-gateway/cli/195e4c6b05558c865652e5c8c87d71a46b88e684?narHash=sha256-wYB3ZUafz68uBTpVkJE8SW8cGhbhHUd4u6ocxy55JfI%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.x86_64-darwin.default",
-      "derivation": "/nix/store/6360p5vwriizzvrw41l97a4r4f3ihhw9-infer-0.109.11.drv",
+      "derivation": "/nix/store/8f4ihwk2skgk7x73cm443vajs2gf4awz-infer-0.112.1.drv",
       "outputs": {
-        "out": "/nix/store/cadhlw2mzcbgaqgzjqbhrmmh7f7v18a4-infer-0.109.11"
+        "out": "/nix/store/26i2fxk70inl26v0w3lhpag1vw0brwlg-infer-0.112.1"
       },
       "output-names": [
         "out"
@@ -1112,9 +1226,9 @@
       "requested-outputs-to-install": [],
       "package-system": "x86_64-darwin",
       "system": "x86_64-darwin",
-      "name": "infer-0.109.11",
+      "name": "infer-0.112.1",
       "pname": "infer",
-      "version": "0.109.11",
+      "version": "0.112.1",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
@@ -1125,12 +1239,12 @@
     },
     {
       "install_id": "infer",
-      "locked-url": "github:inference-gateway/cli/9fa99d36a9eed8efe65bad85c3ba53d405c386d3?narHash=sha256-Re9UOFjjqBasuU%2BoRe7wUN2JfwLTcTP%2BDaz3Bt3tfpg%3D",
+      "locked-url": "github:inference-gateway/cli/195e4c6b05558c865652e5c8c87d71a46b88e684?narHash=sha256-wYB3ZUafz68uBTpVkJE8SW8cGhbhHUd4u6ocxy55JfI%3D",
       "flake-description": "Inference Gateway CLI - infer",
       "locked-flake-attr-path": "packages.x86_64-linux.default",
-      "derivation": "/nix/store/22b3gk75i7a9123p7nyl1mwl5xd0j8d5-infer-0.109.11.drv",
+      "derivation": "/nix/store/0nvjjabph207f2snfasylf391dqrf1s6-infer-0.112.1.drv",
       "outputs": {
-        "out": "/nix/store/kr4vww7ax035rildp6kb14gpaxpk1ayl-infer-0.109.11"
+        "out": "/nix/store/glh1z4bgfx1cqfdd06gi7hlbvfpia0in-infer-0.112.1"
       },
       "output-names": [
         "out"
@@ -1141,9 +1255,9 @@
       "requested-outputs-to-install": [],
       "package-system": "x86_64-linux",
       "system": "x86_64-linux",
-      "name": "infer-0.109.11",
+      "name": "infer-0.112.1",
       "pname": "infer",
-      "version": "0.109.11",
+      "version": "0.112.1",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
       "licenses": [
         "MIT"
