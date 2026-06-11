@@ -552,6 +552,7 @@ The Inference Gateway Rust SDK supports the following providers:
 - **DeepSeek** (`Provider::Deepseek`) - DeepSeek models
 - **Google** (`Provider::Google`) - Google Gemini models via Generative AI API
 - **Mistral** (`Provider::Mistral`) - Mistral AI models
+- **MiniMax** (`Provider::Minimax`) - MiniMax models
 - **Moonshot** (`Provider::Moonshot`) - Moonshot AI models
 
 Each provider may support different models and capabilities. Use the
