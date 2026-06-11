@@ -1793,6 +1793,7 @@ pub struct Model {
 ///    "deepseek",
 ///    "google",
 ///    "mistral",
+///    "minimax",
 ///    "moonshot"
 ///  ]
 ///}
@@ -1831,6 +1832,8 @@ pub enum Provider {
     Google,
     #[serde(rename = "mistral")]
     Mistral,
+    #[serde(rename = "minimax")]
+    Minimax,
     #[serde(rename = "moonshot")]
     Moonshot,
 }
@@ -1847,6 +1850,7 @@ impl ::std::fmt::Display for Provider {
             Self::Deepseek => f.write_str("deepseek"),
             Self::Google => f.write_str("google"),
             Self::Mistral => f.write_str("mistral"),
+            Self::Minimax => f.write_str("minimax"),
             Self::Moonshot => f.write_str("moonshot"),
         }
     }
@@ -1865,6 +1869,7 @@ impl ::std::str::FromStr for Provider {
             "deepseek" => Ok(Self::Deepseek),
             "google" => Ok(Self::Google),
             "mistral" => Ok(Self::Mistral),
+            "minimax" => Ok(Self::Minimax),
             "moonshot" => Ok(Self::Moonshot),
             _ => Err("invalid value".into()),
         }
