@@ -51,6 +51,7 @@ fn test_provider_serialization() {
         (Provider::Deepseek, "deepseek"),
         (Provider::Google, "google"),
         (Provider::Mistral, "mistral"),
+        (Provider::Minimax, "minimax"),
         (Provider::Moonshot, "moonshot"),
     ];
 
@@ -73,6 +74,7 @@ fn test_provider_deserialization() {
         ("\"deepseek\"", Provider::Deepseek),
         ("\"google\"", Provider::Google),
         ("\"mistral\"", Provider::Mistral),
+        ("\"minimax\"", Provider::Minimax),
         ("\"moonshot\"", Provider::Moonshot),
     ];
 
@@ -137,6 +139,7 @@ fn test_provider_display() {
         (Provider::Deepseek, "deepseek"),
         (Provider::Google, "google"),
         (Provider::Mistral, "mistral"),
+        (Provider::Minimax, "minimax"),
         (Provider::Moonshot, "moonshot"),
     ];
 
