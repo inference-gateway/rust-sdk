@@ -8,7 +8,10 @@ updates:
     groups:
       cargo:
         patterns:
-          - "*"
+              - "*"
+    ignore:
+      - dependency-name: "schemars"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
