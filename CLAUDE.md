@@ -10,8 +10,7 @@ The repo uses [Taskfile](https://taskfile.dev) wrappers around `cargo`. The Task
 - `task lint` — `cargo fmt --all -- --check` + `markdownlint`
 - `task analyse` — `cargo clippy --all-targets --all-features -- -D warnings` (note: CONTRIBUTING.md says `task analyze` but the actual task is `analyse`)
 - `task generate-types` — regenerate `src/generated/schemas.rs` from `openapi.yaml`
-- `task oas-patch` — reapply this repo's local divergences to `openapi.yaml` (see `local_spec_patches`)
-- `task oas-sync` — pull the latest `openapi.yaml` from `inference-gateway/schemas` on `main`, reapply local patches (`oas-patch`), then regenerate types
+- `task oas-sync` — pull the latest `openapi.yaml` from `inference-gateway/schemas` on `main` and regenerate types
 
 Running a single test: `cargo test --all-targets --all-features <test_name_substring>`.
 
@@ -31,9 +30,7 @@ This is a thin Rust client for the Inference Gateway HTTP API. Two boundaries ma
 ### Generated vs. hand-written code
 
 - `src/generated/schemas.rs` is **generated** from `openapi.yaml` by the `gen-types` workspace member (`tools/gen-types`). Header banner `// @generated - DO NOT EDIT.` — never edit this file by hand. Re-run `task generate-types` after any spec change.
-- `openapi.yaml` is a copy of the upstream spec at `inference-gateway/schemas`. Treat it as read-only in this repo; fix divergences upstream and pull them in with `task oas-sync`. If a hand-patch in this repo is truly unavoidable, record it in one of **two** places in `tools/gen-types/src/main.rs`, each with a comment explaining why — and prefer reconciling upstream over either:
-  - **Codegen-only schema tweaks** → `apply_known_patches`. Applied to the in-memory `components/schemas` so the generated Rust types match wire reality (e.g. relaxing `required`). Never written back to `openapi.yaml`, and structurally limited to schema definitions.
-  - **Vendored-spec divergences** (anywhere in the document, including `paths` and the `x-provider-configs` vendor extension) → `local_spec_patches`. `task oas-patch` reapplies these to the `openapi.yaml` file after `oas-download` overwrites it, so a clean `oas-sync` brings in only genuine upstream changes and never silently reverts a local edit. Patches are idempotent and fail loudly if upstream reshapes a patched region. Current entries: the SSE `text/event-stream` response stays a bare `SSEvent` ref, and `moonshot.supports_vision` stays `false`.
+- `openapi.yaml` is a copy of the upstream spec at `inference-gateway/schemas`. Treat it as read-only in this repo; fix divergences upstream and pull them in with `task oas-sync`. If a hand-patch in this repo is truly unavoidable, add it to `apply_known_patches` in `tools/gen-types/src/main.rs` with a comment explaining why.
 - Hand-written code lives only in `src/lib.rs` (client + `InferenceGatewayAPI` trait + error type) and `src/ext/` (small impls layered on generated types, like `parse_arguments` on tool-call functions). typify already emits `Display`, `FromStr`, and `TryFrom<&str>` for enums — don't reimplement those.
 - CI fails if `task generate-types` produces a diff against committed `src/generated/`. The generator runs `rustfmt` repeatedly until idempotent specifically so `cargo fmt --check` and the codegen output stay aligned — don't disable that loop.
 
