@@ -5,9 +5,22 @@
 //! the rendered Rust file with a `// @generated` header.
 //!
 //! Run via `task generate-types` (or `cargo run -p gen-types --release`).
+//!
+//! Two distinct kinds of local patch live in this file; they are not
+//! interchangeable:
+//!
+//! - [`apply_known_patches`] tweaks the in-memory `components/schemas` so the
+//!   generated Rust types match wire reality. It never touches the spec file.
+//! - [`local_spec_patches`] records divergences the vendored `openapi.yaml`
+//!   keeps from upstream `inference-gateway/schemas` at points the generator
+//!   ignores (a `paths` response, an `x-provider-configs` vendor extension).
+//!   Running with `--patch-spec` (wired in as `task oas-patch`, between
+//!   `oas-download` and `generate-types`) reapplies them to the file after the
+//!   wholesale upstream overwrite, so a clean `oas-sync` never silently
+//!   reverts them.
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow};
 use schemars::schema::{RootSchema, Schema};
@@ -30,6 +43,15 @@ const HEADER: &str = "\
 fn main() -> Result<()> {
     let workspace_root = workspace_root()?;
     let spec_path = workspace_root.join("openapi.yaml");
+
+    // `--patch-spec` (run by `task oas-patch`, between `oas-download` and
+    // `generate-types`) reapplies local divergences to the vendored
+    // openapi.yaml after the wholesale upstream overwrite, then exits without
+    // generating. See `local_spec_patches`.
+    if std::env::args().any(|arg| arg == "--patch-spec") {
+        return patch_spec_file(&spec_path);
+    }
+
     let out_path = workspace_root.join("src/generated/schemas.rs");
 
     let spec_text = std::fs::read_to_string(&spec_path)
@@ -191,7 +213,11 @@ fn strip_vendor_extensions(value: &mut Value) {
     }
 }
 
-/// Patch known divergences between the spec and the wire format.
+/// Patch known divergences between the schema and the wire format, **in memory
+/// only**, for codegen correctness. This runs on the extracted
+/// `components/schemas` and never writes back to `openapi.yaml`, so it can only
+/// reach schema definitions - not `paths` or vendor extensions. For divergences
+/// the vendored *file* must keep across `oas-sync`, see [`local_spec_patches`].
 ///
 /// Each patch must include a comment explaining *why* - this is the seam where
 /// hand-maintenance can creep back in, so keep it auditable. Prefer fixing the
@@ -217,6 +243,128 @@ fn apply_known_patches(value: &mut Value) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// `--patch-spec` entry point: reapply local spec divergences to the vendored
+/// `openapi.yaml` on disk, then exit. Wired in as `task oas-patch`, between
+/// `oas-download` (which overwrites the file with upstream) and
+/// `generate-types`. Idempotent, so it is safe to run on an already-patched
+/// tree - it only rewrites the file when something actually changed.
+fn patch_spec_file(spec_path: &Path) -> Result<()> {
+    let original = std::fs::read_to_string(spec_path)
+        .with_context(|| format!("reading {}", spec_path.display()))?;
+
+    let (patched, actions) = apply_local_spec_patches(&original)?;
+    for action in &actions {
+        println!("  {action}");
+    }
+
+    if patched == original {
+        println!("openapi.yaml already matches local intent; nothing to reapply");
+        return Ok(());
+    }
+
+    std::fs::write(spec_path, &patched)
+        .with_context(|| format!("writing {}", spec_path.display()))?;
+    println!("Reapplied local spec patches to {}", spec_path.display());
+    Ok(())
+}
+
+/// A deliberate divergence between the vendored `openapi.yaml` and upstream
+/// `inference-gateway/schemas`. Unlike [`apply_known_patches`], these are
+/// reapplied to the spec *file* (not the in-memory schema), because they live
+/// at points the generator never reads - so they would otherwise be lost the
+/// next time `oas-download` overwrites the file.
+struct SpecPatch {
+    /// Stable identifier, shown in logs and errors.
+    name: &'static str,
+    /// Why this repo intentionally diverges from upstream.
+    reason: &'static str,
+    /// Exact upstream text the patch replaces. Must be unique in the file.
+    upstream: &'static str,
+    /// Local replacement text.
+    local: &'static str,
+}
+
+/// The full set of local spec divergences. Add an entry here (with a `reason`)
+/// for any hand-edit the vendored `openapi.yaml` must keep across `oas-sync`.
+/// Prefer reconciling upstream in `inference-gateway/schemas` over adding one.
+fn local_spec_patches() -> Vec<SpecPatch> {
+    vec![
+        // Narrows the streaming response back to a bare `SSEvent` ref. Lives
+        // under `paths`, which the generator never reads, so it cannot be an
+        // `apply_known_patches` entry.
+        SpecPatch {
+            name: "sse-stream-response-narrowed",
+            reason: "this SDK generates types only from components/schemas and decodes \
+                     the stream with the hand-written SSEvents wrapper, so the \
+                     text/event-stream response stays a bare SSEvent ref. Upstream's \
+                     oneOf only exists so non-Rust generators emit \
+                     CreateChatCompletionStreamResponse, which this SDK already generates \
+                     from components/schemas",
+            upstream: SSE_RESPONSE_UPSTREAM,
+            local: SSE_RESPONSE_LOCAL,
+        },
+        // Flips one provider's vision flag. Lives under the `x-provider-configs`
+        // vendor extension, which `strip_vendor_extensions` drops before
+        // codegen, so it never reaches `apply_known_patches` either.
+        SpecPatch {
+            name: "moonshot-supports-vision",
+            reason: "vendored spec intentionally pins moonshot.supports_vision = false \
+                     (upstream sets true). It lives under the x-provider-configs vendor \
+                     extension, stripped before codegen, so generated types are \
+                     unaffected. Reconcile upstream in inference-gateway/schemas and drop \
+                     this patch if moonshot vision support is confirmed",
+            upstream: MOONSHOT_VISION_UPSTREAM,
+            local: MOONSHOT_VISION_LOCAL,
+        },
+    ]
+}
+
+/// Reapply every [`local_spec_patches`] entry to `spec_text`, returning the
+/// patched text and a human-readable log of what happened.
+///
+/// Idempotent: a patch already present is left untouched. Loud on drift: if
+/// neither the local nor the upstream form is found (or the upstream anchor is
+/// not unique), it errors instead of silently doing nothing - so a maintainer
+/// notices when upstream reshapes a patched region rather than discovering a
+/// silent revert later.
+fn apply_local_spec_patches(spec_text: &str) -> Result<(String, Vec<String>)> {
+    let mut text = spec_text.to_string();
+    let mut actions = Vec::new();
+
+    for patch in local_spec_patches() {
+        if text.contains(patch.local) {
+            actions.push(format!("{}: already applied", patch.name));
+            continue;
+        }
+
+        match text.matches(patch.upstream).count() {
+            0 => {
+                return Err(anyhow!(
+                    "local spec patch '{}' did not match: neither the local nor the \
+                     upstream form is present in openapi.yaml. Upstream likely reshaped \
+                     this region - review and update the patch.\n  reason: {}",
+                    patch.name,
+                    patch.reason
+                ));
+            }
+            1 => {
+                text = text.replacen(patch.upstream, patch.local, 1);
+                actions.push(format!("{}: reapplied ({})", patch.name, patch.reason));
+            }
+            n => {
+                return Err(anyhow!(
+                    "local spec patch '{}' is ambiguous: its upstream anchor matched {} \
+                     times. Tighten the anchor so it is unique.",
+                    patch.name,
+                    n
+                ));
+            }
+        }
+    }
+
+    Ok((text, actions))
 }
 
 /// Apply small normalizations so OpenAPI 3.1 schemas parse as JSON Schema draft-07.
@@ -247,5 +395,79 @@ fn normalize_schemas(value: &mut Value) {
         for v in arr.iter_mut() {
             normalize_schemas(v);
         }
+    }
+}
+
+// Exact spec text for the `local_spec_patches` entries. Each pair must match the
+// vendored file byte-for-byte (indentation included): the `*_UPSTREAM` constant
+// is what `oas-download` brings in, the `*_LOCAL` constant is what this repo
+// keeps. Keep them in sync with `openapi.yaml` if upstream reshapes a region.
+
+const SSE_RESPONSE_UPSTREAM: &str = r#"            text/event-stream:
+              schema:
+                description: |
+                  Server-Sent Events stream. Each frame is an `SSEvent` whose
+                  `data` field contains the JSON-serialized payload for that
+                  event. For content/message chunk events the payload is a
+                  `CreateChatCompletionStreamResponse`. The `oneOf` here makes
+                  the streaming payload schemas reachable from this operation
+                  so that code generators emit types for them.
+                oneOf:
+                  - $ref: '#/components/schemas/SSEvent'
+                  - $ref: '#/components/schemas/CreateChatCompletionStreamResponse'"#;
+
+const SSE_RESPONSE_LOCAL: &str = r#"            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/SSEvent'"#;
+
+const MOONSHOT_VISION_UPSTREAM: &str = r#"          url: 'https://api.moonshot.ai/v1'
+          auth_type: 'bearer'
+          supports_vision: true"#;
+
+const MOONSHOT_VISION_LOCAL: &str = r#"          url: 'https://api.moonshot.ai/v1'
+          auth_type: 'bearer'
+          supports_vision: false"#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A fresh `oas-download` brings in the upstream forms; the patch step must
+    /// turn them back into the local forms.
+    #[test]
+    fn reapplies_divergences_from_upstream() {
+        let upstream = format!(
+            "paths:\n{SSE_RESPONSE_UPSTREAM}\n        '400': {{}}\n      \
+             x-provider-configs:\n{MOONSHOT_VISION_UPSTREAM}\n          endpoints: {{}}\n"
+        );
+
+        let (patched, actions) = apply_local_spec_patches(&upstream).unwrap();
+
+        assert!(patched.contains(SSE_RESPONSE_LOCAL));
+        assert!(patched.contains(MOONSHOT_VISION_LOCAL));
+        // The upstream-only bits are gone.
+        assert!(!patched.contains("CreateChatCompletionStreamResponse"));
+        assert!(!patched.contains("supports_vision: true"));
+        assert!(actions.iter().all(|a| a.contains("reapplied")));
+    }
+
+    /// Running on an already-patched tree must be a no-op (so `generate-types`
+    /// and CI never see a spurious spec diff).
+    #[test]
+    fn idempotent_when_already_local() {
+        let local = format!("{SSE_RESPONSE_LOCAL}\n{MOONSHOT_VISION_LOCAL}\n");
+
+        let (patched, actions) = apply_local_spec_patches(&local).unwrap();
+
+        assert_eq!(patched, local);
+        assert!(actions.iter().all(|a| a.contains("already applied")));
+    }
+
+    /// If upstream reshapes a patched region so neither form is found, the patch
+    /// must fail loudly rather than silently leave the divergence reverted.
+    #[test]
+    fn errors_when_region_missing() {
+        let err = apply_local_spec_patches("openapi: 3.1.0\n").unwrap_err();
+        assert!(err.to_string().contains("did not match"));
     }
 }
