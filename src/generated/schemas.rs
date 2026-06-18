@@ -256,6 +256,69 @@ pub struct ChatCompletionMessageToolCallFunction {
     ///The name of the function to call.
     pub name: ::std::string::String,
 }
+/**Specifies a tool the model should use. Use to force the model to call a specific function.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Specifies a tool the model should use. Use to force the model to call a specific function.\n",
+///  "type": "object",
+///  "required": [
+///    "function",
+///    "type"
+///  ],
+///  "properties": {
+///    "function": {
+///      "type": "object",
+///      "required": [
+///        "name"
+///      ],
+///      "properties": {
+///        "name": {
+///          "description": "The name of the function to call.",
+///          "type": "string"
+///        }
+///      }
+///    },
+///    "type": {
+///      "$ref": "#/definitions/ChatCompletionToolType"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ChatCompletionNamedToolChoice {
+    pub function: ChatCompletionNamedToolChoiceFunction,
+    #[serde(rename = "type")]
+    pub type_: ChatCompletionToolType,
+}
+///`ChatCompletionNamedToolChoiceFunction`
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "type": "object",
+///  "required": [
+///    "name"
+///  ],
+///  "properties": {
+///    "name": {
+///      "description": "The name of the function to call.",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ChatCompletionNamedToolChoiceFunction {
+    ///The name of the function to call.
+    pub name: ::std::string::String,
+}
 ///`ChatCompletionStreamChoice`
 ///
 /// <details><summary>JSON schema</summary>
@@ -592,6 +655,127 @@ pub struct ChatCompletionTool {
     #[serde(rename = "type")]
     pub type_: ChatCompletionToolType,
 }
+/**Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools. Specifying a particular tool via `{"type": "function", "function": {"name": "my_function"}}` forces the model to call that tool.
+`none` is the default when no tools are present. `auto` is the default if tools are present.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool.\n`none` is the default when no tools are present. `auto` is the default if tools are present.\n",
+///  "oneOf": [
+///    {
+///      "description": "`none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools.\n",
+///      "type": "string",
+///      "enum": [
+///        "none",
+///        "auto",
+///        "required"
+///      ]
+///    },
+///    {
+///      "$ref": "#/definitions/ChatCompletionNamedToolChoice"
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum ChatCompletionToolChoiceOption {
+    String(ChatCompletionToolChoiceOptionString),
+    ChatCompletionNamedToolChoice(ChatCompletionNamedToolChoice),
+}
+impl ::std::convert::From<ChatCompletionToolChoiceOptionString> for ChatCompletionToolChoiceOption {
+    fn from(value: ChatCompletionToolChoiceOptionString) -> Self {
+        Self::String(value)
+    }
+}
+impl ::std::convert::From<ChatCompletionNamedToolChoice> for ChatCompletionToolChoiceOption {
+    fn from(value: ChatCompletionNamedToolChoice) -> Self {
+        Self::ChatCompletionNamedToolChoice(value)
+    }
+}
+/**`none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "`none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools.\n",
+///  "type": "string",
+///  "enum": [
+///    "none",
+///    "auto",
+///    "required"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ChatCompletionToolChoiceOptionString {
+    #[serde(rename = "none")]
+    None,
+    #[serde(rename = "auto")]
+    Auto,
+    #[serde(rename = "required")]
+    Required,
+}
+impl ::std::fmt::Display for ChatCompletionToolChoiceOptionString {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::None => f.write_str("none"),
+            Self::Auto => f.write_str("auto"),
+            Self::Required => f.write_str("required"),
+        }
+    }
+}
+impl ::std::str::FromStr for ChatCompletionToolChoiceOptionString {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "none" => Ok(Self::None),
+            "auto" => Ok(Self::Auto),
+            "required" => Ok(Self::Required),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ChatCompletionToolChoiceOptionString {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ChatCompletionToolChoiceOptionString {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ChatCompletionToolChoiceOptionString {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 ///The type of the tool. Currently, only `function` is supported.
 ///
 /// <details><summary>JSON schema</summary>
@@ -779,8 +963,32 @@ impl ::std::convert::From<ImageContentPart> for ContentPart {
 ///    "model"
 ///  ],
 ///  "properties": {
-///    "max_tokens": {
+///    "frequency_penalty": {
+///      "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.\n",
+///      "default": 0,
+///      "type": "number",
+///      "maximum": 2.0,
+///      "minimum": -2.0
+///    },
+///    "logit_bias": {
+///      "description": "Modify the likelihood of specified tokens appearing in the completion. Accepts a JSON object that maps tokens (specified by their token ID in the tokenizer) to an associated bias value from -100 to 100. The bias is added to the logits generated by the model prior to sampling.\n",
+///      "type": "object",
+///      "additionalProperties": {
+///        "type": "integer"
+///      }
+///    },
+///    "logprobs": {
+///      "description": "Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the `content` of `message`.\n",
+///      "default": false,
+///      "type": "boolean"
+///    },
+///    "max_completion_tokens": {
 ///      "description": "An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and reasoning tokens.\n",
+///      "type": "integer"
+///    },
+///    "max_tokens": {
+///      "description": "The maximum number of tokens that can be generated in the chat completion. This value can be used to control costs for text generated via API. This value is now deprecated in favor of `max_completion_tokens`, and is not compatible with o-series models.\n",
+///      "deprecated": true,
 ///      "type": "integer"
 ///    },
 ///    "messages": {
@@ -795,9 +1003,72 @@ impl ::std::convert::From<ImageContentPart> for ContentPart {
 ///      "description": "Model ID to use",
 ///      "type": "string"
 ///    },
+///    "n": {
+///      "description": "How many chat completion choices to generate for each input message.\n",
+///      "default": 1,
+///      "type": "integer",
+///      "maximum": 128.0,
+///      "minimum": 1.0
+///    },
+///    "parallel_tool_calls": {
+///      "description": "Whether to enable parallel function calling during tool use.\n",
+///      "default": true,
+///      "type": "boolean"
+///    },
+///    "presence_penalty": {
+///      "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.\n",
+///      "default": 0,
+///      "type": "number",
+///      "maximum": 2.0,
+///      "minimum": -2.0
+///    },
+///    "reasoning_effort": {
+///      "description": "Constrains effort on reasoning for reasoning models. Currently supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.\n",
+///      "type": "string",
+///      "enum": [
+///        "minimal",
+///        "low",
+///        "medium",
+///        "high"
+///      ]
+///    },
 ///    "reasoning_format": {
-///      "description": "The format of the reasoning content. Can be `raw` or `parsed`.\nWhen specified as raw some reasoning models will output <think /> tags. When specified as parsed the model will output the reasoning under  `reasoning` or `reasoning_content` attribute.\n",
+///      "description": "The format of the reasoning content. Can be `raw` or `parsed`.\nWhen specified as raw some reasoning models will output <think /> tags. When specified as parsed the model will output the reasoning under `reasoning` or `reasoning_content` attribute.\n",
 ///      "type": "string"
+///    },
+///    "response_format": {
+///      "description": "An object specifying the format that the model must output. Setting to `{ \"type\": \"json_schema\", \"json_schema\": {...} }` enables Structured Outputs which guarantees the model will match your supplied JSON schema. Setting to `{ \"type\": \"json_object\" }` enables the older JSON mode, which ensures the message the model generates is valid JSON.\n",
+///      "oneOf": [
+///        {
+///          "$ref": "#/definitions/ResponseFormatText"
+///        },
+///        {
+///          "$ref": "#/definitions/ResponseFormatJsonSchema"
+///        },
+///        {
+///          "$ref": "#/definitions/ResponseFormatJsonObject"
+///        }
+///      ]
+///    },
+///    "seed": {
+///      "description": "If specified, our system will make a best effort to sample deterministically, such that repeated requests with the same `seed` and parameters should return the same result. Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.\n",
+///      "type": "integer"
+///    },
+///    "stop": {
+///      "description": "Up to 4 sequences where the API will stop generating further tokens.\n",
+///      "oneOf": [
+///        {
+///          "type": "string"
+///        },
+///        {
+///          "type": "array",
+///          "items": {
+///            "type": "string"
+///          },
+///          "maxItems": 4,
+///          "minItems": 1
+///        }
+///      ]
 ///    },
 ///    "stream": {
 ///      "description": "If set to true, the model response data will be streamed to the client as it is generated using [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).\n",
@@ -807,12 +1078,39 @@ impl ::std::convert::From<ImageContentPart> for ContentPart {
 ///    "stream_options": {
 ///      "$ref": "#/definitions/ChatCompletionStreamOptions"
 ///    },
+///    "temperature": {
+///      "description": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n",
+///      "default": 1,
+///      "type": "number",
+///      "maximum": 2.0,
+///      "minimum": 0.0
+///    },
+///    "tool_choice": {
+///      "$ref": "#/definitions/ChatCompletionToolChoiceOption"
+///    },
 ///    "tools": {
 ///      "description": "A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 128 functions are supported.\n",
 ///      "type": "array",
 ///      "items": {
 ///        "$ref": "#/definitions/ChatCompletionTool"
 ///      }
+///    },
+///    "top_logprobs": {
+///      "description": "An integer between 0 and 20 specifying the number of most likely tokens to return at each token position, each with an associated log probability. `logprobs` must be set to `true` if this parameter is used.\n",
+///      "type": "integer",
+///      "maximum": 20.0,
+///      "minimum": 0.0
+///    },
+///    "top_p": {
+///      "description": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass.\n",
+///      "default": 1,
+///      "type": "number",
+///      "maximum": 1.0,
+///      "minimum": 0.0
+///    },
+///    "user": {
+///      "description": "A unique identifier representing your end-user, which can help to monitor and detect abuse.\n",
+///      "type": "string"
 ///    }
 ///  }
 ///}
@@ -820,7 +1118,26 @@ impl ::std::convert::From<ImageContentPart> for ContentPart {
 /// </details>
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct CreateChatCompletionRequest {
+    /**Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
+     */
+    #[serde(default = "defaults::create_chat_completion_request_frequency_penalty")]
+    pub frequency_penalty: f64,
+    /**Modify the likelihood of specified tokens appearing in the completion. Accepts a JSON object that maps tokens (specified by their token ID in the tokenizer) to an associated bias value from -100 to 100. The bias is added to the logits generated by the model prior to sampling.
+     */
+    #[serde(
+        default,
+        skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
+    )]
+    pub logit_bias: ::std::collections::HashMap<::std::string::String, i64>,
+    /**Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the `content` of `message`.
+     */
+    #[serde(default)]
+    pub logprobs: bool,
     /**An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and reasoning tokens.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub max_completion_tokens: ::std::option::Option<i64>,
+    /**The maximum number of tokens that can be generated in the chat completion. This value can be used to control costs for text generated via API. This value is now deprecated in favor of `max_completion_tokens`, and is not compatible with o-series models.
      */
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub max_tokens: ::std::option::Option<i64>,
@@ -829,21 +1146,234 @@ pub struct CreateChatCompletionRequest {
     pub messages: ::std::vec::Vec<Message>,
     ///Model ID to use
     pub model: ::std::string::String,
+    /**How many chat completion choices to generate for each input message.
+     */
+    #[serde(default = "defaults::default_nzu64::<::std::num::NonZeroU64, 1>")]
+    pub n: ::std::num::NonZeroU64,
+    /**Whether to enable parallel function calling during tool use.
+     */
+    #[serde(default = "defaults::default_bool::<true>")]
+    pub parallel_tool_calls: bool,
+    /**Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
+     */
+    #[serde(default = "defaults::create_chat_completion_request_presence_penalty")]
+    pub presence_penalty: f64,
+    /**Constrains effort on reasoning for reasoning models. Currently supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub reasoning_effort: ::std::option::Option<CreateChatCompletionRequestReasoningEffort>,
     /**The format of the reasoning content. Can be `raw` or `parsed`.
-    When specified as raw some reasoning models will output <think /> tags. When specified as parsed the model will output the reasoning under  `reasoning` or `reasoning_content` attribute.
+    When specified as raw some reasoning models will output <think /> tags. When specified as parsed the model will output the reasoning under `reasoning` or `reasoning_content` attribute.
     */
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub reasoning_format: ::std::option::Option<::std::string::String>,
+    /**An object specifying the format that the model must output. Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured Outputs which guarantees the model will match your supplied JSON schema. Setting to `{ "type": "json_object" }` enables the older JSON mode, which ensures the message the model generates is valid JSON.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub response_format: ::std::option::Option<CreateChatCompletionRequestResponseFormat>,
+    /**If specified, our system will make a best effort to sample deterministically, such that repeated requests with the same `seed` and parameters should return the same result. Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub seed: ::std::option::Option<i64>,
+    /**Up to 4 sequences where the API will stop generating further tokens.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub stop: ::std::option::Option<CreateChatCompletionRequestStop>,
     /**If set to true, the model response data will be streamed to the client as it is generated using [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
      */
     #[serde(default)]
     pub stream: bool,
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub stream_options: ::std::option::Option<ChatCompletionStreamOptions>,
+    /**What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+     */
+    #[serde(default = "defaults::create_chat_completion_request_temperature")]
+    pub temperature: f64,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub tool_choice: ::std::option::Option<ChatCompletionToolChoiceOption>,
     /**A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 128 functions are supported.
      */
     #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
     pub tools: ::std::vec::Vec<ChatCompletionTool>,
+    /**An integer between 0 and 20 specifying the number of most likely tokens to return at each token position, each with an associated log probability. `logprobs` must be set to `true` if this parameter is used.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub top_logprobs: ::std::option::Option<i64>,
+    /**An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass.
+     */
+    #[serde(default = "defaults::create_chat_completion_request_top_p")]
+    pub top_p: f64,
+    /**A unique identifier representing your end-user, which can help to monitor and detect abuse.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub user: ::std::option::Option<::std::string::String>,
+}
+/**Constrains effort on reasoning for reasoning models. Currently supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Constrains effort on reasoning for reasoning models. Currently supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.\n",
+///  "type": "string",
+///  "enum": [
+///    "minimal",
+///    "low",
+///    "medium",
+///    "high"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateChatCompletionRequestReasoningEffort {
+    #[serde(rename = "minimal")]
+    Minimal,
+    #[serde(rename = "low")]
+    Low,
+    #[serde(rename = "medium")]
+    Medium,
+    #[serde(rename = "high")]
+    High,
+}
+impl ::std::fmt::Display for CreateChatCompletionRequestReasoningEffort {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Minimal => f.write_str("minimal"),
+            Self::Low => f.write_str("low"),
+            Self::Medium => f.write_str("medium"),
+            Self::High => f.write_str("high"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateChatCompletionRequestReasoningEffort {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "minimal" => Ok(Self::Minimal),
+            "low" => Ok(Self::Low),
+            "medium" => Ok(Self::Medium),
+            "high" => Ok(Self::High),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateChatCompletionRequestReasoningEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String>
+    for CreateChatCompletionRequestReasoningEffort
+{
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateChatCompletionRequestReasoningEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**An object specifying the format that the model must output. Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured Outputs which guarantees the model will match your supplied JSON schema. Setting to `{ "type": "json_object" }` enables the older JSON mode, which ensures the message the model generates is valid JSON.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "An object specifying the format that the model must output. Setting to `{ \"type\": \"json_schema\", \"json_schema\": {...} }` enables Structured Outputs which guarantees the model will match your supplied JSON schema. Setting to `{ \"type\": \"json_object\" }` enables the older JSON mode, which ensures the message the model generates is valid JSON.\n",
+///  "oneOf": [
+///    {
+///      "$ref": "#/definitions/ResponseFormatText"
+///    },
+///    {
+///      "$ref": "#/definitions/ResponseFormatJsonSchema"
+///    },
+///    {
+///      "$ref": "#/definitions/ResponseFormatJsonObject"
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum CreateChatCompletionRequestResponseFormat {
+    Text(ResponseFormatText),
+    JsonSchema(ResponseFormatJsonSchema),
+    JsonObject(ResponseFormatJsonObject),
+}
+impl ::std::convert::From<ResponseFormatText> for CreateChatCompletionRequestResponseFormat {
+    fn from(value: ResponseFormatText) -> Self {
+        Self::Text(value)
+    }
+}
+impl ::std::convert::From<ResponseFormatJsonSchema> for CreateChatCompletionRequestResponseFormat {
+    fn from(value: ResponseFormatJsonSchema) -> Self {
+        Self::JsonSchema(value)
+    }
+}
+impl ::std::convert::From<ResponseFormatJsonObject> for CreateChatCompletionRequestResponseFormat {
+    fn from(value: ResponseFormatJsonObject) -> Self {
+        Self::JsonObject(value)
+    }
+}
+/**Up to 4 sequences where the API will stop generating further tokens.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Up to 4 sequences where the API will stop generating further tokens.\n",
+///  "oneOf": [
+///    {
+///      "type": "string"
+///    },
+///    {
+///      "type": "array",
+///      "items": {
+///        "type": "string"
+///      },
+///      "maxItems": 4,
+///      "minItems": 1
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum CreateChatCompletionRequestStop {
+    String(::std::string::String),
+    Array(::std::vec::Vec<::std::string::String>),
+}
+impl ::std::convert::From<::std::vec::Vec<::std::string::String>>
+    for CreateChatCompletionRequestStop
+{
+    fn from(value: ::std::vec::Vec<::std::string::String>) -> Self {
+        Self::Array(value)
+    }
 }
 ///Represents a chat completion response returned by model, based on the provided input.
 ///
@@ -2051,6 +2581,412 @@ impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json:
         Self(value)
     }
 }
+/**JSON object response format. An older method of generating JSON responses. Using `json_schema` is recommended for models that support it. Note that the model will not generate JSON without a system or user message instructing it to do so.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "JSON object response format. An older method of generating JSON responses. Using `json_schema` is recommended for models that support it. Note that the model will not generate JSON without a system or user message instructing it to do so.\n",
+///  "type": "object",
+///  "required": [
+///    "type"
+///  ],
+///  "properties": {
+///    "type": {
+///      "description": "The type of response format being defined. Always `json_object`.",
+///      "type": "string",
+///      "enum": [
+///        "json_object"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ResponseFormatJsonObject {
+    ///The type of response format being defined. Always `json_object`.
+    #[serde(rename = "type")]
+    pub type_: ResponseFormatJsonObjectType,
+}
+///The type of response format being defined. Always `json_object`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The type of response format being defined. Always `json_object`.",
+///  "type": "string",
+///  "enum": [
+///    "json_object"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ResponseFormatJsonObjectType {
+    #[serde(rename = "json_object")]
+    JsonObject,
+}
+impl ::std::fmt::Display for ResponseFormatJsonObjectType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::JsonObject => f.write_str("json_object"),
+        }
+    }
+}
+impl ::std::str::FromStr for ResponseFormatJsonObjectType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "json_object" => Ok(Self::JsonObject),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ResponseFormatJsonObjectType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ResponseFormatJsonObjectType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ResponseFormatJsonObjectType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**JSON Schema response format. Used to generate structured JSON responses.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "JSON Schema response format. Used to generate structured JSON responses.\n",
+///  "type": "object",
+///  "required": [
+///    "json_schema",
+///    "type"
+///  ],
+///  "properties": {
+///    "json_schema": {
+///      "description": "Structured Outputs configuration options, including a JSON Schema.",
+///      "type": "object",
+///      "required": [
+///        "name"
+///      ],
+///      "properties": {
+///        "description": {
+///          "description": "A description of what the response format is for, used by the model to determine how to respond in the format.\n",
+///          "type": "string"
+///        },
+///        "name": {
+///          "description": "The name of the response format. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.\n",
+///          "type": "string"
+///        },
+///        "schema": {
+///          "$ref": "#/definitions/ResponseFormatJsonSchemaSchema"
+///        },
+///        "strict": {
+///          "description": "Whether to enable strict schema adherence when generating the output. If set to true, the model will always follow the exact schema defined in the `schema` field. Only a subset of JSON Schema is supported when `strict` is `true`.\n",
+///          "default": false,
+///          "type": "boolean"
+///        }
+///      }
+///    },
+///    "type": {
+///      "description": "The type of response format being defined. Always `json_schema`.",
+///      "type": "string",
+///      "enum": [
+///        "json_schema"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ResponseFormatJsonSchema {
+    pub json_schema: ResponseFormatJsonSchemaJsonSchema,
+    ///The type of response format being defined. Always `json_schema`.
+    #[serde(rename = "type")]
+    pub type_: ResponseFormatJsonSchemaType,
+}
+///Structured Outputs configuration options, including a JSON Schema.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Structured Outputs configuration options, including a JSON Schema.",
+///  "type": "object",
+///  "required": [
+///    "name"
+///  ],
+///  "properties": {
+///    "description": {
+///      "description": "A description of what the response format is for, used by the model to determine how to respond in the format.\n",
+///      "type": "string"
+///    },
+///    "name": {
+///      "description": "The name of the response format. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.\n",
+///      "type": "string"
+///    },
+///    "schema": {
+///      "$ref": "#/definitions/ResponseFormatJsonSchemaSchema"
+///    },
+///    "strict": {
+///      "description": "Whether to enable strict schema adherence when generating the output. If set to true, the model will always follow the exact schema defined in the `schema` field. Only a subset of JSON Schema is supported when `strict` is `true`.\n",
+///      "default": false,
+///      "type": "boolean"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ResponseFormatJsonSchemaJsonSchema {
+    /**A description of what the response format is for, used by the model to determine how to respond in the format.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub description: ::std::option::Option<::std::string::String>,
+    /**The name of the response format. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
+     */
+    pub name: ::std::string::String,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub schema: ::std::option::Option<ResponseFormatJsonSchemaSchema>,
+    /**Whether to enable strict schema adherence when generating the output. If set to true, the model will always follow the exact schema defined in the `schema` field. Only a subset of JSON Schema is supported when `strict` is `true`.
+     */
+    #[serde(default)]
+    pub strict: bool,
+}
+/**The schema for the response format, described as a JSON Schema object.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The schema for the response format, described as a JSON Schema object.\n",
+///  "type": "object",
+///  "additionalProperties": true
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct ResponseFormatJsonSchemaSchema(
+    pub ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+);
+impl ::std::ops::Deref for ResponseFormatJsonSchemaSchema {
+    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
+    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        &self.0
+    }
+}
+impl ::std::convert::From<ResponseFormatJsonSchemaSchema>
+    for ::serde_json::Map<::std::string::String, ::serde_json::Value>
+{
+    fn from(value: ResponseFormatJsonSchemaSchema) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>>
+    for ResponseFormatJsonSchemaSchema
+{
+    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
+        Self(value)
+    }
+}
+///The type of response format being defined. Always `json_schema`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The type of response format being defined. Always `json_schema`.",
+///  "type": "string",
+///  "enum": [
+///    "json_schema"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ResponseFormatJsonSchemaType {
+    #[serde(rename = "json_schema")]
+    JsonSchema,
+}
+impl ::std::fmt::Display for ResponseFormatJsonSchemaType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::JsonSchema => f.write_str("json_schema"),
+        }
+    }
+}
+impl ::std::str::FromStr for ResponseFormatJsonSchemaType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "json_schema" => Ok(Self::JsonSchema),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ResponseFormatJsonSchemaType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ResponseFormatJsonSchemaType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ResponseFormatJsonSchemaType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///Default response format. Used to generate text responses.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Default response format. Used to generate text responses.",
+///  "type": "object",
+///  "required": [
+///    "type"
+///  ],
+///  "properties": {
+///    "type": {
+///      "description": "The type of response format being defined. Always `text`.",
+///      "type": "string",
+///      "enum": [
+///        "text"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ResponseFormatText {
+    ///The type of response format being defined. Always `text`.
+    #[serde(rename = "type")]
+    pub type_: ResponseFormatTextType,
+}
+///The type of response format being defined. Always `text`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The type of response format being defined. Always `text`.",
+///  "type": "string",
+///  "enum": [
+///    "text"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ResponseFormatTextType {
+    #[serde(rename = "text")]
+    Text,
+}
+impl ::std::fmt::Display for ResponseFormatTextType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Text => f.write_str("text"),
+        }
+    }
+}
+impl ::std::str::FromStr for ResponseFormatTextType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "text" => Ok(Self::Text),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ResponseFormatTextType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ResponseFormatTextType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ResponseFormatTextType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 ///`SsEvent`
 ///
 /// <details><summary>JSON schema</summary>
@@ -2378,6 +3314,35 @@ impl ::std::default::Default for ToolCallExtraContentGoogle {
 }
 /// Generation of default values for serde.
 pub mod defaults {
+    pub(super) fn default_bool<const V: bool>() -> bool {
+        V
+    }
+    pub(super) fn default_i64<T, const V: i64>() -> T
+    where
+        T: ::std::convert::TryFrom<i64>,
+        <T as ::std::convert::TryFrom<i64>>::Error: ::std::fmt::Debug,
+    {
+        T::try_from(V).unwrap()
+    }
+    pub(super) fn default_nzu64<T, const V: u64>() -> T
+    where
+        T: ::std::convert::TryFrom<::std::num::NonZeroU64>,
+        <T as ::std::convert::TryFrom<::std::num::NonZeroU64>>::Error: ::std::fmt::Debug,
+    {
+        T::try_from(::std::num::NonZeroU64::try_from(V).unwrap()).unwrap()
+    }
+    pub(super) fn create_chat_completion_request_frequency_penalty() -> f64 {
+        0_f64
+    }
+    pub(super) fn create_chat_completion_request_presence_penalty() -> f64 {
+        0_f64
+    }
+    pub(super) fn create_chat_completion_request_temperature() -> f64 {
+        1_f64
+    }
+    pub(super) fn create_chat_completion_request_top_p() -> f64 {
+        1_f64
+    }
     pub(super) fn image_url_detail() -> super::ImageUrlDetail {
         super::ImageUrlDetail::Auto
     }

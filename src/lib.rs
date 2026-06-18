@@ -197,18 +197,20 @@ impl InferenceGatewayClient {
         messages: Vec<Message>,
         stream: bool,
     ) -> CreateChatCompletionRequest {
+        // `tools` and `max_tokens` are deliberately omitted from streaming
+        // requests; every other field falls back to the schema defaults via
+        // `Default`. See CLAUDE.md for the streaming asymmetry.
         CreateChatCompletionRequest {
             model: model.to_string(),
             messages,
             stream,
-            stream_options: None,
             tools: if stream {
                 Vec::new()
             } else {
                 self.tools.clone().unwrap_or_default()
             },
             max_tokens: if stream { None } else { self.max_tokens },
-            reasoning_format: None,
+            ..Default::default()
         }
     }
 }
