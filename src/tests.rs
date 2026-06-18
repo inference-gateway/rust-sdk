@@ -1,8 +1,13 @@
 use crate::{
-    ChatCompletionTool, ChatCompletionToolType, CreateChatCompletionRequest,
+    ChatCompletionNamedToolChoice, ChatCompletionNamedToolChoiceFunction, ChatCompletionTool,
+    ChatCompletionToolChoiceOption, ChatCompletionToolChoiceOptionString, ChatCompletionToolType,
+    CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
+    CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, FinishReason, FunctionObject,
     FunctionParameters, GatewayError, InferenceGatewayAPI, InferenceGatewayClient, Message,
-    MessageContent, MessageRole, Provider,
+    MessageContent, MessageRole, Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType,
+    ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType,
+    ResponseFormatText, ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -186,8 +191,7 @@ fn test_generate_request_serialization() {
                 strict: false,
             },
         }],
-        max_tokens: None,
-        reasoning_format: None,
+        ..Default::default()
     };
 
     let serialized: serde_json::Value =
@@ -202,6 +206,184 @@ fn test_generate_request_serialization() {
         serialized["tools"][0]["function"]["name"],
         "get_current_weather"
     );
+    // Fields with a schema `default:` are non-`Option` and always serialize.
+    assert_eq!(serialized["temperature"], 1.0);
+    assert_eq!(serialized["top_p"], 1.0);
+    assert_eq!(serialized["n"], 1);
+    assert_eq!(serialized["frequency_penalty"], 0.0);
+    assert_eq!(serialized["presence_penalty"], 0.0);
+    assert_eq!(serialized["logprobs"], false);
+    assert_eq!(serialized["parallel_tool_calls"], true);
+}
+
+// The `stop`, `tool_choice`, and `response_format` request fields are `oneOf`
+// unions in openapi.yaml. typify emits them as `#[serde(untagged)]` enums, so
+// every variant must serialize to its bare wire shape and deserialize back to
+// the same variant (the untagged discriminator relies on the `type` enums).
+
+#[test]
+fn test_stop_oneof_round_trip() {
+    let string = CreateChatCompletionRequestStop::String("STOP".to_string());
+    let value = serde_json::to_value(&string).unwrap();
+    assert_eq!(value, json!("STOP"));
+    match serde_json::from_value(value).unwrap() {
+        CreateChatCompletionRequestStop::String(s) => assert_eq!(s, "STOP"),
+        other => panic!("expected String, got {other:?}"),
+    }
+
+    let array = CreateChatCompletionRequestStop::Array(vec!["\n\n".to_string(), "END".to_string()]);
+    let value = serde_json::to_value(&array).unwrap();
+    assert_eq!(value, json!(["\n\n", "END"]));
+    match serde_json::from_value(value).unwrap() {
+        CreateChatCompletionRequestStop::Array(v) => assert_eq!(v, ["\n\n", "END"]),
+        other => panic!("expected Array, got {other:?}"),
+    }
+}
+
+#[test]
+fn test_tool_choice_oneof_round_trip() {
+    let auto = ChatCompletionToolChoiceOption::String(ChatCompletionToolChoiceOptionString::Auto);
+    let value = serde_json::to_value(&auto).unwrap();
+    assert_eq!(value, json!("auto"));
+    match serde_json::from_value(value).unwrap() {
+        ChatCompletionToolChoiceOption::String(s) => {
+            assert_eq!(s, ChatCompletionToolChoiceOptionString::Auto)
+        }
+        other => panic!("expected String, got {other:?}"),
+    }
+
+    let named = ChatCompletionToolChoiceOption::ChatCompletionNamedToolChoice(
+        ChatCompletionNamedToolChoice {
+            type_: ChatCompletionToolType::Function,
+            function: ChatCompletionNamedToolChoiceFunction {
+                name: "get_current_weather".to_string(),
+            },
+        },
+    );
+    let value = serde_json::to_value(&named).unwrap();
+    assert_eq!(
+        value,
+        json!({"type": "function", "function": {"name": "get_current_weather"}})
+    );
+    match serde_json::from_value(value).unwrap() {
+        ChatCompletionToolChoiceOption::ChatCompletionNamedToolChoice(c) => {
+            assert_eq!(c.function.name, "get_current_weather")
+        }
+        other => panic!("expected named tool choice, got {other:?}"),
+    }
+}
+
+#[test]
+fn test_response_format_oneof_round_trip() {
+    let text = CreateChatCompletionRequestResponseFormat::Text(ResponseFormatText {
+        type_: ResponseFormatTextType::Text,
+    });
+    let value = serde_json::to_value(&text).unwrap();
+    assert_eq!(value, json!({"type": "text"}));
+    assert!(matches!(
+        serde_json::from_value(value).unwrap(),
+        CreateChatCompletionRequestResponseFormat::Text(_)
+    ));
+
+    let json_object =
+        CreateChatCompletionRequestResponseFormat::JsonObject(ResponseFormatJsonObject {
+            type_: ResponseFormatJsonObjectType::JsonObject,
+        });
+    let value = serde_json::to_value(&json_object).unwrap();
+    assert_eq!(value, json!({"type": "json_object"}));
+    // The `type` enum is what keeps `json_object` from matching the `Text`
+    // variant first under `#[serde(untagged)]`.
+    assert!(matches!(
+        serde_json::from_value(value).unwrap(),
+        CreateChatCompletionRequestResponseFormat::JsonObject(_)
+    ));
+
+    let json_schema =
+        CreateChatCompletionRequestResponseFormat::JsonSchema(ResponseFormatJsonSchema {
+            type_: ResponseFormatJsonSchemaType::JsonSchema,
+            json_schema: ResponseFormatJsonSchemaJsonSchema {
+                name: "weather".to_string(),
+                description: None,
+                schema: None,
+                strict: false,
+            },
+        });
+    let value = serde_json::to_value(&json_schema).unwrap();
+    assert_eq!(value["type"], "json_schema");
+    assert_eq!(value["json_schema"]["name"], "weather");
+    assert!(matches!(
+        serde_json::from_value(value).unwrap(),
+        CreateChatCompletionRequestResponseFormat::JsonSchema(_)
+    ));
+}
+
+#[test]
+fn test_reasoning_effort_round_trip() {
+    let cases = [
+        (
+            CreateChatCompletionRequestReasoningEffort::Minimal,
+            "minimal",
+        ),
+        (CreateChatCompletionRequestReasoningEffort::Low, "low"),
+        (CreateChatCompletionRequestReasoningEffort::Medium, "medium"),
+        (CreateChatCompletionRequestReasoningEffort::High, "high"),
+    ];
+    for (variant, wire) in cases {
+        let value = serde_json::to_value(variant).unwrap();
+        assert_eq!(value, json!(wire));
+        let back: CreateChatCompletionRequestReasoningEffort =
+            serde_json::from_value(value).unwrap();
+        assert_eq!(back, variant);
+    }
+}
+
+#[test]
+fn test_request_with_new_optional_fields_round_trips() {
+    let request = CreateChatCompletionRequest {
+        model: "gpt-test".to_string(),
+        messages: vec![user_message("hi")],
+        stop: Some(CreateChatCompletionRequestStop::Array(vec![
+            "STOP".to_string(),
+        ])),
+        tool_choice: Some(ChatCompletionToolChoiceOption::String(
+            ChatCompletionToolChoiceOptionString::Required,
+        )),
+        response_format: Some(CreateChatCompletionRequestResponseFormat::JsonObject(
+            ResponseFormatJsonObject {
+                type_: ResponseFormatJsonObjectType::JsonObject,
+            },
+        )),
+        reasoning_effort: Some(CreateChatCompletionRequestReasoningEffort::Low),
+        seed: Some(42),
+        top_logprobs: Some(5),
+        user: Some("user-123".to_string()),
+        ..Default::default()
+    };
+
+    let json = serde_json::to_string(&request).unwrap();
+    let back: CreateChatCompletionRequest = serde_json::from_str(&json).unwrap();
+
+    assert!(matches!(
+        back.stop,
+        Some(CreateChatCompletionRequestStop::Array(ref v)) if *v == ["STOP"]
+    ));
+    assert!(matches!(
+        back.tool_choice,
+        Some(ChatCompletionToolChoiceOption::String(
+            ChatCompletionToolChoiceOptionString::Required
+        ))
+    ));
+    assert!(matches!(
+        back.response_format,
+        Some(CreateChatCompletionRequestResponseFormat::JsonObject(_))
+    ));
+    assert_eq!(
+        back.reasoning_effort,
+        Some(CreateChatCompletionRequestReasoningEffort::Low)
+    );
+    assert_eq!(back.seed, Some(42));
+    assert_eq!(back.top_logprobs, Some(5));
+    assert_eq!(back.user.as_deref(), Some("user-123"));
 }
 
 #[tokio::test]
