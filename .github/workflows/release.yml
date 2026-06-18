@@ -20,7 +20,7 @@ jobs:
       new_release_version: ${{ steps.semantic.outputs.new_release_version }}
       new_release_published: ${{ steps.semantic.outputs.new_release_published }}
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
@@ -96,7 +96,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           ref: ${{ github.ref }}
 
@@ -115,7 +115,7 @@ jobs:
         run: cargo build --verbose --release
 
       - name: Authenticate with crates.io
-        uses: rust-lang/crates-io-auth-action@v1.0.4
+        uses: rust-lang/crates-io-auth-action@v1.0.5
         id: auth
 
       - name: Publish to crates.io
