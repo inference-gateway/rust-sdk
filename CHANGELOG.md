@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.1](https://github.com/inference-gateway/rust-sdk/compare/0.14.0...0.14.1) (2026-07-05)
+
 ## [0.14.0](https://github.com/inference-gateway/rust-sdk/compare/0.13.4...0.14.0) (2026-07-05)
 
 ## [0.13.4](https://github.com/inference-gateway/rust-sdk/compare/0.13.3...0.13.4) (2026-05-20)
