@@ -58,6 +58,7 @@ fn test_provider_serialization() {
         (Provider::Mistral, "mistral"),
         (Provider::Minimax, "minimax"),
         (Provider::Moonshot, "moonshot"),
+        (Provider::Nvidia, "nvidia"),
     ];
 
     for (provider, expected) in providers {
@@ -81,6 +82,7 @@ fn test_provider_deserialization() {
         ("\"mistral\"", Provider::Mistral),
         ("\"minimax\"", Provider::Minimax),
         ("\"moonshot\"", Provider::Moonshot),
+        ("\"nvidia\"", Provider::Nvidia),
     ];
 
     for (json, expected) in test_cases {
@@ -146,6 +148,7 @@ fn test_provider_display() {
         (Provider::Mistral, "mistral"),
         (Provider::Minimax, "minimax"),
         (Provider::Moonshot, "moonshot"),
+        (Provider::Nvidia, "nvidia"),
     ];
 
     for (provider, expected) in providers {
@@ -155,7 +158,7 @@ fn test_provider_display() {
 
 #[test]
 fn test_provider_try_from_lowercase() {
-    let test_cases = vec!["ollama", "openai", "google", "moonshot", "ollama_cloud"];
+    let test_cases = vec!["ollama", "openai", "google", "moonshot", "ollama_cloud", "nvidia"];
     for case in test_cases {
         let provider: Provider = case.try_into().unwrap_or_else(|_| panic!("parse {case}"));
         assert_eq!(provider.to_string(), case);

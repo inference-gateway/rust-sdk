@@ -2324,7 +2324,8 @@ pub struct Model {
 ///    "google",
 ///    "mistral",
 ///    "minimax",
-///    "moonshot"
+///    "moonshot",
+///    "nvidia"
 ///  ]
 ///}
 /// ```
@@ -2366,6 +2367,8 @@ pub enum Provider {
     Minimax,
     #[serde(rename = "moonshot")]
     Moonshot,
+    #[serde(rename = "nvidia")]
+    Nvidia,
 }
 impl ::std::fmt::Display for Provider {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -2382,6 +2385,7 @@ impl ::std::fmt::Display for Provider {
             Self::Mistral => f.write_str("mistral"),
             Self::Minimax => f.write_str("minimax"),
             Self::Moonshot => f.write_str("moonshot"),
+            Self::Nvidia => f.write_str("nvidia"),
         }
     }
 }
@@ -2401,6 +2405,7 @@ impl ::std::str::FromStr for Provider {
             "mistral" => Ok(Self::Mistral),
             "minimax" => Ok(Self::Minimax),
             "moonshot" => Ok(Self::Moonshot),
+            "nvidia" => Ok(Self::Nvidia),
             _ => Err("invalid value".into()),
         }
     }
