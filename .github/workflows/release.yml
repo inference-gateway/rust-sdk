@@ -56,8 +56,14 @@ jobs:
 
       - name: Install semantic release and plugins
         run: |
-          npm install -g semantic-release@v25.0.2 \
-            conventional-changelog-conventionalcommits \
+          # The commit-analyzer + release-notes-generator + conventionalcommits
+          # trio must share a compatible major. Leaving conventionalcommits
+          # unpinned let it drift to an incompatible major, which silently
+          # produced empty release notes (see 0.14.0). Pin the trio together.
+          npm install -g semantic-release@25.0.2 \
+            conventional-changelog-conventionalcommits@8 \
+            @semantic-release/commit-analyzer@13 \
+            @semantic-release/release-notes-generator@14 \
             @semantic-release/changelog \
             @semantic-release/exec \
             @semantic-release/git \
