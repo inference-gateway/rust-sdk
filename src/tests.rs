@@ -158,7 +158,14 @@ fn test_provider_display() {
 
 #[test]
 fn test_provider_try_from_lowercase() {
-    let test_cases = vec!["ollama", "openai", "google", "moonshot", "ollama_cloud", "nvidia"];
+    let test_cases = vec![
+        "ollama",
+        "openai",
+        "google",
+        "moonshot",
+        "ollama_cloud",
+        "nvidia",
+    ];
     for case in test_cases {
         let provider: Provider = case.try_into().unwrap_or_else(|_| panic!("parse {case}"));
         assert_eq!(provider.to_string(), case);
