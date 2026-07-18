@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.0](https://github.com/inference-gateway/rust-sdk/compare/0.14.1...0.15.0) (2026-07-18)
+
+### ✨ Features
+
+* add llamacpp provider support ([#95](https://github.com/inference-gateway/rust-sdk/issues/95)) ([29a46ea](https://github.com/inference-gateway/rust-sdk/commit/29a46eace6670969719c95cd55ca8cedc4d52f3d))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#89](https://github.com/inference-gateway/rust-sdk/issues/89)) ([d2a8ee4](https://github.com/inference-gateway/rust-sdk/commit/d2a8ee4785ae179b14fe1abe554c77ddfcdd0c8f))
+* **deps:** bump actions/setup-node in the github-actions group ([#92](https://github.com/inference-gateway/rust-sdk/issues/92)) ([63698db](https://github.com/inference-gateway/rust-sdk/commit/63698db3a6d81a96339c62cb80d89d96c312e759))
+* **deps:** bump the cargo group with 2 updates ([#93](https://github.com/inference-gateway/rust-sdk/issues/93)) ([3357dec](https://github.com/inference-gateway/rust-sdk/commit/3357dec6c06c027786a30394e2beadbc2f1f613f))
+* **infer:** centralize infer.yml via reusable workflow ([#86](https://github.com/inference-gateway/rust-sdk/issues/86)) ([e0e70c3](https://github.com/inference-gateway/rust-sdk/commit/e0e70c3413dd122b37ab0ee82289ff54522f8bbd))
+* **infer:** centralize infer.yml via reusable workflow ([#87](https://github.com/inference-gateway/rust-sdk/issues/87)) ([89b7929](https://github.com/inference-gateway/rust-sdk/commit/89b792968ee01ae93db56e8f373413c8365a5356))
+* **release:** update semantic release and plugins to latest versions with local installation ([cf3f0b3](https://github.com/inference-gateway/rust-sdk/commit/cf3f0b35254cd87a9d3745925ec9fda308e17a43))
+* restrict default workflow token permissions to contents: read ([#85](https://github.com/inference-gateway/rust-sdk/issues/85)) ([8332324](https://github.com/inference-gateway/rust-sdk/commit/833232495b6c0e6fb30631d68b384a710d6e2705))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.197 -> 2.1.201 ([#80](https://github.com/inference-gateway/rust-sdk/issues/80)) ([5ab3e90](https://github.com/inference-gateway/rust-sdk/commit/5ab3e90f42f99da29beb9556bcdfefecad3d5dde))
+* **deps:** bump claude-code-action v1.0.165 -> v1.0.169 ([#88](https://github.com/inference-gateway/rust-sdk/issues/88)) ([1bd571f](https://github.com/inference-gateway/rust-sdk/commit/1bd571f9e3b756e8b8ea40cda03469e5ccadd9f1))
+* **deps:** bump infer CLI v0.130.1 -> v0.133.0, infer-action v0.23.1 -> v0.26.0 ([#81](https://github.com/inference-gateway/rust-sdk/issues/81)) ([66d0524](https://github.com/inference-gateway/rust-sdk/commit/66d052427156699d61bc3bc7bbf88f4006ce82e2))
+* **deps:** bump infer CLI v0.133.0 -> v0.133.1, infer-action v0.26.0 -> v0.27.1 ([#82](https://github.com/inference-gateway/rust-sdk/issues/82)) ([df3c7f9](https://github.com/inference-gateway/rust-sdk/commit/df3c7f979643116418121bf190824c543029a31f))
+* **deps:** bump infer CLI v0.133.1 -> v0.137.0, infer-action v0.27.1 -> v0.29.0 ([#83](https://github.com/inference-gateway/rust-sdk/issues/83)) ([206bbae](https://github.com/inference-gateway/rust-sdk/commit/206bbaec99c4aaf6164efe00ce8e792e711c7ba8))
+* **deps:** bump infer CLI v0.137.0 -> v0.138.0, infer-action v0.29.0 -> v0.30.1 ([#84](https://github.com/inference-gateway/rust-sdk/issues/84)) ([1941802](https://github.com/inference-gateway/rust-sdk/commit/1941802641f336120f3902c8e632e6c35b413d9a))
+* **deps:** bump infer CLI v0.138.0 -> v0.141.0 ([#90](https://github.com/inference-gateway/rust-sdk/issues/90)) ([10ea2b6](https://github.com/inference-gateway/rust-sdk/commit/10ea2b6f8fd0ebd4850c727b99876894ea1fae9b))
+* **deps:** bump infer CLI v0.141.0 -> v0.147.1 ([#91](https://github.com/inference-gateway/rust-sdk/issues/91)) ([dd372a3](https://github.com/inference-gateway/rust-sdk/commit/dd372a36f832ec4f5b69f6a3293181d34a3d85b2))
+* **release:** update GitHub App credentials to use RELEASER_APP_ID and RELEASER_APP_PRIVATE_KEY ([95bd056](https://github.com/inference-gateway/rust-sdk/commit/95bd0561d68e08f8d2949724f0a3cd220a72b07d))
+
 ## [0.14.1](https://github.com/inference-gateway/rust-sdk/compare/0.14.0...0.14.1) (2026-07-05)
 
 ## [0.14.0](https://github.com/inference-gateway/rust-sdk/compare/0.13.4...0.14.0) (2026-07-05)
