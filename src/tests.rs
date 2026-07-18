@@ -73,6 +73,7 @@ fn test_provider_deserialization() {
         ("\"ollama\"", Provider::Ollama),
         ("\"ollama_cloud\"", Provider::OllamaCloud),
         ("\"groq\"", Provider::Groq),
+        ("\"llamacpp\"", Provider::Llamacpp),
         ("\"openai\"", Provider::Openai),
         ("\"cloudflare\"", Provider::Cloudflare),
         ("\"cohere\"", Provider::Cohere),
@@ -97,6 +98,14 @@ fn test_provider_moonshot_present() {
     assert_eq!(provider, Provider::Moonshot);
     assert_eq!(provider.to_string(), "moonshot");
     assert_eq!(Provider::try_from("moonshot").unwrap(), Provider::Moonshot);
+}
+
+#[test]
+fn test_provider_llamacpp_present() {
+    let provider: Provider = serde_json::from_str("\"llamacpp\"").unwrap();
+    assert_eq!(provider, Provider::Llamacpp);
+    assert_eq!(provider.to_string(), "llamacpp");
+    assert_eq!(Provider::try_from("llamacpp").unwrap(), Provider::Llamacpp);
 }
 
 #[test]

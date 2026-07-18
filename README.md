@@ -545,6 +545,7 @@ The Inference Gateway Rust SDK supports the following providers:
 - **Ollama** (`Provider::Ollama`) - Local language model server
 - **Ollama Cloud** (`Provider::OllamaCloud`) - Ollama Cloud-hosted models
 - **Groq** (`Provider::Groq`) - High-speed inference provider
+- **llama.cpp** (`Provider::Llamacpp`) - llama.cpp OpenAI-compatible `llama-server`
 - **OpenAI** (`Provider::Openai`) - GPT models and other OpenAI services
 - **Cloudflare** (`Provider::Cloudflare`) - Cloudflare Workers AI
 - **Cohere** (`Provider::Cohere`) - Cohere language models
