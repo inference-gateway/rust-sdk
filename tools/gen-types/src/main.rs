@@ -216,57 +216,7 @@ fn apply_known_patches(value: &mut Value) -> Result<()> {
         }
     }
 
-    // The spec defines a top-level object schema `ResponseReasoningSummary` (a
-    // reasoning summary *part*, with `type`/`text`) AND an inline string enum on
-    // `ResponseReasoning.summary` (auto/concise/detailed) that typify auto-names
-    // `ResponseReasoningSummary` from its property path. Both collide on one Rust
-    // identifier. Upstream disambiguates for Go via `x-go-name:
-    // ResponseReasoningSummaryPart`, but we strip `x-*` before typify sees it, so
-    // apply the same rename here: the object becomes `ResponseReasoningSummaryPart`
-    // and the inline enum keeps the bare name. Drop this once the spec gives the
-    // two schemas distinct names of their own.
-    rename_schema(
-        schemas,
-        "ResponseReasoningSummary",
-        "ResponseReasoningSummaryPart",
-    );
-
     Ok(())
-}
-
-/// Rename a top-level schema key and repoint every `#/definitions/{old}` ref at
-/// it. No-op if `old` is absent (e.g. once the spec renames it upstream).
-fn rename_schema(schemas: &mut serde_json::Map<String, Value>, old: &str, new: &str) {
-    let Some(schema) = schemas.remove(old) else {
-        return;
-    };
-    schemas.insert(new.to_string(), schema);
-    let old_ref = format!("#/definitions/{old}");
-    let new_ref = format!("#/definitions/{new}");
-    for (_, v) in schemas.iter_mut() {
-        rewrite_ref(v, &old_ref, &new_ref);
-    }
-}
-
-/// Rewrite any `$ref` whose value equals `old_ref` to `new_ref`, recursively.
-fn rewrite_ref(value: &mut Value, old_ref: &str, new_ref: &str) {
-    match value {
-        Value::Object(map) => {
-            for (k, v) in map.iter_mut() {
-                if k == "$ref" && v.as_str() == Some(old_ref) {
-                    *v = Value::String(new_ref.to_string());
-                } else {
-                    rewrite_ref(v, old_ref, new_ref);
-                }
-            }
-        }
-        Value::Array(arr) => {
-            for v in arr.iter_mut() {
-                rewrite_ref(v, old_ref, new_ref);
-            }
-        }
-        _ => {}
-    }
 }
 
 /// Apply small normalizations so OpenAPI 3.1 schemas parse as JSON Schema draft-07.
