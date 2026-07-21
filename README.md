@@ -27,6 +27,7 @@ Connect to multiple LLM providers through a unified interface • Stream respons
     - [Listing MCP Tools](#listing-mcp-tools)
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
+    - [Messages API (Anthropic-compatible)](#messages-api-anthropic-compatible)
     - [Tool-Use](#tool-use)
     - [Health Check](#health-check)
   - [Examples](#examples)
@@ -343,6 +344,73 @@ async fn main() -> Result<(), GatewayError> {
                 info!("Finished generating content");
                 break;
             }
+        }
+    }
+
+    Ok(())
+}
+```
+
+### Messages API (Anthropic-compatible)
+
+The gateway also exposes an Anthropic-compatible `POST /messages` endpoint.
+Providers without Messages support return `GatewayError::BadRequest`; use
+`generate_content` for those providers.
+
+```rust
+use futures_util::{pin_mut, StreamExt};
+use inference_gateway_sdk::{
+    CreateMessagesRequest, GatewayError, InferenceGatewayAPI, InferenceGatewayClient,
+    MessagesMessage, MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
+    MessagesStreamEvent, MessagesStreamEventType, Provider,
+};
+
+#[tokio::main]
+async fn main() -> Result<(), GatewayError> {
+    let client = InferenceGatewayClient::new("http://localhost:8080/v1");
+
+    let request = CreateMessagesRequest {
+        max_tokens: 300,
+        messages: vec![MessagesMessage {
+            role: MessagesMessageRole::User,
+            content: MessagesMessageContent::String("Tell me a fun fact about Rust.".to_string()),
+        }],
+        metadata: None,
+        model: "claude-sonnet-5".to_string(),
+        stop_sequences: Vec::new(),
+        stream: false,
+        system: None,
+        temperature: None,
+        thinking: None,
+        tool_choice: None,
+        tools: Vec::new(),
+        top_k: None,
+        top_p: None,
+    };
+
+    // Non-streaming
+    let response = client
+        .create_message(Some(Provider::Anthropic), request.clone())
+        .await?;
+    for block in &response.content {
+        if let MessagesResponseContentBlock::TextBlock(text) = block {
+            println!("{}", text.text);
+        }
+    }
+
+    // Streaming - each event's `data` is a JSON-serialized `MessagesStreamEvent`
+    let stream = client.create_message_stream(Some(Provider::Anthropic), request);
+    pin_mut!(stream);
+    while let Some(event) = stream.next().await {
+        let event: MessagesStreamEvent = serde_json::from_str(&event?.data)?;
+        match event.type_ {
+            MessagesStreamEventType::ContentBlockDelta => {
+                if let Some(text) = event.delta.as_ref().and_then(|d| d.text.as_deref()) {
+                    print!("{text}");
+                }
+            }
+            MessagesStreamEventType::MessageStop => break,
+            _ => {}
         }
     }
 
