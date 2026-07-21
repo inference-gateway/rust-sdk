@@ -71,13 +71,19 @@ paths:
         - name: include
           in: query
           required: false
+          style: form
+          explode: false
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/IncludeParam'
-            style: form
-            explode: false
-          description: Comma-separated list of additional metadata to include (context_window, pricing)
+              type: string
+              enum:
+                - context_window
+                - pricing
+          description: |
+            Comma-separated list of metadata keys to include in the response.
+            Supported values: `pricing`, `context_window`.
+            When omitted, the response remains unchanged (backward compatible).
       responses:
         '200':
           description: List of available models
@@ -146,6 +152,99 @@ paths:
                         created: 1677649963
                         owned_by: 'openai'
                         served_by: 'openai'
+                includePricing:
+                  summary: Models with pricing metadata
+                  value:
+                    object: 'list'
+                    data:
+                      - id: 'openai/gpt-4o'
+                        object: 'model'
+                        created: 1686935002
+                        owned_by: 'openai'
+                        served_by: 'openai'
+                        pricing:
+                          currency: 'USD'
+                          input_per_token: '0.0000025'
+                          output_per_token: '0.00001'
+                          cache_read_per_token: '0.00000125'
+                          cache_write_per_token: '0.0000025'
+                          source: 'provider'
+                          updated_at: '2025-01-01T00:00:00Z'
+                      - id: 'openai/gpt-4-turbo'
+                        object: 'model'
+                        created: 1687882410
+                        owned_by: 'openai'
+                        served_by: 'openai'
+                        pricing:
+                          currency: 'USD'
+                          input_per_token: '0.00001'
+                          output_per_token: '0.00003'
+                          source: 'provider'
+                          updated_at: '2025-01-01T00:00:00Z'
+                includeContextWindow:
+                  summary: Models with context window metadata
+                  value:
+                    object: 'list'
+                    data:
+                      - id: 'openai/gpt-4o'
+                        object: 'model'
+                        created: 1686935002
+                        owned_by: 'openai'
+                        served_by: 'openai'
+                        context_window:
+                          tokens: 128000
+                          source: 'provider'
+                      - id: 'openai/gpt-4-turbo'
+                        object: 'model'
+                        created: 1687882410
+                        owned_by: 'openai'
+                        served_by: 'openai'
+                        context_window:
+                          tokens: 128000
+                          source: 'provider'
+                includePricingContextWindow:
+                  summary: Models with pricing and context window metadata
+                  value:
+                    object: 'list'
+                    data:
+                      - id: 'openai/gpt-4o'
+                        object: 'model'
+                        created: 1686935002
+                        owned_by: 'openai'
+                        served_by: 'openai'
+                        pricing:
+                          currency: 'USD'
+                          input_per_token: '0.0000025'
+                          output_per_token: '0.00001'
+                          cache_read_per_token: '0.00000125'
+                          cache_write_per_token: '0.0000025'
+                          source: 'provider'
+                          updated_at: '2025-01-01T00:00:00Z'
+                        context_window:
+                          tokens: 128000
+                          source: 'provider'
+                      - id: 'openai/gpt-4-turbo'
+                        object: 'model'
+                        created: 1687882410
+                        owned_by: 'openai'
+                        served_by: 'openai'
+                        pricing:
+                          currency: 'USD'
+                          input_per_token: '0.00001'
+                          output_per_token: '0.00003'
+                          source: 'provider'
+                          updated_at: '2025-01-01T00:00:00Z'
+                        context_window:
+                          tokens: 128000
+                          source: 'provider'
+        '400':
+          description: Bad request - unsupported include value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Unsupported include value: 'unsupported'. Supported values: pricing, context_window"
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -709,7 +808,7 @@ components:
         llamacpp:
           id: 'llamacpp'
           url: 'http://llamacpp:8080/v1'
-          auth_type: 'none'
+          auth_type: 'bearer'
           supports_vision: true
           endpoints:
             models:
@@ -838,7 +937,7 @@ components:
               endpoint: '/chat/completions'
         zai:
           id: 'zai'
-          url: 'https://api.z.ai/v1'
+          url: 'https://api.z.ai/api/paas/v4'
           auth_type: 'bearer'
           supports_vision: true
           endpoints:
@@ -1032,15 +1131,69 @@ components:
           description: Image detail level for vision processing
       required:
         - url
-    IncludeParam:
-      type: string
-      description: Additional metadata to include in the model listing
-      enum:
-        - context_window
-        - pricing
-      x-enum-varnames:
-        - ContextWindow
-        - Pricing
+    ContextWindow:
+      type: object
+      description: Context window information for a model
+      properties:
+        tokens:
+          type: integer
+          description: Maximum number of tokens the model can process in a single request
+        source:
+          type: string
+          enum:
+            - runtime
+            - provider
+            - community
+          x-enum-varnames:
+            - ContextWindowSourceRuntime
+            - ContextWindowSourceProvider
+            - ContextWindowSourceCommunity
+          description: Source of the context window information
+      required:
+        - tokens
+        - source
+    Pricing:
+      type: object
+      description: Pricing information for a model
+      properties:
+        currency:
+          type: string
+          description: Currency code for the pricing (e.g. USD)
+        input_per_token:
+          type: string
+          description: Price per input token
+        output_per_token:
+          type: string
+          description: Price per output token
+        cache_read_per_token:
+          type: string
+          description: Price per cached input token read
+        cache_write_per_token:
+          type: string
+          description: Price per cached input token write
+        source:
+          type: string
+          enum:
+            - provider
+            - community
+          x-enum-varnames:
+            - PricingSourceProvider
+            - PricingSourceCommunity
+          description: Source of the pricing information
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the pricing was last updated
+        subscription:
+          type: boolean
+          default: false
+          description: Model has no per-token price but is gated behind a paid subscription
+      required:
+        - currency
+        - input_per_token
+        - output_per_token
+        - source
+        - updated_at
     Model:
       type: object
       description: Common model information
@@ -1057,15 +1210,15 @@ components:
         served_by:
           $ref: '#/components/schemas/Provider'
         context_window:
-          type: integer
-          format: int64
-          nullable: true
-          description: The context window size in tokens, if requested via include
+          oneOf:
+            - $ref: '#/components/schemas/ContextWindow'
+            - type: 'null'
+          description: Context window information for the model (included when `include=context_window`)
         pricing:
-          type: object
-          nullable: true
-          additionalProperties: true
-          description: Pricing information, if requested via include
+          oneOf:
+            - $ref: '#/components/schemas/Pricing'
+            - type: 'null'
+          description: Pricing information for the model (included when `include=pricing`)
       required:
         - id
         - object
@@ -1209,6 +1362,44 @@ components:
           default: 0
           format: int64
           description: Total number of tokens used in the request (prompt + completion).
+        completion_tokens_details:
+          type: object
+          description: Breakdown of tokens used in a completion.
+          properties:
+            accepted_prediction_tokens:
+              type: integer
+              default: 0
+              format: int64
+              description: When using Predicted Outputs, the number of tokens in the prediction that appeared in the completion.
+            audio_tokens:
+              type: integer
+              default: 0
+              format: int64
+              description: Audio input tokens generated by the model.
+            reasoning_tokens:
+              type: integer
+              default: 0
+              format: int64
+              description: Tokens generated by the model for reasoning.
+            rejected_prediction_tokens:
+              type: integer
+              default: 0
+              format: int64
+              description: When using Predicted Outputs, the number of tokens in the prediction that did not appear in the completion. However, like reasoning tokens, these tokens are still counted in the total completion tokens for purposes of billing, output, and context window limits.
+        prompt_tokens_details:
+          type: object
+          description: Breakdown of tokens used in the prompt.
+          properties:
+            audio_tokens:
+              type: integer
+              default: 0
+              format: int64
+              description: Audio input tokens present in the prompt.
+            cached_tokens:
+              type: integer
+              default: 0
+              format: int64
+              description: Cached tokens present in the prompt.
       required:
         - prompt_tokens
         - completion_tokens
@@ -2900,7 +3091,7 @@ components:
                 - name: zai_api_url
                   env: 'ZAI_API_URL'
                   type: string
-                  default: 'https://api.z.ai/v1'
+                  default: 'https://api.z.ai/api/paas/v4'
                   description: 'ZAI API URL'
                 - name: zai_api_key
                   env: 'ZAI_API_KEY'
