@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.0](https://github.com/inference-gateway/rust-sdk/compare/0.15.0...0.16.0) (2026-07-21)
+
+### ✨ Features
+
+* sync generated types with schemas v0.10.0 ([#101](https://github.com/inference-gateway/rust-sdk/issues/101)) ([a9cb185](https://github.com/inference-gateway/rust-sdk/commit/a9cb18544ed11aae5cf9989f2198e2987b676e12))
+* sync Model types with /v1/models include parameter ([#99](https://github.com/inference-gateway/rust-sdk/issues/99)) ([63d2fa5](https://github.com/inference-gateway/rust-sdk/commit/63d2fa57f9167b37fe33ad7c47092718c0bb1fe7))
+
+### 👷 CI
+
+* add deterministic schemas type sync ([#100](https://github.com/inference-gateway/rust-sdk/issues/100)) ([aaa56f9](https://github.com/inference-gateway/rust-sdk/commit/aaa56f98763e6cf37403216e6a0bd9b54933faf3))
+
 ## [0.15.0](https://github.com/inference-gateway/rust-sdk/compare/0.14.1...0.15.0) (2026-07-18)
 
 ### ✨ Features
