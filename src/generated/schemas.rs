@@ -34,6 +34,105 @@ pub mod error {
         }
     }
 }
+/**Cache control settings for prompt caching. Currently only
+`ephemeral` caching is supported.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Cache control settings for prompt caching. Currently only\n`ephemeral` caching is supported.\n",
+///  "type": "object",
+///  "required": [
+///    "type"
+///  ],
+///  "properties": {
+///    "type": {
+///      "description": "The cache control type. Currently only `ephemeral`.",
+///      "type": "string",
+///      "enum": [
+///        "ephemeral"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CacheControl {
+    ///The cache control type. Currently only `ephemeral`.
+    #[serde(rename = "type")]
+    pub type_: CacheControlType,
+}
+///The cache control type. Currently only `ephemeral`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The cache control type. Currently only `ephemeral`.",
+///  "type": "string",
+///  "enum": [
+///    "ephemeral"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CacheControlType {
+    #[serde(rename = "ephemeral")]
+    Ephemeral,
+}
+impl ::std::fmt::Display for CacheControlType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Ephemeral => f.write_str("ephemeral"),
+        }
+    }
+}
+impl ::std::str::FromStr for CacheControlType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "ephemeral" => Ok(Self::Ephemeral),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CacheControlType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CacheControlType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CacheControlType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 ///`ChatCompletionChoice`
 ///
 /// <details><summary>JSON schema</summary>
@@ -1790,6 +1889,310 @@ pub struct CreateChatCompletionStreamResponse {
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub usage: ::std::option::Option<CompletionUsage>,
 }
+/**Request body for creating a message via the Anthropic-compatible
+Messages API.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Request body for creating a message via the Anthropic-compatible\nMessages API.\n",
+///  "type": "object",
+///  "required": [
+///    "max_tokens",
+///    "messages",
+///    "model"
+///  ],
+///  "properties": {
+///    "max_tokens": {
+///      "description": "The maximum number of tokens to generate before stopping.\n",
+///      "type": "integer"
+///    },
+///    "messages": {
+///      "description": "The messages to generate a response for. Each message has a\n`role` (user or assistant) and `content`.\n",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/MessagesMessage"
+///      }
+///    },
+///    "metadata": {
+///      "$ref": "#/definitions/MessagesMetadata"
+///    },
+///    "model": {
+///      "description": "The model to use for generating the message.",
+///      "type": "string"
+///    },
+///    "stop_sequences": {
+///      "description": "Custom text sequences that will cause the model to stop\ngenerating.\n",
+///      "type": "array",
+///      "items": {
+///        "type": "string"
+///      }
+///    },
+///    "stream": {
+///      "description": "Whether to stream the response using server-sent events.\n",
+///      "default": false,
+///      "type": "boolean"
+///    },
+///    "system": {
+///      "description": "The system prompt. Can be a string or an array of system content\nblocks (for prompt caching).\n",
+///      "oneOf": [
+///        {
+///          "description": "System prompt as a string.",
+///          "type": "string"
+///        },
+///        {
+///          "type": "array",
+///          "items": {
+///            "$ref": "#/definitions/MessagesTextBlock"
+///          }
+///        }
+///      ]
+///    },
+///    "temperature": {
+///      "description": "Amount of randomness injected into the response. Ranges from\n0.0 to 1.0. Use closer to 0 for analytical / multiple choice,\ncloser to 1 for creative and generative tasks.\n",
+///      "type": "number",
+///      "format": "float"
+///    },
+///    "thinking": {
+///      "description": "Configuration for extended thinking.\n",
+///      "type": "object",
+///      "required": [
+///        "budget_tokens",
+///        "type"
+///      ],
+///      "properties": {
+///        "budget_tokens": {
+///          "description": "The maximum number of tokens the model is allowed to use\nfor thinking.\n",
+///          "type": "integer"
+///        },
+///        "type": {
+///          "description": "Always `enabled`.",
+///          "type": "string",
+///          "enum": [
+///            "enabled"
+///          ]
+///        }
+///      }
+///    },
+///    "tool_choice": {
+///      "$ref": "#/definitions/MessagesToolChoice"
+///    },
+///    "tools": {
+///      "description": "Definitions of tools the model may call. Each tool can include\n`cache_control` for prompt caching.\n",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/MessagesTool"
+///      }
+///    },
+///    "top_k": {
+///      "description": "Only sample from the top K options for each subsequent token.\n",
+///      "type": "integer"
+///    },
+///    "top_p": {
+///      "description": "Use nucleus sampling. Only consider the tokens with top_p\nprobability mass.\n",
+///      "type": "number",
+///      "format": "float"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateMessagesRequest {
+    /**The maximum number of tokens to generate before stopping.
+     */
+    pub max_tokens: i64,
+    /**The messages to generate a response for. Each message has a
+    `role` (user or assistant) and `content`.
+    */
+    pub messages: ::std::vec::Vec<MessagesMessage>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub metadata: ::std::option::Option<MessagesMetadata>,
+    ///The model to use for generating the message.
+    pub model: ::std::string::String,
+    /**Custom text sequences that will cause the model to stop
+    generating.
+    */
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub stop_sequences: ::std::vec::Vec<::std::string::String>,
+    /**Whether to stream the response using server-sent events.
+     */
+    #[serde(default)]
+    pub stream: bool,
+    /**The system prompt. Can be a string or an array of system content
+    blocks (for prompt caching).
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub system: ::std::option::Option<CreateMessagesRequestSystem>,
+    /**Amount of randomness injected into the response. Ranges from
+    0.0 to 1.0. Use closer to 0 for analytical / multiple choice,
+    closer to 1 for creative and generative tasks.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub temperature: ::std::option::Option<f32>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub thinking: ::std::option::Option<CreateMessagesRequestThinking>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub tool_choice: ::std::option::Option<MessagesToolChoice>,
+    /**Definitions of tools the model may call. Each tool can include
+    `cache_control` for prompt caching.
+    */
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub tools: ::std::vec::Vec<MessagesTool>,
+    /**Only sample from the top K options for each subsequent token.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub top_k: ::std::option::Option<i64>,
+    /**Use nucleus sampling. Only consider the tokens with top_p
+    probability mass.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub top_p: ::std::option::Option<f32>,
+}
+/**The system prompt. Can be a string or an array of system content
+blocks (for prompt caching).
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The system prompt. Can be a string or an array of system content\nblocks (for prompt caching).\n",
+///  "oneOf": [
+///    {
+///      "description": "System prompt as a string.",
+///      "type": "string"
+///    },
+///    {
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/MessagesTextBlock"
+///      }
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum CreateMessagesRequestSystem {
+    String(::std::string::String),
+    Array(::std::vec::Vec<MessagesTextBlock>),
+}
+impl ::std::convert::From<::std::vec::Vec<MessagesTextBlock>> for CreateMessagesRequestSystem {
+    fn from(value: ::std::vec::Vec<MessagesTextBlock>) -> Self {
+        Self::Array(value)
+    }
+}
+/**Configuration for extended thinking.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Configuration for extended thinking.\n",
+///  "type": "object",
+///  "required": [
+///    "budget_tokens",
+///    "type"
+///  ],
+///  "properties": {
+///    "budget_tokens": {
+///      "description": "The maximum number of tokens the model is allowed to use\nfor thinking.\n",
+///      "type": "integer"
+///    },
+///    "type": {
+///      "description": "Always `enabled`.",
+///      "type": "string",
+///      "enum": [
+///        "enabled"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateMessagesRequestThinking {
+    /**The maximum number of tokens the model is allowed to use
+    for thinking.
+    */
+    pub budget_tokens: i64,
+    ///Always `enabled`.
+    #[serde(rename = "type")]
+    pub type_: CreateMessagesRequestThinkingType,
+}
+///Always `enabled`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Always `enabled`.",
+///  "type": "string",
+///  "enum": [
+///    "enabled"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateMessagesRequestThinkingType {
+    #[serde(rename = "enabled")]
+    Enabled,
+}
+impl ::std::fmt::Display for CreateMessagesRequestThinkingType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Enabled => f.write_str("enabled"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateMessagesRequestThinkingType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "enabled" => Ok(Self::Enabled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateMessagesRequestThinkingType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CreateMessagesRequestThinkingType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateMessagesRequestThinkingType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 /**Request body for creating a model response via the Responses API.
 */
 ///
@@ -2699,6 +3102,2511 @@ impl ::std::convert::TryFrom<::std::string::String> for MessageRole {
     ) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
+}
+///A document content block in a Messages API request.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A document content block in a Messages API request.",
+///  "type": "object",
+///  "required": [
+///    "source",
+///    "type"
+///  ],
+///  "properties": {
+///    "cache_control": {
+///      "$ref": "#/definitions/CacheControl"
+///    },
+///    "source": {
+///      "$ref": "#/definitions/MessagesDocumentSource"
+///    },
+///    "type": {
+///      "description": "Content type identifier. Always `document`.",
+///      "type": "string",
+///      "enum": [
+///        "document"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesDocumentBlock {
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub cache_control: ::std::option::Option<CacheControl>,
+    pub source: MessagesDocumentSource,
+    ///Content type identifier. Always `document`.
+    #[serde(rename = "type")]
+    pub type_: MessagesDocumentBlockType,
+}
+///Content type identifier. Always `document`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Content type identifier. Always `document`.",
+///  "type": "string",
+///  "enum": [
+///    "document"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesDocumentBlockType {
+    #[serde(rename = "document")]
+    Document,
+}
+impl ::std::fmt::Display for MessagesDocumentBlockType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Document => f.write_str("document"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesDocumentBlockType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "document" => Ok(Self::Document),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesDocumentBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesDocumentBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesDocumentBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**The source of a document content block. Can be a base64-encoded
+document or a URL.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The source of a document content block. Can be a base64-encoded\ndocument or a URL.\n",
+///  "type": "object",
+///  "required": [
+///    "type"
+///  ],
+///  "properties": {
+///    "data": {
+///      "description": "Base64-encoded document data. Required when `type` is `base64`.\n",
+///      "type": "string"
+///    },
+///    "media_type": {
+///      "description": "The media type of the document (e.g. `application/pdf`).\nRequired when `type` is `base64`.\n",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "The source type.",
+///      "type": "string",
+///      "enum": [
+///        "base64",
+///        "url"
+///      ]
+///    },
+///    "url": {
+///      "description": "URL of the document. Required when `type` is `url`.\n",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesDocumentSource {
+    /**Base64-encoded document data. Required when `type` is `base64`.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub data: ::std::option::Option<::std::string::String>,
+    /**The media type of the document (e.g. `application/pdf`).
+    Required when `type` is `base64`.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub media_type: ::std::option::Option<::std::string::String>,
+    ///The source type.
+    #[serde(rename = "type")]
+    pub type_: MessagesDocumentSourceType,
+    /**URL of the document. Required when `type` is `url`.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub url: ::std::option::Option<::std::string::String>,
+}
+///The source type.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The source type.",
+///  "type": "string",
+///  "enum": [
+///    "base64",
+///    "url"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesDocumentSourceType {
+    #[serde(rename = "base64")]
+    Base64,
+    #[serde(rename = "url")]
+    Url,
+}
+impl ::std::fmt::Display for MessagesDocumentSourceType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Base64 => f.write_str("base64"),
+            Self::Url => f.write_str("url"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesDocumentSourceType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "base64" => Ok(Self::Base64),
+            "url" => Ok(Self::Url),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesDocumentSourceType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesDocumentSourceType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesDocumentSourceType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**An error response in the Anthropic error format.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "An error response in the Anthropic error format.\n",
+///  "type": "object",
+///  "required": [
+///    "error",
+///    "type"
+///  ],
+///  "properties": {
+///    "error": {
+///      "description": "The error details.",
+///      "type": "object",
+///      "required": [
+///        "message",
+///        "type"
+///      ],
+///      "properties": {
+///        "message": {
+///          "description": "A human-readable error message.",
+///          "type": "string"
+///        },
+///        "type": {
+///          "description": "The error type (e.g. `invalid_request_error`, `api_error`).",
+///          "type": "string"
+///        }
+///      }
+///    },
+///    "type": {
+///      "description": "Always `error`.",
+///      "type": "string",
+///      "enum": [
+///        "error"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesError {
+    pub error: MessagesErrorError,
+    ///Always `error`.
+    #[serde(rename = "type")]
+    pub type_: MessagesErrorType,
+}
+///The error details.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The error details.",
+///  "type": "object",
+///  "required": [
+///    "message",
+///    "type"
+///  ],
+///  "properties": {
+///    "message": {
+///      "description": "A human-readable error message.",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "The error type (e.g. `invalid_request_error`, `api_error`).",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesErrorError {
+    ///A human-readable error message.
+    pub message: ::std::string::String,
+    ///The error type (e.g. `invalid_request_error`, `api_error`).
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+///Always `error`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Always `error`.",
+///  "type": "string",
+///  "enum": [
+///    "error"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesErrorType {
+    #[serde(rename = "error")]
+    Error,
+}
+impl ::std::fmt::Display for MessagesErrorType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Error => f.write_str("error"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesErrorType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "error" => Ok(Self::Error),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesErrorType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesErrorType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesErrorType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///An image content block in a Messages API request.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "An image content block in a Messages API request.",
+///  "type": "object",
+///  "required": [
+///    "source",
+///    "type"
+///  ],
+///  "properties": {
+///    "cache_control": {
+///      "$ref": "#/definitions/CacheControl"
+///    },
+///    "source": {
+///      "$ref": "#/definitions/MessagesImageSource"
+///    },
+///    "type": {
+///      "description": "Content type identifier. Always `image`.",
+///      "type": "string",
+///      "enum": [
+///        "image"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesImageBlock {
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub cache_control: ::std::option::Option<CacheControl>,
+    pub source: MessagesImageSource,
+    ///Content type identifier. Always `image`.
+    #[serde(rename = "type")]
+    pub type_: MessagesImageBlockType,
+}
+///Content type identifier. Always `image`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Content type identifier. Always `image`.",
+///  "type": "string",
+///  "enum": [
+///    "image"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesImageBlockType {
+    #[serde(rename = "image")]
+    Image,
+}
+impl ::std::fmt::Display for MessagesImageBlockType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Image => f.write_str("image"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesImageBlockType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "image" => Ok(Self::Image),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesImageBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesImageBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesImageBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**The source of an image content block. Can be a base64-encoded
+image or a URL.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The source of an image content block. Can be a base64-encoded\nimage or a URL.\n",
+///  "type": "object",
+///  "required": [
+///    "type"
+///  ],
+///  "properties": {
+///    "data": {
+///      "description": "Base64-encoded image data. Required when `type` is `base64`.\n",
+///      "type": "string"
+///    },
+///    "media_type": {
+///      "description": "The media type of the image (e.g. `image/jpeg`, `image/png`,\n`image/gif`, `image/webp`). Required when `type` is `base64`.\n",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "The source type.",
+///      "type": "string",
+///      "enum": [
+///        "base64",
+///        "url"
+///      ]
+///    },
+///    "url": {
+///      "description": "URL of the image. Required when `type` is `url`.\n",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesImageSource {
+    /**Base64-encoded image data. Required when `type` is `base64`.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub data: ::std::option::Option<::std::string::String>,
+    /**The media type of the image (e.g. `image/jpeg`, `image/png`,
+    `image/gif`, `image/webp`). Required when `type` is `base64`.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub media_type: ::std::option::Option<::std::string::String>,
+    ///The source type.
+    #[serde(rename = "type")]
+    pub type_: MessagesImageSourceType,
+    /**URL of the image. Required when `type` is `url`.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub url: ::std::option::Option<::std::string::String>,
+}
+///The source type.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The source type.",
+///  "type": "string",
+///  "enum": [
+///    "base64",
+///    "url"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesImageSourceType {
+    #[serde(rename = "base64")]
+    Base64,
+    #[serde(rename = "url")]
+    Url,
+}
+impl ::std::fmt::Display for MessagesImageSourceType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Base64 => f.write_str("base64"),
+            Self::Url => f.write_str("url"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesImageSourceType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "base64" => Ok(Self::Base64),
+            "url" => Ok(Self::Url),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesImageSourceType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesImageSourceType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesImageSourceType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///A message in a Messages API request.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A message in a Messages API request.",
+///  "type": "object",
+///  "required": [
+///    "content",
+///    "role"
+///  ],
+///  "properties": {
+///    "content": {
+///      "description": "The content of the message. Can be a string or an array of\ncontent blocks.\n",
+///      "oneOf": [
+///        {
+///          "description": "Text content.",
+///          "type": "string"
+///        },
+///        {
+///          "type": "array",
+///          "items": {
+///            "$ref": "#/definitions/MessagesRequestContentBlock"
+///          }
+///        }
+///      ]
+///    },
+///    "role": {
+///      "description": "The role of the message sender.",
+///      "type": "string",
+///      "enum": [
+///        "user",
+///        "assistant"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesMessage {
+    /**The content of the message. Can be a string or an array of
+    content blocks.
+    */
+    pub content: MessagesMessageContent,
+    ///The role of the message sender.
+    pub role: MessagesMessageRole,
+}
+/**The content of the message. Can be a string or an array of
+content blocks.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The content of the message. Can be a string or an array of\ncontent blocks.\n",
+///  "oneOf": [
+///    {
+///      "description": "Text content.",
+///      "type": "string"
+///    },
+///    {
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/MessagesRequestContentBlock"
+///      }
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum MessagesMessageContent {
+    String(::std::string::String),
+    Array(::std::vec::Vec<MessagesRequestContentBlock>),
+}
+impl ::std::convert::From<::std::vec::Vec<MessagesRequestContentBlock>> for MessagesMessageContent {
+    fn from(value: ::std::vec::Vec<MessagesRequestContentBlock>) -> Self {
+        Self::Array(value)
+    }
+}
+///The role of the message sender.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The role of the message sender.",
+///  "type": "string",
+///  "enum": [
+///    "user",
+///    "assistant"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesMessageRole {
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "assistant")]
+    Assistant,
+}
+impl ::std::fmt::Display for MessagesMessageRole {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::User => f.write_str("user"),
+            Self::Assistant => f.write_str("assistant"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesMessageRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "user" => Ok(Self::User),
+            "assistant" => Ok(Self::Assistant),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesMessageRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesMessageRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesMessageRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///Metadata for a Messages API request.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Metadata for a Messages API request.",
+///  "type": "object",
+///  "properties": {
+///    "user_id": {
+///      "description": "An external identifier for the user.",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesMetadata {
+    ///An external identifier for the user.
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub user_id: ::std::option::Option<::std::string::String>,
+}
+impl ::std::default::Default for MessagesMetadata {
+    fn default() -> Self {
+        Self {
+            user_id: Default::default(),
+        }
+    }
+}
+/**A redacted thinking content block in a Messages API request or
+response. Emitted when thinking content is encrypted for safety
+reasons; must be passed back unchanged in multi-turn conversations.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A redacted thinking content block in a Messages API request or\nresponse. Emitted when thinking content is encrypted for safety\nreasons; must be passed back unchanged in multi-turn conversations.\n",
+///  "type": "object",
+///  "required": [
+///    "data",
+///    "type"
+///  ],
+///  "properties": {
+///    "data": {
+///      "description": "The encrypted thinking content.",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "Content type identifier. Always `redacted_thinking`.",
+///      "type": "string",
+///      "enum": [
+///        "redacted_thinking"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesRedactedThinkingBlock {
+    ///The encrypted thinking content.
+    pub data: ::std::string::String,
+    ///Content type identifier. Always `redacted_thinking`.
+    #[serde(rename = "type")]
+    pub type_: MessagesRedactedThinkingBlockType,
+}
+///Content type identifier. Always `redacted_thinking`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Content type identifier. Always `redacted_thinking`.",
+///  "type": "string",
+///  "enum": [
+///    "redacted_thinking"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesRedactedThinkingBlockType {
+    #[serde(rename = "redacted_thinking")]
+    RedactedThinking,
+}
+impl ::std::fmt::Display for MessagesRedactedThinkingBlockType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::RedactedThinking => f.write_str("redacted_thinking"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesRedactedThinkingBlockType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "redacted_thinking" => Ok(Self::RedactedThinking),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesRedactedThinkingBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesRedactedThinkingBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesRedactedThinkingBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///A content block within a Messages API request message.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A content block within a Messages API request message.",
+///  "type": "object",
+///  "oneOf": [
+///    {
+///      "$ref": "#/definitions/MessagesTextBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesImageBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesToolUseBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesToolResultBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesDocumentBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesThinkingBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesRedactedThinkingBlock"
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum MessagesRequestContentBlock {
+    TextBlock(MessagesTextBlock),
+    ImageBlock(MessagesImageBlock),
+    ToolUseBlock(MessagesToolUseBlock),
+    ToolResultBlock(MessagesToolResultBlock),
+    DocumentBlock(MessagesDocumentBlock),
+    ThinkingBlock(MessagesThinkingBlock),
+    RedactedThinkingBlock(MessagesRedactedThinkingBlock),
+}
+impl ::std::convert::From<MessagesTextBlock> for MessagesRequestContentBlock {
+    fn from(value: MessagesTextBlock) -> Self {
+        Self::TextBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesImageBlock> for MessagesRequestContentBlock {
+    fn from(value: MessagesImageBlock) -> Self {
+        Self::ImageBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesToolUseBlock> for MessagesRequestContentBlock {
+    fn from(value: MessagesToolUseBlock) -> Self {
+        Self::ToolUseBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesToolResultBlock> for MessagesRequestContentBlock {
+    fn from(value: MessagesToolResultBlock) -> Self {
+        Self::ToolResultBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesDocumentBlock> for MessagesRequestContentBlock {
+    fn from(value: MessagesDocumentBlock) -> Self {
+        Self::DocumentBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesThinkingBlock> for MessagesRequestContentBlock {
+    fn from(value: MessagesThinkingBlock) -> Self {
+        Self::ThinkingBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesRedactedThinkingBlock> for MessagesRequestContentBlock {
+    fn from(value: MessagesRedactedThinkingBlock) -> Self {
+        Self::RedactedThinkingBlock(value)
+    }
+}
+/**A message response from the Anthropic-compatible Messages API.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A message response from the Anthropic-compatible Messages API.\n",
+///  "type": "object",
+///  "required": [
+///    "content",
+///    "id",
+///    "model",
+///    "role",
+///    "stop_reason",
+///    "type",
+///    "usage"
+///  ],
+///  "properties": {
+///    "content": {
+///      "description": "The content blocks generated by the model.",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/MessagesResponseContentBlock"
+///      }
+///    },
+///    "id": {
+///      "description": "Unique identifier for this message.",
+///      "type": "string"
+///    },
+///    "model": {
+///      "description": "The model used to generate the message.",
+///      "type": "string"
+///    },
+///    "role": {
+///      "description": "Always `assistant`.",
+///      "type": "string",
+///      "enum": [
+///        "assistant"
+///      ]
+///    },
+///    "stop_reason": {
+///      "description": "The reason the model stopped generating.\n",
+///      "type": "string",
+///      "enum": [
+///        "end_turn",
+///        "max_tokens",
+///        "stop_sequence",
+///        "tool_use",
+///        "pause_turn",
+///        "refusal"
+///      ]
+///    },
+///    "stop_sequence": {
+///      "description": "The stop sequence that caused the model to stop, if any.\n",
+///      "type": "string",
+///      "nullable": true
+///    },
+///    "type": {
+///      "description": "Always `message`.",
+///      "type": "string",
+///      "enum": [
+///        "message"
+///      ]
+///    },
+///    "usage": {
+///      "$ref": "#/definitions/MessagesUsage"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesResponse {
+    ///The content blocks generated by the model.
+    pub content: ::std::vec::Vec<MessagesResponseContentBlock>,
+    ///Unique identifier for this message.
+    pub id: ::std::string::String,
+    ///The model used to generate the message.
+    pub model: ::std::string::String,
+    ///Always `assistant`.
+    pub role: MessagesResponseRole,
+    /**The reason the model stopped generating.
+     */
+    pub stop_reason: MessagesResponseStopReason,
+    /**The stop sequence that caused the model to stop, if any.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub stop_sequence: ::std::option::Option<::std::string::String>,
+    ///Always `message`.
+    #[serde(rename = "type")]
+    pub type_: MessagesResponseType,
+    pub usage: MessagesUsage,
+}
+///A content block within a Messages API response.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A content block within a Messages API response.",
+///  "type": "object",
+///  "oneOf": [
+///    {
+///      "$ref": "#/definitions/MessagesTextBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesToolUseBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesThinkingBlock"
+///    },
+///    {
+///      "$ref": "#/definitions/MessagesRedactedThinkingBlock"
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum MessagesResponseContentBlock {
+    TextBlock(MessagesTextBlock),
+    ToolUseBlock(MessagesToolUseBlock),
+    ThinkingBlock(MessagesThinkingBlock),
+    RedactedThinkingBlock(MessagesRedactedThinkingBlock),
+}
+impl ::std::convert::From<MessagesTextBlock> for MessagesResponseContentBlock {
+    fn from(value: MessagesTextBlock) -> Self {
+        Self::TextBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesToolUseBlock> for MessagesResponseContentBlock {
+    fn from(value: MessagesToolUseBlock) -> Self {
+        Self::ToolUseBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesThinkingBlock> for MessagesResponseContentBlock {
+    fn from(value: MessagesThinkingBlock) -> Self {
+        Self::ThinkingBlock(value)
+    }
+}
+impl ::std::convert::From<MessagesRedactedThinkingBlock> for MessagesResponseContentBlock {
+    fn from(value: MessagesRedactedThinkingBlock) -> Self {
+        Self::RedactedThinkingBlock(value)
+    }
+}
+///Always `assistant`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Always `assistant`.",
+///  "type": "string",
+///  "enum": [
+///    "assistant"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesResponseRole {
+    #[serde(rename = "assistant")]
+    Assistant,
+}
+impl ::std::fmt::Display for MessagesResponseRole {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Assistant => f.write_str("assistant"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesResponseRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "assistant" => Ok(Self::Assistant),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesResponseRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesResponseRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesResponseRole {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**The reason the model stopped generating.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The reason the model stopped generating.\n",
+///  "type": "string",
+///  "enum": [
+///    "end_turn",
+///    "max_tokens",
+///    "stop_sequence",
+///    "tool_use",
+///    "pause_turn",
+///    "refusal"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesResponseStopReason {
+    #[serde(rename = "end_turn")]
+    EndTurn,
+    #[serde(rename = "max_tokens")]
+    MaxTokens,
+    #[serde(rename = "stop_sequence")]
+    StopSequence,
+    #[serde(rename = "tool_use")]
+    ToolUse,
+    #[serde(rename = "pause_turn")]
+    PauseTurn,
+    #[serde(rename = "refusal")]
+    Refusal,
+}
+impl ::std::fmt::Display for MessagesResponseStopReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::EndTurn => f.write_str("end_turn"),
+            Self::MaxTokens => f.write_str("max_tokens"),
+            Self::StopSequence => f.write_str("stop_sequence"),
+            Self::ToolUse => f.write_str("tool_use"),
+            Self::PauseTurn => f.write_str("pause_turn"),
+            Self::Refusal => f.write_str("refusal"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesResponseStopReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "end_turn" => Ok(Self::EndTurn),
+            "max_tokens" => Ok(Self::MaxTokens),
+            "stop_sequence" => Ok(Self::StopSequence),
+            "tool_use" => Ok(Self::ToolUse),
+            "pause_turn" => Ok(Self::PauseTurn),
+            "refusal" => Ok(Self::Refusal),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesResponseStopReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesResponseStopReason {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesResponseStopReason {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///Always `message`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Always `message`.",
+///  "type": "string",
+///  "enum": [
+///    "message"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesResponseType {
+    #[serde(rename = "message")]
+    Message,
+}
+impl ::std::fmt::Display for MessagesResponseType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Message => f.write_str("message"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesResponseType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "message" => Ok(Self::Message),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesResponseType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesResponseType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesResponseType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**A server-sent event emitted while streaming a Messages API response.
+The Anthropic Messages API emits a sequence of typed events
+(`message_start`, `content_block_start`, `content_block_delta`,
+`content_block_stop`, `message_delta`, `message_stop`, `ping`).
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A server-sent event emitted while streaming a Messages API response.\nThe Anthropic Messages API emits a sequence of typed events\n(`message_start`, `content_block_start`, `content_block_delta`,\n`content_block_stop`, `message_delta`, `message_stop`, `ping`).\n",
+///  "type": "object",
+///  "required": [
+///    "type"
+///  ],
+///  "properties": {
+///    "content_block": {
+///      "description": "Present in `content_block_start` events. Contains the content\nblock.\n",
+///      "$ref": "#/definitions/MessagesResponseContentBlock"
+///    },
+///    "delta": {
+///      "description": "Present in `content_block_delta` and `message_delta` events.\nContains the incremental update.\n",
+///      "type": "object",
+///      "properties": {
+///        "partial_json": {
+///          "description": "The incremental JSON string of the tool input\n(for `input_json_delta`).\n",
+///          "type": "string"
+///        },
+///        "signature": {
+///          "description": "The thinking signature (for `signature_delta`).",
+///          "type": "string"
+///        },
+///        "stop_reason": {
+///          "description": "The stop reason (for `message_delta`).",
+///          "type": "string"
+///        },
+///        "stop_sequence": {
+///          "description": "The stop sequence (for `message_delta`).",
+///          "type": "string",
+///          "nullable": true
+///        },
+///        "text": {
+///          "description": "The incremental text (for `text_delta`).",
+///          "type": "string"
+///        },
+///        "thinking": {
+///          "description": "The incremental thinking content (for `thinking_delta`).",
+///          "type": "string"
+///        },
+///        "type": {
+///          "description": "The type of delta. For text deltas this is `text_delta`,\nfor streamed tool inputs this is `input_json_delta`, for\nthinking deltas this is `thinking_delta`, for thinking\nsignatures this is `signature_delta`.\n",
+///          "type": "string"
+///        }
+///      }
+///    },
+///    "error": {
+///      "description": "Present in `error` events. Contains the error details.\n",
+///      "$ref": "#/definitions/MessagesError"
+///    },
+///    "index": {
+///      "description": "Present in `content_block_*` events. The index of the content\nblock.\n",
+///      "type": "integer"
+///    },
+///    "message": {
+///      "description": "Present in `message_start` events. Contains the initial message.\n",
+///      "$ref": "#/definitions/MessagesResponse"
+///    },
+///    "type": {
+///      "description": "The type of the streamed event.",
+///      "type": "string",
+///      "enum": [
+///        "message_start",
+///        "content_block_start",
+///        "content_block_delta",
+///        "content_block_stop",
+///        "message_delta",
+///        "message_stop",
+///        "ping",
+///        "error"
+///      ]
+///    },
+///    "usage": {
+///      "description": "Present in `message_delta` events as a sibling of `delta`.\nContains cumulative usage for the message.\n",
+///      "$ref": "#/definitions/MessagesUsage"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesStreamEvent {
+    /**Present in `content_block_start` events. Contains the content
+    block.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub content_block: ::std::option::Option<MessagesResponseContentBlock>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub delta: ::std::option::Option<MessagesStreamEventDelta>,
+    /**Present in `error` events. Contains the error details.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub error: ::std::option::Option<MessagesError>,
+    /**Present in `content_block_*` events. The index of the content
+    block.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub index: ::std::option::Option<i64>,
+    /**Present in `message_start` events. Contains the initial message.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub message: ::std::option::Option<MessagesResponse>,
+    ///The type of the streamed event.
+    #[serde(rename = "type")]
+    pub type_: MessagesStreamEventType,
+    /**Present in `message_delta` events as a sibling of `delta`.
+    Contains cumulative usage for the message.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub usage: ::std::option::Option<MessagesUsage>,
+}
+/**Present in `content_block_delta` and `message_delta` events.
+Contains the incremental update.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Present in `content_block_delta` and `message_delta` events.\nContains the incremental update.\n",
+///  "type": "object",
+///  "properties": {
+///    "partial_json": {
+///      "description": "The incremental JSON string of the tool input\n(for `input_json_delta`).\n",
+///      "type": "string"
+///    },
+///    "signature": {
+///      "description": "The thinking signature (for `signature_delta`).",
+///      "type": "string"
+///    },
+///    "stop_reason": {
+///      "description": "The stop reason (for `message_delta`).",
+///      "type": "string"
+///    },
+///    "stop_sequence": {
+///      "description": "The stop sequence (for `message_delta`).",
+///      "type": "string",
+///      "nullable": true
+///    },
+///    "text": {
+///      "description": "The incremental text (for `text_delta`).",
+///      "type": "string"
+///    },
+///    "thinking": {
+///      "description": "The incremental thinking content (for `thinking_delta`).",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "The type of delta. For text deltas this is `text_delta`,\nfor streamed tool inputs this is `input_json_delta`, for\nthinking deltas this is `thinking_delta`, for thinking\nsignatures this is `signature_delta`.\n",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesStreamEventDelta {
+    /**The incremental JSON string of the tool input
+    (for `input_json_delta`).
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub partial_json: ::std::option::Option<::std::string::String>,
+    ///The thinking signature (for `signature_delta`).
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub signature: ::std::option::Option<::std::string::String>,
+    ///The stop reason (for `message_delta`).
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub stop_reason: ::std::option::Option<::std::string::String>,
+    ///The stop sequence (for `message_delta`).
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub stop_sequence: ::std::option::Option<::std::string::String>,
+    ///The incremental text (for `text_delta`).
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub text: ::std::option::Option<::std::string::String>,
+    ///The incremental thinking content (for `thinking_delta`).
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub thinking: ::std::option::Option<::std::string::String>,
+    /**The type of delta. For text deltas this is `text_delta`,
+    for streamed tool inputs this is `input_json_delta`, for
+    thinking deltas this is `thinking_delta`, for thinking
+    signatures this is `signature_delta`.
+    */
+    #[serde(
+        rename = "type",
+        default,
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub type_: ::std::option::Option<::std::string::String>,
+}
+impl ::std::default::Default for MessagesStreamEventDelta {
+    fn default() -> Self {
+        Self {
+            partial_json: Default::default(),
+            signature: Default::default(),
+            stop_reason: Default::default(),
+            stop_sequence: Default::default(),
+            text: Default::default(),
+            thinking: Default::default(),
+            type_: Default::default(),
+        }
+    }
+}
+///The type of the streamed event.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The type of the streamed event.",
+///  "type": "string",
+///  "enum": [
+///    "message_start",
+///    "content_block_start",
+///    "content_block_delta",
+///    "content_block_stop",
+///    "message_delta",
+///    "message_stop",
+///    "ping",
+///    "error"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesStreamEventType {
+    #[serde(rename = "message_start")]
+    MessageStart,
+    #[serde(rename = "content_block_start")]
+    ContentBlockStart,
+    #[serde(rename = "content_block_delta")]
+    ContentBlockDelta,
+    #[serde(rename = "content_block_stop")]
+    ContentBlockStop,
+    #[serde(rename = "message_delta")]
+    MessageDelta,
+    #[serde(rename = "message_stop")]
+    MessageStop,
+    #[serde(rename = "ping")]
+    Ping,
+    #[serde(rename = "error")]
+    Error,
+}
+impl ::std::fmt::Display for MessagesStreamEventType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::MessageStart => f.write_str("message_start"),
+            Self::ContentBlockStart => f.write_str("content_block_start"),
+            Self::ContentBlockDelta => f.write_str("content_block_delta"),
+            Self::ContentBlockStop => f.write_str("content_block_stop"),
+            Self::MessageDelta => f.write_str("message_delta"),
+            Self::MessageStop => f.write_str("message_stop"),
+            Self::Ping => f.write_str("ping"),
+            Self::Error => f.write_str("error"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesStreamEventType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "message_start" => Ok(Self::MessageStart),
+            "content_block_start" => Ok(Self::ContentBlockStart),
+            "content_block_delta" => Ok(Self::ContentBlockDelta),
+            "content_block_stop" => Ok(Self::ContentBlockStop),
+            "message_delta" => Ok(Self::MessageDelta),
+            "message_stop" => Ok(Self::MessageStop),
+            "ping" => Ok(Self::Ping),
+            "error" => Ok(Self::Error),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesStreamEventType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesStreamEventType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesStreamEventType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///A text content block in a Messages API request or response.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A text content block in a Messages API request or response.",
+///  "type": "object",
+///  "required": [
+///    "text",
+///    "type"
+///  ],
+///  "properties": {
+///    "cache_control": {
+///      "$ref": "#/definitions/CacheControl"
+///    },
+///    "text": {
+///      "description": "The text content.",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "Content type identifier. Always `text`.",
+///      "type": "string",
+///      "enum": [
+///        "text"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesTextBlock {
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub cache_control: ::std::option::Option<CacheControl>,
+    ///The text content.
+    pub text: ::std::string::String,
+    ///Content type identifier. Always `text`.
+    #[serde(rename = "type")]
+    pub type_: MessagesTextBlockType,
+}
+///Content type identifier. Always `text`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Content type identifier. Always `text`.",
+///  "type": "string",
+///  "enum": [
+///    "text"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesTextBlockType {
+    #[serde(rename = "text")]
+    Text,
+}
+impl ::std::fmt::Display for MessagesTextBlockType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Text => f.write_str("text"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesTextBlockType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "text" => Ok(Self::Text),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesTextBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesTextBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesTextBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///A thinking content block in a Messages API request or response.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A thinking content block in a Messages API request or response.",
+///  "type": "object",
+///  "required": [
+///    "signature",
+///    "thinking",
+///    "type"
+///  ],
+///  "properties": {
+///    "signature": {
+///      "description": "The signature for verifying the thinking content. Must be\npassed back when continuing a conversation with extended thinking.\n",
+///      "type": "string"
+///    },
+///    "thinking": {
+///      "description": "The thinking content.",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "Content type identifier. Always `thinking`.",
+///      "type": "string",
+///      "enum": [
+///        "thinking"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesThinkingBlock {
+    /**The signature for verifying the thinking content. Must be
+    passed back when continuing a conversation with extended thinking.
+    */
+    pub signature: ::std::string::String,
+    ///The thinking content.
+    pub thinking: ::std::string::String,
+    ///Content type identifier. Always `thinking`.
+    #[serde(rename = "type")]
+    pub type_: MessagesThinkingBlockType,
+}
+///Content type identifier. Always `thinking`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Content type identifier. Always `thinking`.",
+///  "type": "string",
+///  "enum": [
+///    "thinking"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesThinkingBlockType {
+    #[serde(rename = "thinking")]
+    Thinking,
+}
+impl ::std::fmt::Display for MessagesThinkingBlockType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Thinking => f.write_str("thinking"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesThinkingBlockType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "thinking" => Ok(Self::Thinking),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesThinkingBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesThinkingBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesThinkingBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**A tool definition in the Messages API format. Uses the same
+function tool shape as the Responses API but with an optional
+`cache_control` field for prompt caching.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A tool definition in the Messages API format. Uses the same\nfunction tool shape as the Responses API but with an optional\n`cache_control` field for prompt caching.\n",
+///  "type": "object",
+///  "required": [
+///    "input_schema",
+///    "name"
+///  ],
+///  "properties": {
+///    "cache_control": {
+///      "$ref": "#/definitions/CacheControl"
+///    },
+///    "description": {
+///      "description": "A description of what the tool does.",
+///      "type": "string"
+///    },
+///    "input_schema": {
+///      "$ref": "#/definitions/FunctionParameters"
+///    },
+///    "name": {
+///      "description": "The name of the tool.",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesTool {
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub cache_control: ::std::option::Option<CacheControl>,
+    ///A description of what the tool does.
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub description: ::std::option::Option<::std::string::String>,
+    pub input_schema: FunctionParameters,
+    ///The name of the tool.
+    pub name: ::std::string::String,
+}
+/**Controls which (if any) tool is called by the model. `auto` means
+the model can decide, `any` means the model must use a tool, and
+`tool` forces a specific tool.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Controls which (if any) tool is called by the model. `auto` means\nthe model can decide, `any` means the model must use a tool, and\n`tool` forces a specific tool.\n",
+///  "oneOf": [
+///    {
+///      "description": "The tool choice mode.",
+///      "type": "string",
+///      "enum": [
+///        "auto",
+///        "any"
+///      ]
+///    },
+///    {
+///      "description": "Forces the model to use a specific tool.",
+///      "type": "object",
+///      "required": [
+///        "name",
+///        "type"
+///      ],
+///      "properties": {
+///        "name": {
+///          "description": "The name of the tool to use.",
+///          "type": "string"
+///        },
+///        "type": {
+///          "description": "Always `tool`.",
+///          "type": "string",
+///          "enum": [
+///            "tool"
+///          ]
+///        }
+///      }
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum MessagesToolChoice {
+    String(MessagesToolChoiceString),
+    Object {
+        ///The name of the tool to use.
+        name: ::std::string::String,
+        ///Always `tool`.
+        #[serde(rename = "type")]
+        type_: MessagesToolChoiceObjectType,
+    },
+}
+impl ::std::convert::From<MessagesToolChoiceString> for MessagesToolChoice {
+    fn from(value: MessagesToolChoiceString) -> Self {
+        Self::String(value)
+    }
+}
+///Always `tool`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Always `tool`.",
+///  "type": "string",
+///  "enum": [
+///    "tool"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesToolChoiceObjectType {
+    #[serde(rename = "tool")]
+    Tool,
+}
+impl ::std::fmt::Display for MessagesToolChoiceObjectType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Tool => f.write_str("tool"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesToolChoiceObjectType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "tool" => Ok(Self::Tool),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesToolChoiceObjectType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesToolChoiceObjectType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesToolChoiceObjectType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///The tool choice mode.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The tool choice mode.",
+///  "type": "string",
+///  "enum": [
+///    "auto",
+///    "any"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesToolChoiceString {
+    #[serde(rename = "auto")]
+    Auto,
+    #[serde(rename = "any")]
+    Any,
+}
+impl ::std::fmt::Display for MessagesToolChoiceString {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Auto => f.write_str("auto"),
+            Self::Any => f.write_str("any"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesToolChoiceString {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "auto" => Ok(Self::Auto),
+            "any" => Ok(Self::Any),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesToolChoiceString {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesToolChoiceString {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesToolChoiceString {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///A tool result content block in a Messages API request.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A tool result content block in a Messages API request.",
+///  "type": "object",
+///  "required": [
+///    "tool_use_id",
+///    "type"
+///  ],
+///  "properties": {
+///    "cache_control": {
+///      "$ref": "#/definitions/CacheControl"
+///    },
+///    "content": {
+///      "description": "The result content. Can be a string or an array of content blocks.\n",
+///      "oneOf": [
+///        {
+///          "description": "Text result content.",
+///          "type": "string"
+///        },
+///        {
+///          "type": "array",
+///          "items": {
+///            "$ref": "#/definitions/MessagesTextBlock"
+///          }
+///        }
+///      ]
+///    },
+///    "is_error": {
+///      "description": "Whether the tool execution resulted in an error.",
+///      "type": "boolean"
+///    },
+///    "tool_use_id": {
+///      "description": "The ID of the tool use this result is for.",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "Content type identifier. Always `tool_result`.",
+///      "type": "string",
+///      "enum": [
+///        "tool_result"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesToolResultBlock {
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub cache_control: ::std::option::Option<CacheControl>,
+    /**The result content. Can be a string or an array of content blocks.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub content: ::std::option::Option<MessagesToolResultBlockContent>,
+    ///Whether the tool execution resulted in an error.
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub is_error: ::std::option::Option<bool>,
+    ///The ID of the tool use this result is for.
+    pub tool_use_id: ::std::string::String,
+    ///Content type identifier. Always `tool_result`.
+    #[serde(rename = "type")]
+    pub type_: MessagesToolResultBlockType,
+}
+/**The result content. Can be a string or an array of content blocks.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The result content. Can be a string or an array of content blocks.\n",
+///  "oneOf": [
+///    {
+///      "description": "Text result content.",
+///      "type": "string"
+///    },
+///    {
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/MessagesTextBlock"
+///      }
+///    }
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum MessagesToolResultBlockContent {
+    String(::std::string::String),
+    Array(::std::vec::Vec<MessagesTextBlock>),
+}
+impl ::std::convert::From<::std::vec::Vec<MessagesTextBlock>> for MessagesToolResultBlockContent {
+    fn from(value: ::std::vec::Vec<MessagesTextBlock>) -> Self {
+        Self::Array(value)
+    }
+}
+///Content type identifier. Always `tool_result`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Content type identifier. Always `tool_result`.",
+///  "type": "string",
+///  "enum": [
+///    "tool_result"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesToolResultBlockType {
+    #[serde(rename = "tool_result")]
+    ToolResult,
+}
+impl ::std::fmt::Display for MessagesToolResultBlockType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ToolResult => f.write_str("tool_result"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesToolResultBlockType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "tool_result" => Ok(Self::ToolResult),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesToolResultBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesToolResultBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesToolResultBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///A tool use content block in a Messages API request or response.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A tool use content block in a Messages API request or response.",
+///  "type": "object",
+///  "required": [
+///    "id",
+///    "input",
+///    "name",
+///    "type"
+///  ],
+///  "properties": {
+///    "id": {
+///      "description": "The unique identifier for this tool use block.",
+///      "type": "string"
+///    },
+///    "input": {
+///      "description": "The input parameters for the tool.",
+///      "type": "object",
+///      "additionalProperties": true
+///    },
+///    "name": {
+///      "description": "The name of the tool being called.",
+///      "type": "string"
+///    },
+///    "type": {
+///      "description": "Content type identifier. Always `tool_use`.",
+///      "type": "string",
+///      "enum": [
+///        "tool_use"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesToolUseBlock {
+    ///The unique identifier for this tool use block.
+    pub id: ::std::string::String,
+    ///The input parameters for the tool.
+    pub input: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+    ///The name of the tool being called.
+    pub name: ::std::string::String,
+    ///Content type identifier. Always `tool_use`.
+    #[serde(rename = "type")]
+    pub type_: MessagesToolUseBlockType,
+}
+///Content type identifier. Always `tool_use`.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Content type identifier. Always `tool_use`.",
+///  "type": "string",
+///  "enum": [
+///    "tool_use"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesToolUseBlockType {
+    #[serde(rename = "tool_use")]
+    ToolUse,
+}
+impl ::std::fmt::Display for MessagesToolUseBlockType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ToolUse => f.write_str("tool_use"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesToolUseBlockType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "tool_use" => Ok(Self::ToolUse),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesToolUseBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesToolUseBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesToolUseBlockType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**Token usage statistics for a Messages API response, including
+cache metrics.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Token usage statistics for a Messages API response, including\ncache metrics.\n",
+///  "type": "object",
+///  "required": [
+///    "input_tokens",
+///    "output_tokens"
+///  ],
+///  "properties": {
+///    "cache_creation_input_tokens": {
+///      "description": "The number of tokens used for cache creation.\n",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    },
+///    "cache_read_input_tokens": {
+///      "description": "The number of tokens read from the cache.\n",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    },
+///    "input_tokens": {
+///      "description": "The number of input tokens.",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    },
+///    "output_tokens": {
+///      "description": "The number of output tokens.",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesUsage {
+    /**The number of tokens used for cache creation.
+     */
+    #[serde(default)]
+    pub cache_creation_input_tokens: i64,
+    /**The number of tokens read from the cache.
+     */
+    #[serde(default)]
+    pub cache_read_input_tokens: i64,
+    ///The number of input tokens.
+    pub input_tokens: i64,
+    ///The number of output tokens.
+    pub output_tokens: i64,
 }
 ///Common model information
 ///
