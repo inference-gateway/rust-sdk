@@ -9,7 +9,7 @@ members = [
 
 [package]
 name = "inference-gateway-sdk"
-version = "0.16.0"
+version = "0.17.0"
 edition = "2024"
 description = "Rust SDK for interacting with various language models through the Inference Gateway"
 license = "Apache-2.0"
