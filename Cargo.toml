@@ -1,5 +1,11 @@
 [workspace]
-members = [".", "tools/gen-types", "examples/list", "examples/chat"]
+members = [
+    ".",
+    "tools/gen-types",
+    "examples/list",
+    "examples/chat",
+    "examples/messages",
+]
 
 [package]
 name = "inference-gateway-sdk"

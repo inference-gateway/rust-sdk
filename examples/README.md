@@ -29,6 +29,8 @@ stable Rust toolchain (1.94+ recommended; the SDK uses `edition = "2024"`).
    - [List](./list): Demonstrates listing models, MCP tools, and health checks.
    - [Chat](./chat): Shows chat completions, streaming responses, multi-turn
      conversations, and function calling.
+   - [Messages](./messages): Shows the Anthropic-compatible Messages API,
+     non-streaming and streaming.
 
 ## Examples Overview
 
@@ -59,6 +61,18 @@ stable Rust toolchain (1.94+ recommended; the SDK uses `edition = "2024"`).
 **Best for**: Building chat applications and understanding different
 interaction patterns
 
+### [Messages Example](./messages)
+
+**Purpose**: Use the Anthropic-compatible Messages API
+
+**Features**:
+
+- Simple message creation with content blocks and usage metrics
+- Real-time streaming of `MessagesStreamEvent`s
+
+**Best for**: Anthropic-style integrations and providers with Messages
+support
+
 ## Running Examples
 
 Each example is a standalone binary crate in this workspace. From the SDK
@@ -70,6 +84,9 @@ cargo run -p list-example
 
 # Chat example (requires PROVIDER and LLM env vars)
 PROVIDER=deepseek LLM=deepseek-v4-flash cargo run -p chat-example
+
+# Messages example (defaults to PROVIDER=anthropic LLM=claude-sonnet-5)
+PROVIDER=anthropic LLM=claude-sonnet-5 cargo run -p messages-example
 ```
 
 Or, from inside an example directory:

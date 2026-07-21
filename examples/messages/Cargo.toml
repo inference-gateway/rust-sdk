@@ -1,0 +1,15 @@
+[package]
+name = "messages-example"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "messages-example"
+path = "src/main.rs"
+
+[dependencies]
+inference-gateway-sdk = { path = "../.." }
+tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
+futures-util = "0.3.32"
+serde_json = "1.0.150"

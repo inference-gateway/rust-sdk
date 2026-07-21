@@ -3,11 +3,14 @@ use crate::{
     ChatCompletionToolChoiceOption, ChatCompletionToolChoiceOptionString, ChatCompletionToolType,
     ContextWindowSource, CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
-    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, FinishReason, FunctionObject,
-    FunctionParameters, GatewayError, InferenceGatewayAPI, InferenceGatewayClient, Message,
-    MessageContent, MessageRole, PricingSource, Provider, ResponseFormatJsonObject,
-    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
-    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
+    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateMessagesRequest,
+    FinishReason, FunctionObject, FunctionParameters, GatewayError, InferenceGatewayAPI,
+    InferenceGatewayClient, Message, MessageContent, MessageRole, MessagesMessage,
+    MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
+    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
+    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
+    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
+    ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1154,6 +1157,162 @@ async fn test_list_tools_mcp_not_exposed() -> Result<(), GatewayError> {
         _ => panic!("Expected Forbidden error for MCP not exposed"),
     }
 
+    mock.assert();
+    Ok(())
+}
+
+fn messages_request(model: &str, text: &str) -> CreateMessagesRequest {
+    CreateMessagesRequest {
+        max_tokens: 1024,
+        messages: vec![MessagesMessage {
+            role: MessagesMessageRole::User,
+            content: MessagesMessageContent::String(text.to_string()),
+        }],
+        metadata: None,
+        model: model.to_string(),
+        stop_sequences: Vec::new(),
+        stream: false,
+        system: None,
+        temperature: None,
+        thinking: None,
+        tool_choice: None,
+        tools: Vec::new(),
+        top_k: None,
+        top_p: None,
+    }
+}
+
+#[tokio::test]
+async fn test_create_message() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let raw_json_response = r#"{
+        "id": "msg_123",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-sonnet-5",
+        "content": [{"type": "text", "text": "Hello!"}],
+        "stop_reason": "end_turn",
+        "usage": {"input_tokens": 10, "output_tokens": 5}
+    }"#;
+
+    let mock = server
+        .mock("POST", "/v1/messages?provider=anthropic")
+        .match_body(Matcher::PartialJson(json!({
+            "model": "claude-sonnet-5",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        })))
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(raw_json_response)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let response = client
+        .create_message(
+            Some(Provider::Anthropic),
+            messages_request("claude-sonnet-5", "Hello"),
+        )
+        .await?;
+
+    assert_eq!(response.stop_reason, MessagesResponseStopReason::EndTurn);
+    assert!(matches!(
+        response.content[0],
+        MessagesResponseContentBlock::TextBlock(ref block) if block.text == "Hello!"
+    ));
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_message_not_supported_error() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/messages")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(
+            r#"{"type":"error","error":{"type":"not_supported_error","message":"The Messages API is not supported by this provider yet."}}"#,
+        )
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let result = client
+        .create_message(None, messages_request("some-model", "Hello"))
+        .await;
+
+    assert!(matches!(
+        result,
+        Err(GatewayError::BadRequest(ref msg))
+            if msg == "The Messages API is not supported by this provider yet."
+    ));
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_message_stream() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/messages?provider=anthropic")
+        .match_body(Matcher::PartialJson(json!({"stream": true})))
+        .with_status(200)
+        .with_header("content-type", "text/event-stream")
+        .with_chunked_body(move |writer| -> std::io::Result<()> {
+            let events = [
+                format!(
+                    "event: message_start\ndata: {}\n\n",
+                    r#"{"type":"message_start","message":{"id":"msg_123","type":"message","role":"assistant","model":"claude-sonnet-5","content":[],"stop_reason":"end_turn","usage":{"input_tokens":10,"output_tokens":0}}}"#
+                ),
+                format!(
+                    "event: content_block_delta\ndata: {}\n\n",
+                    r#"{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}"#
+                ),
+                format!("event: message_stop\ndata: {}\n\n", r#"{"type":"message_stop"}"#),
+            ];
+            for event in events {
+                writer.write_all(event.as_bytes())?;
+            }
+            Ok(())
+        })
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let stream = client.create_message_stream(
+        Some(Provider::Anthropic),
+        messages_request("claude-sonnet-5", "Hello"),
+    );
+    pin_mut!(stream);
+
+    let mut event_types = Vec::new();
+    while let Some(result) = stream.next().await {
+        let result = result?;
+        let event: MessagesStreamEvent =
+            serde_json::from_str(&result.data).expect("parse stream event");
+        assert_eq!(
+            result.event.as_deref(),
+            Some(event.type_.to_string().as_str())
+        );
+        event_types.push(event.type_);
+    }
+
+    assert_eq!(
+        event_types,
+        vec![
+            MessagesStreamEventType::MessageStart,
+            MessagesStreamEventType::ContentBlockDelta,
+            MessagesStreamEventType::MessageStop,
+        ]
+    );
     mock.assert();
     Ok(())
 }
