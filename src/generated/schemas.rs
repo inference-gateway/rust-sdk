@@ -2137,6 +2137,79 @@ impl ::std::default::Default for ImageUrlDetail {
         ImageUrlDetail::Auto
     }
 }
+///Additional metadata to include in the model listing
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Additional metadata to include in the model listing",
+///  "type": "string",
+///  "enum": [
+///    "context_window",
+///    "pricing"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum IncludeParam {
+    #[serde(rename = "context_window")]
+    ContextWindow,
+    #[serde(rename = "pricing")]
+    Pricing,
+}
+impl ::std::fmt::Display for IncludeParam {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ContextWindow => f.write_str("context_window"),
+            Self::Pricing => f.write_str("pricing"),
+        }
+    }
+}
+impl ::std::str::FromStr for IncludeParam {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "context_window" => Ok(Self::ContextWindow),
+            "pricing" => Ok(Self::Pricing),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for IncludeParam {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for IncludeParam {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for IncludeParam {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 ///Response structure for listing models
 ///
 /// <details><summary>JSON schema</summary>
@@ -2445,6 +2518,12 @@ impl ::std::convert::TryFrom<::std::string::String> for MessageRole {
 ///    "served_by"
 ///  ],
 ///  "properties": {
+///    "context_window": {
+///      "description": "The context window size in tokens, if requested via include",
+///      "type": "integer",
+///      "format": "int64",
+///      "nullable": true
+///    },
 ///    "created": {
 ///      "type": "integer",
 ///      "format": "int64"
@@ -2458,6 +2537,12 @@ impl ::std::convert::TryFrom<::std::string::String> for MessageRole {
 ///    "owned_by": {
 ///      "type": "string"
 ///    },
+///    "pricing": {
+///      "description": "Pricing information, if requested via include",
+///      "type": "object",
+///      "additionalProperties": true,
+///      "nullable": true
+///    },
 ///    "served_by": {
 ///      "$ref": "#/definitions/Provider"
 ///    }
@@ -2467,10 +2552,16 @@ impl ::std::convert::TryFrom<::std::string::String> for MessageRole {
 /// </details>
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct Model {
+    ///The context window size in tokens, if requested via include
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub context_window: ::std::option::Option<i64>,
     pub created: i64,
     pub id: ::std::string::String,
     pub object: ::std::string::String,
     pub owned_by: ::std::string::String,
+    ///Pricing information, if requested via include
+    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+    pub pricing: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     pub served_by: Provider,
 }
 ///`Provider`
