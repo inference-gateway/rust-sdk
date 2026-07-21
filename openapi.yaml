@@ -68,6 +68,16 @@ paths:
           schema:
             $ref: '#/components/schemas/Provider'
           description: Specific provider to query (optional)
+        - name: include
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/IncludeParam'
+            style: form
+            explode: false
+          description: Comma-separated list of additional metadata to include (context_window, pricing)
       responses:
         '200':
           description: List of available models
@@ -1022,6 +1032,15 @@ components:
           description: Image detail level for vision processing
       required:
         - url
+    IncludeParam:
+      type: string
+      description: Additional metadata to include in the model listing
+      enum:
+        - context_window
+        - pricing
+      x-enum-varnames:
+        - ContextWindow
+        - Pricing
     Model:
       type: object
       description: Common model information
@@ -1037,6 +1056,16 @@ components:
           type: string
         served_by:
           $ref: '#/components/schemas/Provider'
+        context_window:
+          type: integer
+          format: int64
+          nullable: true
+          description: The context window size in tokens, if requested via include
+        pricing:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Pricing information, if requested via include
       required:
         - id
         - object
