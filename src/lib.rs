@@ -16,7 +16,6 @@ use std::future::Future;
 
 use futures_util::{Stream, StreamExt};
 use reqwest::{Client, StatusCode};
-use serde::Deserialize;
 use thiserror::Error;
 
 /// Stream of Server-Sent Events (SSE) yielded by [`InferenceGatewayAPI::generate_content_stream`].
@@ -66,11 +65,6 @@ pub enum GatewayError {
 
     #[error("Other error: {0}")]
     Other(#[from] Box<dyn std::error::Error + Send + Sync>),
-}
-
-#[derive(Debug, Deserialize)]
-struct ErrorResponse {
-    error: String,
 }
 
 /// Client for interacting with the Inference Gateway API
@@ -126,6 +120,24 @@ pub trait InferenceGatewayAPI {
         provider: Provider,
         model: &str,
         messages: Vec<Message>,
+    ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send;
+
+    /// Creates a message via the Anthropic-compatible Messages API.
+    ///
+    /// Providers without Messages support return [`GatewayError::BadRequest`];
+    /// use [`InferenceGatewayAPI::generate_content`] for those providers.
+    fn create_message(
+        &self,
+        provider: Option<Provider>,
+        request: CreateMessagesRequest,
+    ) -> impl Future<Output = Result<MessagesResponse, GatewayError>> + Send;
+
+    /// Streams a message via the Messages API as SSE events. Each event's
+    /// `data` field holds a JSON-serialized [`MessagesStreamEvent`].
+    fn create_message_stream(
+        &self,
+        provider: Option<Provider>,
+        request: CreateMessagesRequest,
     ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send;
 
     /// Lists available MCP tools (only when `EXPOSE_MCP=true` server-side)
@@ -201,6 +213,13 @@ impl InferenceGatewayClient {
         format!("{root}/health")
     }
 
+    fn messages_url(&self, provider: Option<Provider>) -> String {
+        match provider {
+            Some(provider) => format!("{}/messages?provider={provider}", self.base_url),
+            None => format!("{}/messages", self.base_url),
+        }
+    }
+
     fn build_chat_request(
         &self,
         model: &str,
@@ -226,23 +245,74 @@ impl InferenceGatewayClient {
 }
 
 async fn map_error_status(status: StatusCode, response: reqwest::Response) -> GatewayError {
-    let parse_error = |r: reqwest::Response| async move {
-        match r.json::<ErrorResponse>().await {
-            Ok(e) => e.error,
-            Err(_) => status.canonical_reason().unwrap_or("unknown").to_string(),
-        }
+    // Gateway errors are `{"error": "..."}`; Messages endpoints use the
+    // Anthropic shape `{"type": "error", "error": {"type": ..., "message": ...}}`.
+    let fallback = || status.canonical_reason().unwrap_or("unknown").to_string();
+    let message = match response.json::<serde_json::Value>().await {
+        Ok(body) => match body.get("error") {
+            Some(serde_json::Value::String(error)) => error.clone(),
+            Some(error) => error
+                .get("message")
+                .and_then(|m| m.as_str())
+                .map(str::to_string)
+                .unwrap_or_else(fallback),
+            None => fallback(),
+        },
+        Err(_) => fallback(),
     };
     match status {
-        StatusCode::UNAUTHORIZED => GatewayError::Unauthorized(parse_error(response).await),
-        StatusCode::FORBIDDEN => GatewayError::Forbidden(parse_error(response).await),
-        StatusCode::NOT_FOUND => GatewayError::NotFound(parse_error(response).await),
-        StatusCode::BAD_REQUEST => GatewayError::BadRequest(parse_error(response).await),
-        StatusCode::INTERNAL_SERVER_ERROR => {
-            GatewayError::InternalError(parse_error(response).await)
-        }
+        StatusCode::UNAUTHORIZED => GatewayError::Unauthorized(message),
+        StatusCode::FORBIDDEN => GatewayError::Forbidden(message),
+        StatusCode::NOT_FOUND => GatewayError::NotFound(message),
+        StatusCode::BAD_REQUEST => GatewayError::BadRequest(message),
+        StatusCode::INTERNAL_SERVER_ERROR => GatewayError::InternalError(message),
         other => GatewayError::Other(Box::new(std::io::Error::other(format!(
             "Unexpected status code: {other}"
         )))),
+    }
+}
+
+fn sse_stream<B>(
+    client: Client,
+    token: Option<String>,
+    url: String,
+    body: B,
+) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send
+where
+    B: serde::Serialize + Send + 'static,
+{
+    async_stream::try_stream! {
+        let mut request = client.post(&url);
+        if let Some(token) = token {
+            request = request.bearer_auth(token);
+        }
+        let response = request.json(&body).send().await?;
+        let mut stream = response.bytes_stream();
+        let mut current_event: Option<String> = None;
+        let mut current_data: Option<String> = None;
+
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk?;
+            let chunk_str = String::from_utf8_lossy(&chunk);
+
+            for line in chunk_str.lines() {
+                if line.is_empty() && current_data.is_some() {
+                    yield SSEvents {
+                        data: current_data.take().unwrap(),
+                        event: current_event.take(),
+                        retry: None,
+                    };
+                    continue;
+                }
+
+                if let Some(event) = line.strip_prefix("event:") {
+                    current_event = Some(event.trim().to_string());
+                } else if let Some(data) = line.strip_prefix("data:") {
+                    let processed_data = data.strip_suffix('\n').unwrap_or(data);
+                    current_data = Some(processed_data.trim().to_string());
+                }
+            }
+        }
     }
 }
 
@@ -320,45 +390,41 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         model: &str,
         messages: Vec<Message>,
     ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send {
-        let client = self.client.clone();
-        let token = self.token.clone();
         let url = format!("{}/chat/completions?provider={}", self.base_url, provider);
-
         let request_body = self.build_chat_request(model, messages, true);
+        sse_stream(self.client.clone(), self.token.clone(), url, request_body)
+    }
 
-        async_stream::try_stream! {
-            let mut request = client.post(&url);
-            if let Some(token) = token {
-                request = request.bearer_auth(token);
-            }
-            let response = request.json(&request_body).send().await?;
-            let mut stream = response.bytes_stream();
-            let mut current_event: Option<String> = None;
-            let mut current_data: Option<String> = None;
-
-            while let Some(chunk) = stream.next().await {
-                let chunk = chunk?;
-                let chunk_str = String::from_utf8_lossy(&chunk);
-
-                for line in chunk_str.lines() {
-                    if line.is_empty() && current_data.is_some() {
-                        yield SSEvents {
-                            data: current_data.take().unwrap(),
-                            event: current_event.take(),
-                            retry: None,
-                        };
-                        continue;
-                    }
-
-                    if let Some(event) = line.strip_prefix("event:") {
-                        current_event = Some(event.trim().to_string());
-                    } else if let Some(data) = line.strip_prefix("data:") {
-                        let processed_data = data.strip_suffix('\n').unwrap_or(data);
-                        current_data = Some(processed_data.trim().to_string());
-                    }
-                }
-            }
+    async fn create_message(
+        &self,
+        provider: Option<Provider>,
+        mut request: CreateMessagesRequest,
+    ) -> Result<MessagesResponse, GatewayError> {
+        request.stream = false;
+        let mut req = self.client.post(self.messages_url(provider));
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
         }
+
+        let response = req.json(&request).send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    fn create_message_stream(
+        &self,
+        provider: Option<Provider>,
+        mut request: CreateMessagesRequest,
+    ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send {
+        request.stream = true;
+        sse_stream(
+            self.client.clone(),
+            self.token.clone(),
+            self.messages_url(provider),
+            request,
+        )
     }
 
     async fn list_tools(&self) -> Result<ListToolsResponse, GatewayError> {
