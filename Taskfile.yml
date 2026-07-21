@@ -2,9 +2,9 @@ version: "3"
 
 tasks:
   oas-download:
-    desc: Download OpenAPI specification
+    desc: Download OpenAPI specification (pin with SCHEMAS_REF=refs/tags/vX.Y.Z, a branch ref, or a SHA)
     cmds:
-      - curl -o openapi.yaml https://raw.githubusercontent.com/inference-gateway/schemas/refs/heads/main/openapi.yaml
+      - curl -fsSL -o openapi.yaml "https://raw.githubusercontent.com/inference-gateway/schemas/{{.SCHEMAS_REF | default "refs/heads/main"}}/openapi.yaml"
 
   generate-types:
     desc: Generate src/generated/schemas.rs from openapi.yaml
@@ -12,7 +12,7 @@ tasks:
       - cargo run -p gen-types --release
 
   oas-sync:
-    desc: Refresh openapi.yaml from upstream and regenerate Rust types
+    desc: Fetch the OpenAPI spec (pin with SCHEMAS_REF) and regenerate Rust types
     cmds:
       - task: oas-download
       - task: generate-types
