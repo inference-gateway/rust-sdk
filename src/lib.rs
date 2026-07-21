@@ -102,6 +102,16 @@ pub trait InferenceGatewayAPI {
         provider: Provider,
     ) -> impl Future<Output = Result<ListModelsResponse, GatewayError>> + Send;
 
+    /// Lists available models with additional metadata included, optionally
+    /// filtered by a provider. Supported `include` values: `"pricing"`,
+    /// `"context_window"` - they populate [`Model::pricing`] and
+    /// [`Model::context_window`] respectively.
+    fn list_models_with_include(
+        &self,
+        provider: Option<Provider>,
+        include: &[&str],
+    ) -> impl Future<Output = Result<ListModelsResponse, GatewayError>> + Send;
+
     /// Generates content using a specified model
     fn generate_content(
         &self,
@@ -236,9 +246,13 @@ async fn map_error_status(status: StatusCode, response: reqwest::Response) -> Ga
     }
 }
 
-impl InferenceGatewayAPI for InferenceGatewayClient {
-    async fn list_models(&self) -> Result<ListModelsResponse, GatewayError> {
-        let url = format!("{}/models", self.base_url);
+impl InferenceGatewayClient {
+    async fn fetch_models(&self, query: &str) -> Result<ListModelsResponse, GatewayError> {
+        let url = if query.is_empty() {
+            format!("{}/models", self.base_url)
+        } else {
+            format!("{}/models?{}", self.base_url, query)
+        };
         let mut request = self.client.get(&url);
         if let Some(token) = &self.token {
             request = request.bearer_auth(token);
@@ -250,22 +264,33 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             status => Err(map_error_status(status, response).await),
         }
     }
+}
+
+impl InferenceGatewayAPI for InferenceGatewayClient {
+    async fn list_models(&self) -> Result<ListModelsResponse, GatewayError> {
+        self.fetch_models("").await
+    }
 
     async fn list_models_by_provider(
         &self,
         provider: Provider,
     ) -> Result<ListModelsResponse, GatewayError> {
-        let url = format!("{}/models?provider={}", self.base_url, provider);
-        let mut request = self.client.get(&url);
-        if let Some(token) = &self.token {
-            request = request.bearer_auth(token);
-        }
+        self.fetch_models(&format!("provider={provider}")).await
+    }
 
-        let response = request.send().await?;
-        match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
-            status => Err(map_error_status(status, response).await),
+    async fn list_models_with_include(
+        &self,
+        provider: Option<Provider>,
+        include: &[&str],
+    ) -> Result<ListModelsResponse, GatewayError> {
+        let mut query = Vec::new();
+        if let Some(provider) = provider {
+            query.push(format!("provider={provider}"));
         }
+        if !include.is_empty() {
+            query.push(format!("include={}", include.join(",")));
+        }
+        self.fetch_models(&query.join("&")).await
     }
 
     async fn generate_content(

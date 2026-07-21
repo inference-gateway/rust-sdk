@@ -1,13 +1,13 @@
 use crate::{
     ChatCompletionNamedToolChoice, ChatCompletionNamedToolChoiceFunction, ChatCompletionTool,
     ChatCompletionToolChoiceOption, ChatCompletionToolChoiceOptionString, ChatCompletionToolType,
-    CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
+    ContextWindowSource, CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, FinishReason, FunctionObject,
     FunctionParameters, GatewayError, InferenceGatewayAPI, InferenceGatewayClient, Message,
-    MessageContent, MessageRole, Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType,
-    ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType,
-    ResponseFormatText, ResponseFormatTextType,
+    MessageContent, MessageRole, PricingSource, Provider, ResponseFormatJsonObject,
+    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
+    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -532,6 +532,62 @@ async fn test_list_models_by_provider() -> Result<(), GatewayError> {
 
     assert_eq!(response.provider, Some(Provider::Ollama));
     assert_eq!(response.data[0].id, "llama2");
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_list_models_with_include() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let raw_json_response = r#"{
+        "provider":"openai",
+        "object":"list",
+        "data": [
+            {
+                "id": "openai/gpt-4o",
+                "object": "model",
+                "created": 1686935002,
+                "owned_by": "openai",
+                "served_by": "openai",
+                "pricing": {
+                    "currency": "USD",
+                    "input_per_token": "0.0000025",
+                    "output_per_token": "0.00001",
+                    "source": "provider",
+                    "updated_at": "2025-01-01T00:00:00Z"
+                },
+                "context_window": {
+                    "tokens": 128000,
+                    "source": "provider"
+                }
+            }
+        ]
+    }"#;
+
+    let mock = server
+        .mock(
+            "GET",
+            "/v1/models?provider=openai&include=pricing,context_window",
+        )
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(raw_json_response)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+    let response = client
+        .list_models_with_include(Some(Provider::Openai), &["pricing", "context_window"])
+        .await?;
+
+    let model = &response.data[0];
+    let pricing = model.pricing.as_ref().unwrap();
+    assert_eq!(pricing.currency, "USD");
+    assert_eq!(pricing.source, PricingSource::Provider);
+    let context_window = model.context_window.as_ref().unwrap();
+    assert_eq!(context_window.tokens, 128000);
+    assert_eq!(context_window.source, ContextWindowSource::Provider);
     mock.assert();
     Ok(())
 }
