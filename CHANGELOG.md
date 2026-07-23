@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.1](https://github.com/inference-gateway/rust-sdk/compare/0.17.0...0.17.1) (2026-07-23)
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#103](https://github.com/inference-gateway/rust-sdk/issues/103)) ([4bb325a](https://github.com/inference-gateway/rust-sdk/commit/4bb325a2233a2a633c7eb048d3d01d65a0b66255))
+* **deps:** bump actions/checkout in the github-actions group ([#104](https://github.com/inference-gateway/rust-sdk/issues/104)) ([219f78b](https://github.com/inference-gateway/rust-sdk/commit/219f78b24e0a6c22eaa43e96adc6b640cbba99d2))
+* **deps:** bump the cargo group with 8 updates ([#105](https://github.com/inference-gateway/rust-sdk/issues/105)) ([4f2aa30](https://github.com/inference-gateway/rust-sdk/commit/4f2aa30fc68be23835640dac09d0f7f094fda7aa))
+
 ## [0.17.0](https://github.com/inference-gateway/rust-sdk/compare/0.16.0...0.17.0) (2026-07-21)
 
 ### ✨ Features
