@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0](https://github.com/inference-gateway/rust-sdk/compare/0.17.1...0.18.0) (2026-07-27)
+
+### ✨ Features
+
+* sync generated types with schemas v0.13.0 ([#109](https://github.com/inference-gateway/rust-sdk/issues/109)) ([432f248](https://github.com/inference-gateway/rust-sdk/commit/432f2484404d8c4f2e8e8e57b1dede7577335ea6))
+
+### 🐛 Bug Fixes
+
+* **ci:** update maintainer app ID to client ID in workflows and documentation ([697c51f](https://github.com/inference-gateway/rust-sdk/commit/697c51fe0ecbc1a75ac77983dde8ebd751ff1181))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#106](https://github.com/inference-gateway/rust-sdk/issues/106)) ([ed2d8a4](https://github.com/inference-gateway/rust-sdk/commit/ed2d8a4f226d73a04e9423916260507d58dab758))
+* **deps:** bump quinn-proto from 0.11.14 to 0.11.16 ([#107](https://github.com/inference-gateway/rust-sdk/issues/107)) ([4c43527](https://github.com/inference-gateway/rust-sdk/commit/4c43527f0839d120278cf242c3006334e0f982f7))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump infer CLI v0.147.1 -> v0.153.1 ([#108](https://github.com/inference-gateway/rust-sdk/issues/108)) ([203ddbe](https://github.com/inference-gateway/rust-sdk/commit/203ddbe84535723a2769c3dbe185d38ea5ea642f))
+* sync generated types with schemas v0.14.0 ([#110](https://github.com/inference-gateway/rust-sdk/issues/110)) ([2338aae](https://github.com/inference-gateway/rust-sdk/commit/2338aae0ae2d4bc1f390bc2958dc12e263fb7e2d))
+
 ## [0.17.1](https://github.com/inference-gateway/rust-sdk/compare/0.17.0...0.17.1) (2026-07-23)
 
 ### 👷 CI
