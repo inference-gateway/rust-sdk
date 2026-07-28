@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.0](https://github.com/inference-gateway/rust-sdk/compare/0.18.1...0.19.0) (2026-07-28)
+
+### ✨ Features
+
+* add output config for effort level with anthropics messages API ([#113](https://github.com/inference-gateway/rust-sdk/issues/113)) ([598f57a](https://github.com/inference-gateway/rust-sdk/commit/598f57a49f5b42fdbdb8ec5f378b1e2cb0cc86dc))
+
 ## [0.18.1](https://github.com/inference-gateway/rust-sdk/compare/0.18.0...0.18.1) (2026-07-28)
 
 ### 👷 CI
