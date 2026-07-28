@@ -1170,6 +1170,7 @@ fn messages_request(model: &str, text: &str) -> CreateMessagesRequest {
         }],
         metadata: None,
         model: model.to_string(),
+        output_config: None,
         stop_sequences: Vec::new(),
         stream: false,
         system: None,
