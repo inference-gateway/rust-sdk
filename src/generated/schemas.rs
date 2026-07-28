@@ -1923,6 +1923,9 @@ Messages API.
 ///      "description": "The model to use for generating the message.",
 ///      "type": "string"
 ///    },
+///    "output_config": {
+///      "$ref": "#/definitions/MessagesOutputConfig"
+///    },
 ///    "stop_sequences": {
 ///      "description": "Custom text sequences that will cause the model to stop\ngenerating.\n",
 ///      "type": "array",
@@ -2012,6 +2015,8 @@ pub struct CreateMessagesRequest {
     pub metadata: ::std::option::Option<MessagesMetadata>,
     ///The model to use for generating the message.
     pub model: ::std::string::String,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub output_config: ::std::option::Option<MessagesOutputConfig>,
     /**Custom text sequences that will cause the model to stop
     generating.
     */
@@ -3913,6 +3918,138 @@ impl ::std::default::Default for MessagesMetadata {
         Self {
             user_id: Default::default(),
         }
+    }
+}
+/**Output configuration for a Messages API request.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Output configuration for a Messages API request.\n",
+///  "type": "object",
+///  "properties": {
+///    "effort": {
+///      "description": "Constrains how much effort the model spends on reasoning.\nLower effort yields faster responses and fewer reasoning\ntokens.\n",
+///      "type": "string",
+///      "enum": [
+///        "low",
+///        "medium",
+///        "high",
+///        "xhigh",
+///        "max"
+///      ]
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct MessagesOutputConfig {
+    /**Constrains how much effort the model spends on reasoning.
+    Lower effort yields faster responses and fewer reasoning
+    tokens.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub effort: ::std::option::Option<MessagesOutputConfigEffort>,
+}
+impl ::std::default::Default for MessagesOutputConfig {
+    fn default() -> Self {
+        Self {
+            effort: Default::default(),
+        }
+    }
+}
+/**Constrains how much effort the model spends on reasoning.
+Lower effort yields faster responses and fewer reasoning
+tokens.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Constrains how much effort the model spends on reasoning.\nLower effort yields faster responses and fewer reasoning\ntokens.\n",
+///  "type": "string",
+///  "enum": [
+///    "low",
+///    "medium",
+///    "high",
+///    "xhigh",
+///    "max"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MessagesOutputConfigEffort {
+    #[serde(rename = "low")]
+    Low,
+    #[serde(rename = "medium")]
+    Medium,
+    #[serde(rename = "high")]
+    High,
+    #[serde(rename = "xhigh")]
+    Xhigh,
+    #[serde(rename = "max")]
+    Max,
+}
+impl ::std::fmt::Display for MessagesOutputConfigEffort {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Low => f.write_str("low"),
+            Self::Medium => f.write_str("medium"),
+            Self::High => f.write_str("high"),
+            Self::Xhigh => f.write_str("xhigh"),
+            Self::Max => f.write_str("max"),
+        }
+    }
+}
+impl ::std::str::FromStr for MessagesOutputConfigEffort {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "low" => Ok(Self::Low),
+            "medium" => Ok(Self::Medium),
+            "high" => Ok(Self::High),
+            "xhigh" => Ok(Self::Xhigh),
+            "max" => Ok(Self::Max),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MessagesOutputConfigEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for MessagesOutputConfigEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MessagesOutputConfigEffort {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
     }
 }
 /**A redacted thinking content block in a Messages API request or
