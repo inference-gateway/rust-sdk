@@ -1918,8 +1918,16 @@ pub struct CreateChatCompletionStreamResponse {
 ///      "type": "string"
 ///    },
 ///    "quality": {
-///      "description": "The quality of the image. Must be one of `standard` or `hd`.\n",
-///      "type": "string"
+///      "description": "The quality of the image. `auto` selects the best quality for\nthe model. The GPT image models support `low`, `medium`, and\n`high`; `dall-e-3` supports `standard` and `hd`; `dall-e-2`\nsupports only `standard`.\n",
+///      "type": "string",
+///      "enum": [
+///        "auto",
+///        "standard",
+///        "hd",
+///        "low",
+///        "medium",
+///        "high"
+///      ]
 ///    },
 ///    "response_format": {
 ///      "description": "The format in which the generated images are returned. Must be\none of `url` or `b64_json`.\n",
@@ -1931,8 +1939,7 @@ pub struct CreateChatCompletionStreamResponse {
 ///      ]
 ///    },
 ///    "size": {
-///      "description": "The size of the generated images. Must be one of `256x256`,\n`512x512`, `1024x1024`, `1024x1792`, or `1792x1024`.\n",
-///      "type": "string"
+///      "$ref": "#/definitions/ImageSize"
 ///    }
 ///  }
 ///}
@@ -1948,20 +1955,117 @@ pub struct CreateImageRequest {
     pub n: ::std::num::NonZeroU64,
     ///A text description of the desired image.
     pub prompt: ::std::string::String,
-    /**The quality of the image. Must be one of `standard` or `hd`.
-     */
+    /**The quality of the image. `auto` selects the best quality for
+    the model. The GPT image models support `low`, `medium`, and
+    `high`; `dall-e-3` supports `standard` and `hd`; `dall-e-2`
+    supports only `standard`.
+    */
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-    pub quality: ::std::option::Option<::std::string::String>,
+    pub quality: ::std::option::Option<CreateImageRequestQuality>,
     /**The format in which the generated images are returned. Must be
     one of `url` or `b64_json`.
     */
     #[serde(default = "defaults::create_image_request_response_format")]
     pub response_format: CreateImageRequestResponseFormat,
-    /**The size of the generated images. Must be one of `256x256`,
-    `512x512`, `1024x1024`, `1024x1792`, or `1792x1024`.
-    */
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-    pub size: ::std::option::Option<::std::string::String>,
+    pub size: ::std::option::Option<ImageSize>,
+}
+/**The quality of the image. `auto` selects the best quality for
+the model. The GPT image models support `low`, `medium`, and
+`high`; `dall-e-3` supports `standard` and `hd`; `dall-e-2`
+supports only `standard`.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The quality of the image. `auto` selects the best quality for\nthe model. The GPT image models support `low`, `medium`, and\n`high`; `dall-e-3` supports `standard` and `hd`; `dall-e-2`\nsupports only `standard`.\n",
+///  "type": "string",
+///  "enum": [
+///    "auto",
+///    "standard",
+///    "hd",
+///    "low",
+///    "medium",
+///    "high"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateImageRequestQuality {
+    #[serde(rename = "auto")]
+    Auto,
+    #[serde(rename = "standard")]
+    Standard,
+    #[serde(rename = "hd")]
+    Hd,
+    #[serde(rename = "low")]
+    Low,
+    #[serde(rename = "medium")]
+    Medium,
+    #[serde(rename = "high")]
+    High,
+}
+impl ::std::fmt::Display for CreateImageRequestQuality {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Auto => f.write_str("auto"),
+            Self::Standard => f.write_str("standard"),
+            Self::Hd => f.write_str("hd"),
+            Self::Low => f.write_str("low"),
+            Self::Medium => f.write_str("medium"),
+            Self::High => f.write_str("high"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateImageRequestQuality {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "auto" => Ok(Self::Auto),
+            "standard" => Ok(Self::Standard),
+            "hd" => Ok(Self::Hd),
+            "low" => Ok(Self::Low),
+            "medium" => Ok(Self::Medium),
+            "high" => Ok(Self::High),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateImageRequestQuality {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CreateImageRequestQuality {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateImageRequestQuality {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 /**The format in which the generated images are returned. Must be
 one of `url` or `b64_json`.
@@ -2899,6 +3003,114 @@ impl ::std::convert::TryFrom<&::std::string::String> for ImageContentPartType {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for ImageContentPartType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**The size of the generated images. The GPT image models support
+`1024x1024`, `1536x1024`, `1024x1536`, and `auto`; `gpt-image-2`
+also accepts arbitrary `WIDTHxHEIGHT` values such as `1536x864`.
+`dall-e-2` supports `256x256`, `512x512`, and `1024x1024`;
+`dall-e-3` supports `1024x1024`, `1792x1024`, and `1024x1792`.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The size of the generated images. The GPT image models support\n`1024x1024`, `1536x1024`, `1024x1536`, and `auto`; `gpt-image-2`\nalso accepts arbitrary `WIDTHxHEIGHT` values such as `1536x864`.\n`dall-e-2` supports `256x256`, `512x512`, and `1024x1024`;\n`dall-e-3` supports `1024x1024`, `1792x1024`, and `1024x1792`.\n",
+///  "type": "string",
+///  "enum": [
+///    "auto",
+///    "256x256",
+///    "512x512",
+///    "1024x1024",
+///    "1536x1024",
+///    "1024x1536",
+///    "1792x1024",
+///    "1024x1792"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ImageSize {
+    #[serde(rename = "auto")]
+    Auto,
+    #[serde(rename = "256x256")]
+    X256x256,
+    #[serde(rename = "512x512")]
+    X512x512,
+    #[serde(rename = "1024x1024")]
+    X1024x1024,
+    #[serde(rename = "1536x1024")]
+    X1536x1024,
+    #[serde(rename = "1024x1536")]
+    X1024x1536,
+    #[serde(rename = "1792x1024")]
+    X1792x1024,
+    #[serde(rename = "1024x1792")]
+    X1024x1792,
+}
+impl ::std::fmt::Display for ImageSize {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Auto => f.write_str("auto"),
+            Self::X256x256 => f.write_str("256x256"),
+            Self::X512x512 => f.write_str("512x512"),
+            Self::X1024x1024 => f.write_str("1024x1024"),
+            Self::X1536x1024 => f.write_str("1536x1024"),
+            Self::X1024x1536 => f.write_str("1024x1536"),
+            Self::X1792x1024 => f.write_str("1792x1024"),
+            Self::X1024x1792 => f.write_str("1024x1792"),
+        }
+    }
+}
+impl ::std::str::FromStr for ImageSize {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "auto" => Ok(Self::Auto),
+            "256x256" => Ok(Self::X256x256),
+            "512x512" => Ok(Self::X512x512),
+            "1024x1024" => Ok(Self::X1024x1024),
+            "1536x1024" => Ok(Self::X1536x1024),
+            "1024x1536" => Ok(Self::X1024x1536),
+            "1792x1024" => Ok(Self::X1792x1024),
+            "1024x1792" => Ok(Self::X1024x1792),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ImageSize {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ImageSize {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ImageSize {
     type Error = self::error::ConversionError;
     fn try_from(
         value: ::std::string::String,
