@@ -4,13 +4,14 @@ use crate::{
     ContextWindowSource, CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageRequest,
-    CreateMessagesRequest, FinishReason, FunctionObject, FunctionParameters, GatewayError,
-    ImageQuality, ImageSize, InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent,
-    MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
-    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
-    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
-    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
-    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
+    CreateImageRequestQuality, CreateMessagesRequest, FinishReason, FunctionObject,
+    FunctionParameters, GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient,
+    Message, MessageContent, MessageRole, MessagesMessage, MessagesMessageContent,
+    MessagesMessageRole, MessagesResponseContentBlock, MessagesResponseStopReason,
+    MessagesStreamEvent, MessagesStreamEventType, PricingSource, Provider,
+    ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
+    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
+    ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1345,8 +1346,8 @@ async fn test_generate_image() -> Result<(), GatewayError> {
     let request = CreateImageRequest {
         prompt: "A cute cat".to_string(),
         model: Some("gpt-image-2".to_string()),
-        quality: Some(ImageQuality::Hd.into()),
-        size: Some(ImageSize::Square1024.into()),
+        quality: Some(CreateImageRequestQuality::Hd),
+        size: Some(ImageSize::X1024x1024),
         ..Default::default()
     };
 
