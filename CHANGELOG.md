@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0](https://github.com/inference-gateway/rust-sdk/compare/0.19.0...0.20.0) (2026-07-31)
+
+### ✨ Features
+
+* sync generated types with schemas v0.17.0 ([#115](https://github.com/inference-gateway/rust-sdk/issues/115)) ([d83be52](https://github.com/inference-gateway/rust-sdk/commit/d83be526d94f55faa36ceab78f6932e23f500d1e))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#114](https://github.com/inference-gateway/rust-sdk/issues/114)) ([8088301](https://github.com/inference-gateway/rust-sdk/commit/80883010da8ddb57d09b626edb7ae9a96234bbee))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump infer CLI v0.153.1 -> v0.155.0 ([#116](https://github.com/inference-gateway/rust-sdk/issues/116)) ([3b2eaa2](https://github.com/inference-gateway/rust-sdk/commit/3b2eaa222ec170283e8c354005fe6332d98ae25e))
+
 ## [0.19.0](https://github.com/inference-gateway/rust-sdk/compare/0.18.1...0.19.0) (2026-07-28)
 
 ### ✨ Features
