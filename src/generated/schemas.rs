@@ -1889,6 +1889,161 @@ pub struct CreateChatCompletionStreamResponse {
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub usage: ::std::option::Option<CompletionUsage>,
 }
+/**Request body for creating an image via the OpenAI-compatible Images API.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Request body for creating an image via the OpenAI-compatible Images API.\n",
+///  "type": "object",
+///  "required": [
+///    "prompt"
+///  ],
+///  "properties": {
+///    "model": {
+///      "description": "Model ID to use for image generation.",
+///      "type": "string"
+///    },
+///    "n": {
+///      "description": "Number of images to generate.",
+///      "default": 1,
+///      "type": "integer",
+///      "maximum": 10.0,
+///      "minimum": 1.0
+///    },
+///    "prompt": {
+///      "description": "A text description of the desired image.",
+///      "type": "string"
+///    },
+///    "quality": {
+///      "description": "The quality of the image. Must be one of `standard` or `hd`.\n",
+///      "type": "string"
+///    },
+///    "response_format": {
+///      "description": "The format in which the generated images are returned. Must be\none of `url` or `b64_json`.\n",
+///      "default": "url",
+///      "type": "string",
+///      "enum": [
+///        "url",
+///        "b64_json"
+///      ]
+///    },
+///    "size": {
+///      "description": "The size of the generated images. Must be one of `256x256`,\n`512x512`, `1024x1024`, `1024x1792`, or `1792x1024`.\n",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateImageRequest {
+    ///Model ID to use for image generation.
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub model: ::std::option::Option<::std::string::String>,
+    ///Number of images to generate.
+    #[serde(default = "defaults::default_nzu64::<::std::num::NonZeroU64, 1>")]
+    pub n: ::std::num::NonZeroU64,
+    ///A text description of the desired image.
+    pub prompt: ::std::string::String,
+    /**The quality of the image. Must be one of `standard` or `hd`.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub quality: ::std::option::Option<::std::string::String>,
+    /**The format in which the generated images are returned. Must be
+    one of `url` or `b64_json`.
+    */
+    #[serde(default = "defaults::create_image_request_response_format")]
+    pub response_format: CreateImageRequestResponseFormat,
+    /**The size of the generated images. Must be one of `256x256`,
+    `512x512`, `1024x1024`, `1024x1792`, or `1792x1024`.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub size: ::std::option::Option<::std::string::String>,
+}
+/**The format in which the generated images are returned. Must be
+one of `url` or `b64_json`.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The format in which the generated images are returned. Must be\none of `url` or `b64_json`.\n",
+///  "default": "url",
+///  "type": "string",
+///  "enum": [
+///    "url",
+///    "b64_json"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateImageRequestResponseFormat {
+    #[serde(rename = "url")]
+    Url,
+    #[serde(rename = "b64_json")]
+    B64Json,
+}
+impl ::std::fmt::Display for CreateImageRequestResponseFormat {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Url => f.write_str("url"),
+            Self::B64Json => f.write_str("b64_json"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateImageRequestResponseFormat {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "url" => Ok(Self::Url),
+            "b64_json" => Ok(Self::B64Json),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateImageRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CreateImageRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateImageRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::default::Default for CreateImageRequestResponseFormat {
+    fn default() -> Self {
+        CreateImageRequestResponseFormat::Url
+    }
+}
 /**Request body for creating a message via the Anthropic-compatible
 Messages API.
 */
@@ -2376,6 +2531,9 @@ pub struct CreateResponseRequest {
 ///    "chat": {
 ///      "type": "string"
 ///    },
+///    "images": {
+///      "type": "string"
+///    },
 ///    "models": {
 ///      "type": "string"
 ///    },
@@ -2389,6 +2547,8 @@ pub struct CreateResponseRequest {
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct Endpoints {
     pub chat: ::std::string::String,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub images: ::std::option::Option<::std::string::String>,
     pub models: ::std::string::String,
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub responses: ::std::option::Option<::std::string::String>,
@@ -2590,6 +2750,58 @@ impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json:
 {
     fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
         Self(value)
+    }
+}
+///Represents the url or the content of an image generated by the Images API.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Represents the url or the content of an image generated by the Images API.",
+///  "type": "object",
+///  "properties": {
+///    "b64_json": {
+///      "description": "The base64-encoded JSON of the generated image, if\n`response_format` is `b64_json`.\n",
+///      "type": "string"
+///    },
+///    "revised_prompt": {
+///      "description": "The prompt that was used to generate the image, if there was any\nrevision to the prompt.\n",
+///      "type": "string"
+///    },
+///    "url": {
+///      "description": "The URL of the generated image, if `response_format` is `url`\n(default).\n",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct Image {
+    /**The base64-encoded JSON of the generated image, if
+    `response_format` is `b64_json`.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub b64_json: ::std::option::Option<::std::string::String>,
+    /**The prompt that was used to generate the image, if there was any
+    revision to the prompt.
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub revised_prompt: ::std::option::Option<::std::string::String>,
+    /**The URL of the generated image, if `response_format` is `url`
+    (default).
+    */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub url: ::std::option::Option<::std::string::String>,
+}
+impl ::std::default::Default for Image {
+    fn default() -> Self {
+        Self {
+            b64_json: Default::default(),
+            revised_prompt: Default::default(),
+            url: Default::default(),
+        }
     }
 }
 ///Image content part
@@ -2814,6 +3026,179 @@ impl ::std::convert::TryFrom<::std::string::String> for ImageUrlDetail {
 impl ::std::default::Default for ImageUrlDetail {
     fn default() -> Self {
         ImageUrlDetail::Auto
+    }
+}
+///Represents the result of an image generation request.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Represents the result of an image generation request.",
+///  "type": "object",
+///  "required": [
+///    "created",
+///    "data"
+///  ],
+///  "properties": {
+///    "created": {
+///      "description": "The Unix timestamp (in seconds) of when the image was created.",
+///      "type": "integer",
+///      "format": "int64"
+///    },
+///    "data": {
+///      "description": "The generated images.",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/Image"
+///      }
+///    },
+///    "usage": {
+///      "description": "Usage statistics for the image generation request.",
+///      "type": "object",
+///      "properties": {
+///        "input_tokens": {
+///          "description": "Number of input tokens.",
+///          "default": 0,
+///          "type": "integer",
+///          "format": "int64"
+///        },
+///        "input_tokens_details": {
+///          "description": "A detailed breakdown of the input tokens.",
+///          "type": "object",
+///          "properties": {
+///            "cached_tokens": {
+///              "description": "The number of tokens retrieved from the cache.",
+///              "default": 0,
+///              "type": "integer",
+///              "format": "int64"
+///            }
+///          }
+///        },
+///        "output_tokens": {
+///          "description": "Number of output tokens.",
+///          "default": 0,
+///          "type": "integer",
+///          "format": "int64"
+///        },
+///        "total_tokens": {
+///          "description": "Total number of tokens used.",
+///          "default": 0,
+///          "type": "integer",
+///          "format": "int64"
+///        }
+///      }
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ImagesResponse {
+    ///The Unix timestamp (in seconds) of when the image was created.
+    pub created: i64,
+    ///The generated images.
+    pub data: ::std::vec::Vec<Image>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub usage: ::std::option::Option<ImagesResponseUsage>,
+}
+///Usage statistics for the image generation request.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Usage statistics for the image generation request.",
+///  "type": "object",
+///  "properties": {
+///    "input_tokens": {
+///      "description": "Number of input tokens.",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    },
+///    "input_tokens_details": {
+///      "description": "A detailed breakdown of the input tokens.",
+///      "type": "object",
+///      "properties": {
+///        "cached_tokens": {
+///          "description": "The number of tokens retrieved from the cache.",
+///          "default": 0,
+///          "type": "integer",
+///          "format": "int64"
+///        }
+///      }
+///    },
+///    "output_tokens": {
+///      "description": "Number of output tokens.",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    },
+///    "total_tokens": {
+///      "description": "Total number of tokens used.",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ImagesResponseUsage {
+    ///Number of input tokens.
+    #[serde(default)]
+    pub input_tokens: i64,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub input_tokens_details: ::std::option::Option<ImagesResponseUsageInputTokensDetails>,
+    ///Number of output tokens.
+    #[serde(default)]
+    pub output_tokens: i64,
+    ///Total number of tokens used.
+    #[serde(default)]
+    pub total_tokens: i64,
+}
+impl ::std::default::Default for ImagesResponseUsage {
+    fn default() -> Self {
+        Self {
+            input_tokens: Default::default(),
+            input_tokens_details: Default::default(),
+            output_tokens: Default::default(),
+            total_tokens: Default::default(),
+        }
+    }
+}
+///A detailed breakdown of the input tokens.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A detailed breakdown of the input tokens.",
+///  "type": "object",
+///  "properties": {
+///    "cached_tokens": {
+///      "description": "The number of tokens retrieved from the cache.",
+///      "default": 0,
+///      "type": "integer",
+///      "format": "int64"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ImagesResponseUsageInputTokensDetails {
+    ///The number of tokens retrieved from the cache.
+    #[serde(default)]
+    pub cached_tokens: i64,
+}
+impl ::std::default::Default for ImagesResponseUsageInputTokensDetails {
+    fn default() -> Self {
+        Self {
+            cached_tokens: Default::default(),
+        }
     }
 }
 ///Response structure for listing models
@@ -9900,6 +10285,10 @@ pub mod defaults {
     }
     pub(super) fn create_chat_completion_request_top_p() -> f64 {
         1_f64
+    }
+    pub(super) fn create_image_request_response_format() -> super::CreateImageRequestResponseFormat
+    {
+        super::CreateImageRequestResponseFormat::Url
     }
     pub(super) fn create_response_request_temperature() -> f32 {
         1_f32
