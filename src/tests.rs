@@ -3,14 +3,14 @@ use crate::{
     ChatCompletionToolChoiceOption, ChatCompletionToolChoiceOptionString, ChatCompletionToolType,
     ContextWindowSource, CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
-    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateMessagesRequest,
-    FinishReason, FunctionObject, FunctionParameters, GatewayError, InferenceGatewayAPI,
-    InferenceGatewayClient, Message, MessageContent, MessageRole, MessagesMessage,
-    MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
-    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
-    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
-    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
-    ResponseFormatTextType,
+    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageRequest,
+    CreateMessagesRequest, FinishReason, FunctionObject, FunctionParameters, GatewayError,
+    ImageQuality, ImageSize, InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent,
+    MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
+    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
+    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
+    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
+    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1314,6 +1314,86 @@ async fn test_create_message_stream() -> Result<(), GatewayError> {
             MessagesStreamEventType::MessageStop,
         ]
     );
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_generate_image() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let raw_json_response = r#"{
+        "created": 1686935002,
+        "data": [
+            {
+                "url": "https://example.com/image.png",
+                "revised_prompt": "A cute cat"
+            }
+        ]
+    }"#;
+
+    let mock = server
+        .mock("POST", "/v1/images/generations?provider=openai")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(raw_json_response)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateImageRequest {
+        prompt: "A cute cat".to_string(),
+        model: Some("gpt-image-2".to_string()),
+        quality: Some(ImageQuality::Hd.into()),
+        size: Some(ImageSize::Square1024.into()),
+        ..Default::default()
+    };
+
+    let response = client.generate_image(Provider::Openai, request).await?;
+
+    assert_eq!(response.created, 1686935002);
+    assert_eq!(response.data.len(), 1);
+    assert_eq!(
+        response.data[0].url.as_deref(),
+        Some("https://example.com/image.png")
+    );
+    assert_eq!(
+        response.data[0].revised_prompt.as_deref(),
+        Some("A cute cat")
+    );
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_generate_image_error_response() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/images/generations?provider=openai")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error":"The Images API is not supported by this provider yet."}"#)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateImageRequest {
+        prompt: "A cat".to_string(),
+        ..Default::default()
+    };
+
+    let error = client
+        .generate_image(Provider::Openai, request)
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, GatewayError::BadRequest(_)));
+    if let GatewayError::BadRequest(msg) = error {
+        assert_eq!(msg, "The Images API is not supported by this provider yet.");
+    }
     mock.assert();
     Ok(())
 }

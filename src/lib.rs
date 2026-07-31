@@ -10,6 +10,7 @@
 mod ext;
 mod generated;
 
+pub use ext::image_request::{ImageQuality, ImageSize};
 pub use generated::schemas::*;
 
 use std::future::Future;
@@ -142,6 +143,16 @@ pub trait InferenceGatewayAPI {
 
     /// Lists available MCP tools (only when `EXPOSE_MCP=true` server-side)
     fn list_tools(&self) -> impl Future<Output = Result<ListToolsResponse, GatewayError>> + Send;
+
+    /// Generates images using a specified model via the OpenAI-compatible Images API.
+    ///
+    /// Providers without Images support return [`GatewayError::BadRequest`];
+    /// use [`InferenceGatewayAPI::generate_content`] for those providers.
+    fn generate_image(
+        &self,
+        provider: Provider,
+        request: CreateImageRequest,
+    ) -> impl Future<Output = Result<ImagesResponse, GatewayError>> + Send;
 
     /// Health probe - returns true on HTTP 200, false otherwise.
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
@@ -435,6 +446,23 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
 
         let response = request.send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    async fn generate_image(
+        &self,
+        provider: Provider,
+        request: CreateImageRequest,
+    ) -> Result<ImagesResponse, GatewayError> {
+        let url = format!("{}/images/generations?provider={}", self.base_url, provider);
+        let mut req = self.client.post(&url);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
+        }
+        let response = req.json(&request).send().await?;
         match response.status() {
             StatusCode::OK => Ok(response.json().await?),
             status => Err(map_error_status(status, response).await),
