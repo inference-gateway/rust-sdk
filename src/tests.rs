@@ -5,12 +5,12 @@ use crate::{
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageRequest,
     CreateMessagesRequest, FinishReason, FunctionObject, FunctionParameters, GatewayError,
-    InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent, MessageRole,
-    MessagesMessage, MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
-    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
-    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
-    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
-    ResponseFormatTextType,
+    ImageQuality, ImageSize, InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent,
+    MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
+    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
+    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
+    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
+    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1345,10 +1345,9 @@ async fn test_generate_image() -> Result<(), GatewayError> {
     let request = CreateImageRequest {
         prompt: "A cute cat".to_string(),
         model: Some("gpt-image-2".to_string()),
-        n: std::num::NonZeroU64::MIN,
-        response_format: crate::CreateImageRequestResponseFormat::Url,
-        quality: None,
-        size: None,
+        quality: Some(ImageQuality::Hd.into()),
+        size: Some(ImageSize::Square1024.into()),
+        ..Default::default()
     };
 
     let response = client.generate_image(Provider::Openai, request).await?;
@@ -1383,11 +1382,7 @@ async fn test_generate_image_error_response() -> Result<(), GatewayError> {
 
     let request = CreateImageRequest {
         prompt: "A cat".to_string(),
-        model: None,
-        n: std::num::NonZeroU64::MIN,
-        response_format: crate::CreateImageRequestResponseFormat::Url,
-        quality: None,
-        size: None,
+        ..Default::default()
     };
 
     let error = client

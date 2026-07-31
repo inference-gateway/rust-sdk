@@ -10,6 +10,7 @@
 mod ext;
 mod generated;
 
+pub use ext::image_request::{ImageQuality, ImageSize};
 pub use generated::schemas::*;
 
 use std::future::Future;

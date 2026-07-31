@@ -6,4 +6,5 @@
 //! functions and a `Default` for the chat-completion request.
 
 mod chat_request;
+pub mod image_request;
 mod tool_call;
