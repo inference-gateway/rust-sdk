@@ -1344,7 +1344,7 @@ async fn test_generate_image() -> Result<(), GatewayError> {
 
     let request = CreateImageRequest {
         prompt: "A cute cat".to_string(),
-        model: Some("dall-e-3".to_string()),
+        model: Some("gpt-image-2".to_string()),
         n: std::num::NonZeroU64::MIN,
         response_format: crate::CreateImageRequestResponseFormat::Url,
         quality: None,
