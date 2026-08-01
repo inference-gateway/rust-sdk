@@ -31,6 +31,8 @@ stable Rust toolchain (1.94+ recommended; the SDK uses `edition = "2024"`).
      conversations, and function calling.
    - [Messages](./messages): Shows the Anthropic-compatible Messages API,
      non-streaming and streaming.
+   - [Images](./images): Shows the OpenAI-compatible Images API - generation,
+     edits, and variations.
 
 ## Examples Overview
 
@@ -73,6 +75,19 @@ interaction patterns
 **Best for**: Anthropic-style integrations and providers with Messages
 support
 
+### [Images Example](./images)
+
+**Purpose**: Use the OpenAI-compatible Images API
+
+**Features**:
+
+- Image generation from a text prompt
+- Image edits from a local source image (multipart upload)
+- Image variations of a local source image
+
+**Best for**: Image generation workflows with providers that support the
+Images API
+
 ## Running Examples
 
 Each example is a standalone binary crate in this workspace. From the SDK
@@ -87,6 +102,10 @@ PROVIDER=deepseek LLM=deepseek-v4-flash cargo run -p chat-example
 
 # Messages example (defaults to PROVIDER=anthropic LLM=claude-sonnet-5)
 PROVIDER=anthropic LLM=claude-sonnet-5 cargo run -p messages-example
+
+# Images example (defaults to PROVIDER=openai LLM=dall-e-2; set IMAGE_PATH
+# to a local png/webp/jpg to also run the edit and variation examples)
+PROVIDER=openai LLM=dall-e-2 IMAGE_PATH=./photo.png cargo run -p images-example
 ```
 
 Or, from inside an example directory:
