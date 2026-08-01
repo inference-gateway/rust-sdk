@@ -15,6 +15,7 @@ pub use generated::schemas::*;
 use std::future::Future;
 
 use futures_util::{Stream, StreamExt};
+use reqwest::multipart::{Form, Part};
 use reqwest::{Client, StatusCode};
 use thiserror::Error;
 
@@ -65,6 +66,44 @@ pub enum GatewayError {
 
     #[error("Other error: {0}")]
     Other(#[from] Box<dyn std::error::Error + Send + Sync>),
+}
+
+/// Request for [`InferenceGatewayAPI::create_image_edit`].
+///
+/// The edits endpoint takes `multipart/form-data` with binary image uploads,
+/// which the codegen cannot express, so this type is hand-written.
+#[derive(Debug, Clone, Default)]
+pub struct CreateImageEditRequest {
+    /// The image to edit, as raw file bytes (png/webp/jpg).
+    pub image: Vec<u8>,
+    /// A text description of the desired image.
+    pub prompt: String,
+    /// Optional PNG mask whose transparent areas indicate where to edit.
+    pub mask: Option<Vec<u8>>,
+    pub model: Option<String>,
+    /// Number of images to generate (1-10).
+    pub n: Option<i64>,
+    pub size: Option<ImageSize>,
+    /// `auto`, `standard`, `low`, `medium`, or `high`.
+    pub quality: Option<String>,
+    /// `url` or `b64_json`.
+    pub response_format: Option<String>,
+}
+
+/// Request for [`InferenceGatewayAPI::create_image_variation`].
+///
+/// The variations endpoint takes `multipart/form-data` with a binary image
+/// upload, which the codegen cannot express, so this type is hand-written.
+#[derive(Debug, Clone, Default)]
+pub struct CreateImageVariationRequest {
+    /// The image to base the variation on, as raw file bytes (png/webp/jpg).
+    pub image: Vec<u8>,
+    pub model: Option<String>,
+    /// Number of images to generate (1-10).
+    pub n: Option<i64>,
+    pub size: Option<ImageSize>,
+    /// `url` or `b64_json`.
+    pub response_format: Option<String>,
 }
 
 /// Client for interacting with the Inference Gateway API
@@ -151,6 +190,26 @@ pub trait InferenceGatewayAPI {
         &self,
         provider: Provider,
         request: CreateImageRequest,
+    ) -> impl Future<Output = Result<ImagesResponse, GatewayError>> + Send;
+
+    /// Edits or extends an image via the OpenAI-compatible Images API
+    /// (`POST /images/edits`, multipart/form-data).
+    ///
+    /// Providers without Images support return [`GatewayError::BadRequest`].
+    fn create_image_edit(
+        &self,
+        provider: Option<Provider>,
+        request: CreateImageEditRequest,
+    ) -> impl Future<Output = Result<ImagesResponse, GatewayError>> + Send;
+
+    /// Creates a variation of an image via the OpenAI-compatible Images API
+    /// (`POST /images/variations`, multipart/form-data).
+    ///
+    /// Providers without Images support return [`GatewayError::BadRequest`].
+    fn create_image_variation(
+        &self,
+        provider: Option<Provider>,
+        request: CreateImageVariationRequest,
     ) -> impl Future<Output = Result<ImagesResponse, GatewayError>> + Send;
 
     /// Health probe - returns true on HTTP 200, false otherwise.
@@ -462,6 +521,80 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             req = req.bearer_auth(token);
         }
         let response = req.json(&request).send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    async fn create_image_edit(
+        &self,
+        provider: Option<Provider>,
+        request: CreateImageEditRequest,
+    ) -> Result<ImagesResponse, GatewayError> {
+        let mut url = format!("{}/images/edits", self.base_url);
+        if let Some(provider) = provider {
+            url = format!("{url}?provider={provider}");
+        }
+        let mut form = Form::new()
+            .part("image", Part::bytes(request.image).file_name("image"))
+            .text("prompt", request.prompt);
+        if let Some(mask) = request.mask {
+            form = form.part("mask", Part::bytes(mask).file_name("mask"));
+        }
+        if let Some(model) = request.model {
+            form = form.text("model", model);
+        }
+        if let Some(n) = request.n {
+            form = form.text("n", n.to_string());
+        }
+        if let Some(size) = request.size {
+            form = form.text("size", size.to_string());
+        }
+        if let Some(quality) = request.quality {
+            form = form.text("quality", quality);
+        }
+        if let Some(response_format) = request.response_format {
+            form = form.text("response_format", response_format);
+        }
+        let mut req = self.client.post(&url);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
+        }
+        let response = req.multipart(form).send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    async fn create_image_variation(
+        &self,
+        provider: Option<Provider>,
+        request: CreateImageVariationRequest,
+    ) -> Result<ImagesResponse, GatewayError> {
+        let mut url = format!("{}/images/variations", self.base_url);
+        if let Some(provider) = provider {
+            url = format!("{url}?provider={provider}");
+        }
+        let mut form = Form::new().part("image", Part::bytes(request.image).file_name("image"));
+        if let Some(model) = request.model {
+            form = form.text("model", model);
+        }
+        if let Some(n) = request.n {
+            form = form.text("n", n.to_string());
+        }
+        if let Some(size) = request.size {
+            form = form.text("size", size.to_string());
+        }
+        if let Some(response_format) = request.response_format {
+            form = form.text("response_format", response_format);
+        }
+        let mut req = self.client.post(&url);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
+        }
+        let response = req.multipart(form).send().await?;
         match response.status() {
             StatusCode::OK => Ok(response.json().await?),
             status => Err(map_error_status(status, response).await),

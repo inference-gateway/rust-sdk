@@ -3,13 +3,13 @@ use crate::{
     ChatCompletionToolChoiceOption, ChatCompletionToolChoiceOptionString, ChatCompletionToolType,
     ContextWindowSource, CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
-    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageRequest,
-    CreateImageRequestQuality, CreateMessagesRequest, FinishReason, FunctionObject,
-    FunctionParameters, GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient,
-    Message, MessageContent, MessageRole, MessagesMessage, MessagesMessageContent,
-    MessagesMessageRole, MessagesResponseContentBlock, MessagesResponseStopReason,
-    MessagesStreamEvent, MessagesStreamEventType, PricingSource, Provider,
-    ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
+    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageEditRequest,
+    CreateImageRequest, CreateImageRequestQuality, CreateImageVariationRequest,
+    CreateMessagesRequest, FinishReason, FunctionObject, FunctionParameters, GatewayError,
+    ImageSize, InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent, MessageRole,
+    MessagesMessage, MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
+    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
+    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
     ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
     ResponseFormatTextType,
 };
@@ -1395,6 +1395,91 @@ async fn test_generate_image_error_response() -> Result<(), GatewayError> {
     if let GatewayError::BadRequest(msg) = error {
         assert_eq!(msg, "The Images API is not supported by this provider yet.");
     }
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_image_edit() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let raw_json_response = r#"{
+        "created": 1686935002,
+        "data": [{"url": "https://example.com/edited.png"}]
+    }"#;
+
+    let mock = server
+        .mock("POST", "/v1/images/edits?provider=openai")
+        .match_header(
+            "content-type",
+            Matcher::Regex("multipart/form-data.*".to_string()),
+        )
+        .match_body(Matcher::Regex("A cute cat".to_string()))
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(raw_json_response)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateImageEditRequest {
+        image: vec![1, 2, 3],
+        prompt: "A cute cat".to_string(),
+        model: Some("gpt-image-2".to_string()),
+        size: Some(ImageSize::X1024x1024),
+        ..Default::default()
+    };
+
+    let response = client
+        .create_image_edit(Some(Provider::Openai), request)
+        .await?;
+
+    assert_eq!(response.created, 1686935002);
+    assert_eq!(
+        response.data[0].url.as_deref(),
+        Some("https://example.com/edited.png")
+    );
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_image_variation() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let raw_json_response = r#"{
+        "created": 1686935002,
+        "data": [{"url": "https://example.com/variation.png"}]
+    }"#;
+
+    let mock = server
+        .mock("POST", "/v1/images/variations")
+        .match_header(
+            "content-type",
+            Matcher::Regex("multipart/form-data.*".to_string()),
+        )
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(raw_json_response)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateImageVariationRequest {
+        image: vec![1, 2, 3],
+        n: Some(2),
+        ..Default::default()
+    };
+
+    let response = client.create_image_variation(None, request).await?;
+
+    assert_eq!(response.created, 1686935002);
+    assert_eq!(
+        response.data[0].url.as_deref(),
+        Some("https://example.com/variation.png")
+    );
     mock.assert();
     Ok(())
 }
