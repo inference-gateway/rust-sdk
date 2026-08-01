@@ -2638,6 +2638,12 @@ pub struct CreateResponseRequest {
 ///    "images": {
 ///      "type": "string"
 ///    },
+///    "images_edits": {
+///      "type": "string"
+///    },
+///    "images_variations": {
+///      "type": "string"
+///    },
 ///    "models": {
 ///      "type": "string"
 ///    },
@@ -2653,6 +2659,10 @@ pub struct Endpoints {
     pub chat: ::std::string::String,
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub images: ::std::option::Option<::std::string::String>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub images_edits: ::std::option::Option<::std::string::String>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub images_variations: ::std::option::Option<::std::string::String>,
     pub models: ::std::string::String,
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub responses: ::std::option::Option<::std::string::String>,
