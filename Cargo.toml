@@ -5,6 +5,7 @@ members = [
     "examples/list",
     "examples/chat",
     "examples/messages",
+    "examples/images",
 ]
 
 [package]

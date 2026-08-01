@@ -1,0 +1,13 @@
+[package]
+name = "images-example"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "images-example"
+path = "src/main.rs"
+
+[dependencies]
+inference-gateway-sdk = { path = "../.." }
+tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
