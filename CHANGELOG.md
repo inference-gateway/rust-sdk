@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.22.1](https://github.com/inference-gateway/rust-sdk/compare/0.22.0...0.22.1) (2026-08-04)
+
+### 📚 Documentation
+
+* **sdk:** document modalities include value in list_models_with_includes - schema v0.21.1 ([#122](https://github.com/inference-gateway/rust-sdk/issues/122)) ([f45ecac](https://github.com/inference-gateway/rust-sdk/commit/f45ecac7577843cce846cd331a66b0f89ce22129))
+
 ## [0.22.0](https://github.com/inference-gateway/rust-sdk/compare/0.21.0...0.22.0) (2026-08-01)
 
 ### ✨ Features
