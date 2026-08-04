@@ -137,8 +137,9 @@ pub trait InferenceGatewayAPI {
 
     /// Lists available models with additional metadata included, optionally
     /// filtered by a provider. Supported `include` values: `"pricing"`,
-    /// `"context_window"` - they populate [`Model::pricing`] and
-    /// [`Model::context_window`] respectively.
+    /// `"context_window"`, `"modalities"` - they populate
+    /// [`Model::pricing`], [`Model::context_window`], and
+    /// [`Model::modalities`] respectively.
     fn list_models_with_include(
         &self,
         provider: Option<Provider>,
