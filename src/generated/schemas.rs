@@ -6386,6 +6386,26 @@ pub struct MessagesUsage {
 ///    "id": {
 ///      "type": "string"
 ///    },
+///    "modalities": {
+///      "description": "The modalities the model supports natively (included when `include=modalities`)",
+///      "oneOf": [
+///        {
+///          "type": "array",
+///          "items": {
+///            "type": "string",
+///            "enum": [
+///              "text",
+///              "image",
+///              "audio",
+///              "video"
+///            ]
+///          }
+///        },
+///        {
+///          "type": "null"
+///        }
+///      ]
+///    },
 ///    "object": {
 ///      "type": "string"
 ///    },
@@ -6417,12 +6437,97 @@ pub struct Model {
     pub context_window: ::std::option::Option<ContextWindow>,
     pub created: i64,
     pub id: ::std::string::String,
+    ///The modalities the model supports natively (included when `include=modalities`)
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub modalities: ::std::option::Option<::std::vec::Vec<ModelModalitiesItem>>,
     pub object: ::std::string::String,
     pub owned_by: ::std::string::String,
     ///Pricing information for the model (included when `include=pricing`)
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub pricing: ::std::option::Option<Pricing>,
     pub served_by: Provider,
+}
+///`ModelModalitiesItem`
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "type": "string",
+///  "enum": [
+///    "text",
+///    "image",
+///    "audio",
+///    "video"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum ModelModalitiesItem {
+    #[serde(rename = "text")]
+    Text,
+    #[serde(rename = "image")]
+    Image,
+    #[serde(rename = "audio")]
+    Audio,
+    #[serde(rename = "video")]
+    Video,
+}
+impl ::std::fmt::Display for ModelModalitiesItem {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Text => f.write_str("text"),
+            Self::Image => f.write_str("image"),
+            Self::Audio => f.write_str("audio"),
+            Self::Video => f.write_str("video"),
+        }
+    }
+}
+impl ::std::str::FromStr for ModelModalitiesItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "text" => Ok(Self::Text),
+            "image" => Ok(Self::Image),
+            "audio" => Ok(Self::Audio),
+            "video" => Ok(Self::Video),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ModelModalitiesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for ModelModalitiesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ModelModalitiesItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 ///Pricing information for a model
 ///
