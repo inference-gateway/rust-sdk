@@ -6352,6 +6352,89 @@ pub struct MessagesUsage {
     ///The number of output tokens.
     pub output_tokens: i64,
 }
+///A single input or output modality
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "A single input or output modality",
+///  "type": "string",
+///  "enum": [
+///    "text",
+///    "image",
+///    "audio",
+///    "video"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum Modality {
+    #[serde(rename = "text")]
+    Text,
+    #[serde(rename = "image")]
+    Image,
+    #[serde(rename = "audio")]
+    Audio,
+    #[serde(rename = "video")]
+    Video,
+}
+impl ::std::fmt::Display for Modality {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Text => f.write_str("text"),
+            Self::Image => f.write_str("image"),
+            Self::Audio => f.write_str("audio"),
+            Self::Video => f.write_str("video"),
+        }
+    }
+}
+impl ::std::str::FromStr for Modality {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "text" => Ok(Self::Text),
+            "image" => Ok(Self::Image),
+            "audio" => Ok(Self::Audio),
+            "video" => Ok(Self::Video),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for Modality {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for Modality {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for Modality {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 ///Common model information
 ///
 /// <details><summary>JSON schema</summary>
@@ -6387,19 +6470,10 @@ pub struct MessagesUsage {
 ///      "type": "string"
 ///    },
 ///    "modalities": {
-///      "description": "The modalities the model supports natively (included when `include=modalities`)",
+///      "description": "The input and output modalities of the model (included when `include=modalities`)",
 ///      "oneOf": [
 ///        {
-///          "type": "array",
-///          "items": {
-///            "type": "string",
-///            "enum": [
-///              "text",
-///              "image",
-///              "audio",
-///              "video"
-///            ]
-///          }
+///          "$ref": "#/definitions/ModelModalities"
 ///        },
 ///        {
 ///          "type": "null"
@@ -6437,9 +6511,9 @@ pub struct Model {
     pub context_window: ::std::option::Option<ContextWindow>,
     pub created: i64,
     pub id: ::std::string::String,
-    ///The modalities the model supports natively (included when `include=modalities`)
+    ///The input and output modalities of the model (included when `include=modalities`)
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
-    pub modalities: ::std::option::Option<::std::vec::Vec<ModelModalitiesItem>>,
+    pub modalities: ::std::option::Option<ModelModalities>,
     pub object: ::std::string::String,
     pub owned_by: ::std::string::String,
     ///Pricing information for the model (included when `include=pricing`)
@@ -6447,87 +6521,39 @@ pub struct Model {
     pub pricing: ::std::option::Option<Pricing>,
     pub served_by: Provider,
 }
-///`ModelModalitiesItem`
+///The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` — when `output` carries `image` but not `text`, the model only generates images and cannot chat.
 ///
 /// <details><summary>JSON schema</summary>
 ///
 /// ```json
 ///{
-///  "type": "string",
-///  "enum": [
-///    "text",
-///    "image",
-///    "audio",
-///    "video"
-///  ]
+///  "description": "The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` — when `output` carries `image` but not `text`, the model only generates images and cannot chat.",
+///  "type": "object",
+///  "required": [
+///    "input",
+///    "output"
+///  ],
+///  "properties": {
+///    "input": {
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/Modality"
+///      }
+///    },
+///    "output": {
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/Modality"
+///      }
+///    }
+///  }
 ///}
 /// ```
 /// </details>
-#[derive(
-    ::serde::Deserialize,
-    ::serde::Serialize,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-)]
-pub enum ModelModalitiesItem {
-    #[serde(rename = "text")]
-    Text,
-    #[serde(rename = "image")]
-    Image,
-    #[serde(rename = "audio")]
-    Audio,
-    #[serde(rename = "video")]
-    Video,
-}
-impl ::std::fmt::Display for ModelModalitiesItem {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        match *self {
-            Self::Text => f.write_str("text"),
-            Self::Image => f.write_str("image"),
-            Self::Audio => f.write_str("audio"),
-            Self::Video => f.write_str("video"),
-        }
-    }
-}
-impl ::std::str::FromStr for ModelModalitiesItem {
-    type Err = self::error::ConversionError;
-    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        match value {
-            "text" => Ok(Self::Text),
-            "image" => Ok(Self::Image),
-            "audio" => Ok(Self::Audio),
-            "video" => Ok(Self::Video),
-            _ => Err("invalid value".into()),
-        }
-    }
-}
-impl ::std::convert::TryFrom<&str> for ModelModalitiesItem {
-    type Error = self::error::ConversionError;
-    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
-}
-impl ::std::convert::TryFrom<&::std::string::String> for ModelModalitiesItem {
-    type Error = self::error::ConversionError;
-    fn try_from(
-        value: &::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
-}
-impl ::std::convert::TryFrom<::std::string::String> for ModelModalitiesItem {
-    type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct ModelModalities {
+    pub input: ::std::vec::Vec<Modality>,
+    pub output: ::std::vec::Vec<Modality>,
 }
 ///Pricing information for a model
 ///
