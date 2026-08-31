@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.24.0](https://github.com/inference-gateway/rust-sdk/compare/0.23.0...0.24.0) (2026-08-31)
+
+### ✨ Features
+
+* add Audio API client support (create_speech) ([#133](https://github.com/inference-gateway/rust-sdk/issues/133)) ([914f402](https://github.com/inference-gateway/rust-sdk/commit/914f40285fb493ef8670ab32b2ba9fcaa5df0b08))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#129](https://github.com/inference-gateway/rust-sdk/issues/129)) ([d7b33e8](https://github.com/inference-gateway/rust-sdk/commit/d7b33e8019fb4e3ebb3820c988a8ddfff571a354))
+* **deps:** bump futures-util from 0.3.33 to 0.3.34 in the cargo group ([#127](https://github.com/inference-gateway/rust-sdk/issues/127)) ([8602a65](https://github.com/inference-gateway/rust-sdk/commit/8602a6583899b2a494019e5a57cb0233711d6037))
+* **deps:** bump Swatinem/rust-cache in the github-actions group ([#125](https://github.com/inference-gateway/rust-sdk/issues/125)) ([b91499b](https://github.com/inference-gateway/rust-sdk/commit/b91499b1e2ac7ab696cda3a86bff25301b918890))
+* **deps:** bump syn from 3.0.3 to 3.0.4 in the cargo group ([#131](https://github.com/inference-gateway/rust-sdk/issues/131)) ([4bf0760](https://github.com/inference-gateway/rust-sdk/commit/4bf07608b880974f019e27ffb8a81adccdaf64cc))
+* **deps:** bump thiserror from 2.0.19 to 2.0.20 in the cargo group ([#126](https://github.com/inference-gateway/rust-sdk/issues/126)) ([41826a3](https://github.com/inference-gateway/rust-sdk/commit/41826a32b416a770811346ad9dbc5d86b88e6d47))
+
+### 📚 Documentation
+
+* Refresh AGENTS.md for coding agents ([#132](https://github.com/inference-gateway/rust-sdk/issues/132)) ([f11ede4](https://github.com/inference-gateway/rust-sdk/commit/f11ede4f940a02abf1e5d6185df13d33148963e5))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.201 -> 2.1.238 ([#128](https://github.com/inference-gateway/rust-sdk/issues/128)) ([2776d3a](https://github.com/inference-gateway/rust-sdk/commit/2776d3ae4ad1e7c8abcafd5eff73c19330aa4fe3))
+* **deps:** bump infer CLI v0.155.0 -> v0.164.0 ([#124](https://github.com/inference-gateway/rust-sdk/issues/124)) ([6a0574b](https://github.com/inference-gateway/rust-sdk/commit/6a0574b1aed926b06c07a5efdd8d874bb8db60c1))
+* **deps:** bump infer CLI v0.164.0 -> v0.183.0 ([#130](https://github.com/inference-gateway/rust-sdk/issues/130)) ([c36ad35](https://github.com/inference-gateway/rust-sdk/commit/c36ad35374b949ddf3155843e3f92d2b5c66eee6))
+
 ## [0.23.0](https://github.com/inference-gateway/rust-sdk/compare/0.22.1...0.23.0) (2026-08-05)
 
 ### ✨ Features
