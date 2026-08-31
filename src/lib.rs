@@ -213,6 +213,20 @@ pub trait InferenceGatewayAPI {
         request: CreateImageVariationRequest,
     ) -> impl Future<Output = Result<ImagesResponse, GatewayError>> + Send;
 
+    /// Generates speech audio from text via the OpenAI-compatible Audio API
+    /// (`POST /audio/speech`), returning the synthesized audio as raw bytes.
+    ///
+    /// The response format (and thus the bytes' encoding) is chosen via
+    /// `request.response_format`; it defaults to `mp3`.
+    ///
+    /// Providers without Audio support return [`GatewayError::BadRequest`];
+    /// use [`InferenceGatewayAPI::generate_content`] for those providers.
+    fn create_speech(
+        &self,
+        provider: Option<Provider>,
+        request: CreateSpeechRequest,
+    ) -> impl Future<Output = Result<Vec<u8>, GatewayError>> + Send;
+
     /// Health probe - returns true on HTTP 200, false otherwise.
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
 }
@@ -598,6 +612,26 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         let response = req.multipart(form).send().await?;
         match response.status() {
             StatusCode::OK => Ok(response.json().await?),
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    async fn create_speech(
+        &self,
+        provider: Option<Provider>,
+        request: CreateSpeechRequest,
+    ) -> Result<Vec<u8>, GatewayError> {
+        let mut url = format!("{}/audio/speech", self.base_url);
+        if let Some(provider) = provider {
+            url = format!("{url}?provider={provider}");
+        }
+        let mut req = self.client.post(&url);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
+        }
+        let response = req.json(&request).send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.bytes().await?.to_vec()),
             status => Err(map_error_status(status, response).await),
         }
     }

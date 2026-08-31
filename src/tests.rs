@@ -5,13 +5,13 @@ use crate::{
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageEditRequest,
     CreateImageRequest, CreateImageRequestQuality, CreateImageVariationRequest,
-    CreateMessagesRequest, FinishReason, FunctionObject, FunctionParameters, GatewayError,
-    ImageSize, InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent, MessageRole,
-    MessagesMessage, MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
-    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
-    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
-    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
-    ResponseFormatTextType,
+    CreateMessagesRequest, CreateSpeechRequest, FinishReason, FunctionObject, FunctionParameters,
+    GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent,
+    MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
+    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
+    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
+    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
+    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1480,6 +1480,76 @@ async fn test_create_image_variation() -> Result<(), GatewayError> {
         response.data[0].url.as_deref(),
         Some("https://example.com/variation.png")
     );
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_speech() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let audio_bytes: Vec<u8> = vec![0xFF, 0xFB, 0x90, 0x00, 0x01, 0x02, 0x03, 0x77];
+
+    let mock = server
+        .mock("POST", "/v1/audio/speech?provider=openai")
+        .match_body(Matcher::JsonString(
+                r#"{"input":"Hello world","model":"tts-1","voice":"alloy","response_format":"mp3","speed":1.0}"#
+                    .to_string(),
+        ))
+        .with_status(200)
+        .with_header("content-type", "audio/mpeg")
+        .with_body(audio_bytes.clone())
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateSpeechRequest {
+        model: "tts-1".to_string(),
+        input: "Hello world".parse().expect("valid text"),
+        voice: "alloy".to_string(),
+        ..Default::default()
+    };
+
+    let response = client
+        .create_speech(Some(Provider::Openai), request)
+        .await?;
+
+    assert_eq!(response, audio_bytes);
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_speech_error_response() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/audio/speech?provider=openai")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error":"The Audio API is not supported by this provider yet."}"#)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateSpeechRequest {
+        model: "tts-1".to_string(),
+        input: "Hello".parse().expect("valid text"),
+        voice: "alloy".to_string(),
+        ..Default::default()
+    };
+
+    let error = client
+        .create_speech(Some(Provider::Openai), request)
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, GatewayError::BadRequest(_)));
+    if let GatewayError::BadRequest(msg) = error {
+        assert_eq!(msg, "The Audio API is not supported by this provider yet.");
+    }
     mock.assert();
     Ok(())
 }
