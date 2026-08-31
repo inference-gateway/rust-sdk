@@ -7,4 +7,5 @@
 
 mod chat_request;
 pub mod image_request;
+mod speech_request;
 mod tool_call;
