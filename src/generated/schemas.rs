@@ -2620,6 +2620,337 @@ pub struct CreateResponseRequest {
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub user: ::std::option::Option<::std::string::String>,
 }
+/**Request body for generating speech audio via the OpenAI-compatible
+Audio API.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Request body for generating speech audio via the OpenAI-compatible\nAudio API.\n",
+///  "type": "object",
+///  "required": [
+///    "input",
+///    "model",
+///    "voice"
+///  ],
+///  "properties": {
+///    "input": {
+///      "description": "The text to synthesize into audio (4096 characters maximum).",
+///      "type": "string",
+///      "maxLength": 4096
+///    },
+///    "instructions": {
+///      "description": "Control the voice of your generated audio with additional instructions. Does not work with `tts-1` or `tts-1-hd`.\n",
+///      "type": "string",
+///      "maxLength": 4096
+///    },
+///    "model": {
+///      "description": "Model ID to use for speech synthesis (e.g. `gpt-4o-mini-tts` or `tts-1`).",
+///      "type": "string"
+///    },
+///    "reference_audio": {
+///      "description": "Base64-encoded audio sample for zero-shot voice cloning. The\ngenerated speech mimics the voice in the sample. Best results with\na clean mono recording between 1 and 30 seconds; WAV is the safest\ncontainer. Forwarded to the provider as-is - only providers with\nvoice-cloning support honor it (e.g. Qwen3-TTS-compatible\nbackends); others ignore or reject it. Not supported by OpenAI.",
+///      "type": "string",
+///      "format": "byte"
+///    },
+///    "response_format": {
+///      "description": "The audio format of the response.",
+///      "default": "mp3",
+///      "type": "string",
+///      "enum": [
+///        "mp3",
+///        "opus",
+///        "aac",
+///        "flac",
+///        "wav",
+///        "pcm"
+///      ]
+///    },
+///    "speed": {
+///      "description": "The speed of the generated audio.",
+///      "default": 1,
+///      "type": "number",
+///      "maximum": 4.0,
+///      "minimum": 0.25
+///    },
+///    "voice": {
+///      "description": "The voice to use when generating the audio. OpenAI built-in voices\nare `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,\n`nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. Other\nproviders accept their own voice identifiers.",
+///      "type": "string"
+///    }
+///  }
+///}
+/// ```
+/// </details>
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateSpeechRequest {
+    ///The text to synthesize into audio (4096 characters maximum).
+    pub input: CreateSpeechRequestInput,
+    /**Control the voice of your generated audio with additional instructions. Does not work with `tts-1` or `tts-1-hd`.
+     */
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub instructions: ::std::option::Option<CreateSpeechRequestInstructions>,
+    ///Model ID to use for speech synthesis (e.g. `gpt-4o-mini-tts` or `tts-1`).
+    pub model: ::std::string::String,
+    /**Base64-encoded audio sample for zero-shot voice cloning. The
+    generated speech mimics the voice in the sample. Best results with
+    a clean mono recording between 1 and 30 seconds; WAV is the safest
+    container. Forwarded to the provider as-is - only providers with
+    voice-cloning support honor it (e.g. Qwen3-TTS-compatible
+    backends); others ignore or reject it. Not supported by OpenAI.*/
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub reference_audio: ::std::option::Option<::std::string::String>,
+    ///The audio format of the response.
+    #[serde(default = "defaults::create_speech_request_response_format")]
+    pub response_format: CreateSpeechRequestResponseFormat,
+    ///The speed of the generated audio.
+    #[serde(default = "defaults::create_speech_request_speed")]
+    pub speed: f64,
+    /**The voice to use when generating the audio. OpenAI built-in voices
+    are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,
+    `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. Other
+    providers accept their own voice identifiers.*/
+    pub voice: ::std::string::String,
+}
+///The text to synthesize into audio (4096 characters maximum).
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The text to synthesize into audio (4096 characters maximum).",
+///  "type": "string",
+///  "maxLength": 4096
+///}
+/// ```
+/// </details>
+#[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct CreateSpeechRequestInput(::std::string::String);
+impl ::std::ops::Deref for CreateSpeechRequestInput {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<CreateSpeechRequestInput> for ::std::string::String {
+    fn from(value: CreateSpeechRequestInput) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for CreateSpeechRequestInput {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4096usize {
+            return Err("longer than 4096 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateSpeechRequestInput {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CreateSpeechRequestInput {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateSpeechRequestInput {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for CreateSpeechRequestInput {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+/**Control the voice of your generated audio with additional instructions. Does not work with `tts-1` or `tts-1-hd`.
+*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "Control the voice of your generated audio with additional instructions. Does not work with `tts-1` or `tts-1-hd`.\n",
+///  "type": "string",
+///  "maxLength": 4096
+///}
+/// ```
+/// </details>
+#[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct CreateSpeechRequestInstructions(::std::string::String);
+impl ::std::ops::Deref for CreateSpeechRequestInstructions {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<CreateSpeechRequestInstructions> for ::std::string::String {
+    fn from(value: CreateSpeechRequestInstructions) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for CreateSpeechRequestInstructions {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 4096usize {
+            return Err("longer than 4096 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateSpeechRequestInstructions {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CreateSpeechRequestInstructions {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateSpeechRequestInstructions {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for CreateSpeechRequestInstructions {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+///The audio format of the response.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "The audio format of the response.",
+///  "default": "mp3",
+///  "type": "string",
+///  "enum": [
+///    "mp3",
+///    "opus",
+///    "aac",
+///    "flac",
+///    "wav",
+///    "pcm"
+///  ]
+///}
+/// ```
+/// </details>
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateSpeechRequestResponseFormat {
+    #[serde(rename = "mp3")]
+    Mp3,
+    #[serde(rename = "opus")]
+    Opus,
+    #[serde(rename = "aac")]
+    Aac,
+    #[serde(rename = "flac")]
+    Flac,
+    #[serde(rename = "wav")]
+    Wav,
+    #[serde(rename = "pcm")]
+    Pcm,
+}
+impl ::std::fmt::Display for CreateSpeechRequestResponseFormat {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Mp3 => f.write_str("mp3"),
+            Self::Opus => f.write_str("opus"),
+            Self::Aac => f.write_str("aac"),
+            Self::Flac => f.write_str("flac"),
+            Self::Wav => f.write_str("wav"),
+            Self::Pcm => f.write_str("pcm"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateSpeechRequestResponseFormat {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "mp3" => Ok(Self::Mp3),
+            "opus" => Ok(Self::Opus),
+            "aac" => Ok(Self::Aac),
+            "flac" => Ok(Self::Flac),
+            "wav" => Ok(Self::Wav),
+            "pcm" => Ok(Self::Pcm),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateSpeechRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CreateSpeechRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateSpeechRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::default::Default for CreateSpeechRequestResponseFormat {
+    fn default() -> Self {
+        CreateSpeechRequestResponseFormat::Mp3
+    }
+}
 ///`Endpoints`
 ///
 /// <details><summary>JSON schema</summary>
@@ -2649,6 +2980,9 @@ pub struct CreateResponseRequest {
 ///    },
 ///    "responses": {
 ///      "type": "string"
+///    },
+///    "speech": {
+///      "type": "string"
 ///    }
 ///  }
 ///}
@@ -2666,6 +3000,8 @@ pub struct Endpoints {
     pub models: ::std::string::String,
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub responses: ::std::option::Option<::std::string::String>,
+    #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+    pub speech: ::std::option::Option<::std::string::String>,
 }
 ///`Error`
 ///
@@ -10648,6 +10984,13 @@ pub mod defaults {
     }
     pub(super) fn create_response_request_top_p() -> f32 {
         1_f32
+    }
+    pub(super) fn create_speech_request_response_format() -> super::CreateSpeechRequestResponseFormat
+    {
+        super::CreateSpeechRequestResponseFormat::Mp3
+    }
+    pub(super) fn create_speech_request_speed() -> f64 {
+        1_f64
     }
     pub(super) fn image_url_detail() -> super::ImageUrlDetail {
         super::ImageUrlDetail::Auto
