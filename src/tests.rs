@@ -1493,7 +1493,7 @@ async fn test_create_speech() -> Result<(), GatewayError> {
     let mock = server
         .mock("POST", "/v1/audio/speech?provider=openai")
         .match_body(Matcher::JsonString(
-                r#"{"input":"Hello world","model":"tts-1","voice":"alloy","response_format":"mp3","speed":1.0}"#
+                r#"{"input":"Hello world","language":"en","model":"tts-1","voice":"alloy","response_format":"mp3","speed":1.0}"#
                     .to_string(),
         ))
         .with_status(200)

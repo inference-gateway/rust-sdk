@@ -8,7 +8,7 @@
 use crate::generated::schemas::{CreateSpeechRequest, CreateSpeechRequestResponseFormat};
 
 impl Default for CreateSpeechRequest {
-    /// Mirrors the schema defaults: `response_format` = `mp3`, `speed` = 1.
+    /// Mirrors the schema defaults: `language` = `en`, `response_format` = `mp3`, `speed` = 1.
     fn default() -> Self {
         Self {
             model: String::new(),
@@ -17,6 +17,7 @@ impl Default for CreateSpeechRequest {
                 .expect("empty text always fits the 4096-character limit"),
             voice: String::new(),
             instructions: None,
+            language: Default::default(),
             reference_audio: None,
             response_format: CreateSpeechRequestResponseFormat::Mp3,
             speed: 1.0,
@@ -31,6 +32,7 @@ mod tests {
     #[test]
     fn default_matches_schema_defaults() {
         let req = CreateSpeechRequest::default();
+        assert_eq!(*req.language, "en");
         assert_eq!(req.response_format, CreateSpeechRequestResponseFormat::Mp3);
         assert_eq!(req.speed, 1.0);
         assert!(req.instructions.is_none());

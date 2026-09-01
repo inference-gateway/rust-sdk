@@ -2646,6 +2646,12 @@ Audio API.
 ///      "type": "string",
 ///      "maxLength": 4096
 ///    },
+///    "language": {
+///      "description": "ISO 639-1 code for the language of the generated speech.\nNon-standard extension: OpenAI's speech API has no language field\n(the name matches its transcription API). Forwarded to the\nprovider as-is; the gateway's built-in local engine\n(`local/qwen3-tts`) supports `zh`, `en`, `de`, `it`, `pt`, `es`,\n`ja`, `ko`, `fr` and `ru`, and rejects other codes.",
+///      "default": "en",
+///      "type": "string",
+///      "pattern": "^[a-z]{2}$"
+///    },
 ///    "model": {
 ///      "description": "Model ID to use for speech synthesis (e.g. `gpt-4o-mini-tts` or `tts-1`).",
 ///      "type": "string"
@@ -2691,6 +2697,14 @@ pub struct CreateSpeechRequest {
      */
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub instructions: ::std::option::Option<CreateSpeechRequestInstructions>,
+    /**ISO 639-1 code for the language of the generated speech.
+    Non-standard extension: OpenAI's speech API has no language field
+    (the name matches its transcription API). Forwarded to the
+    provider as-is; the gateway's built-in local engine
+    (`local/qwen3-tts`) supports `zh`, `en`, `de`, `it`, `pt`, `es`,
+    `ja`, `ko`, `fr` and `ru`, and rejects other codes.*/
+    #[serde(default = "defaults::create_speech_request_language")]
+    pub language: CreateSpeechRequestLanguage,
     ///Model ID to use for speech synthesis (e.g. `gpt-4o-mini-tts` or `tts-1`).
     pub model: ::std::string::String,
     /**Base64-encoded audio sample for zero-shot voice cloning. The
@@ -2841,6 +2855,88 @@ impl ::std::convert::TryFrom<::std::string::String> for CreateSpeechRequestInstr
     }
 }
 impl<'de> ::serde::Deserialize<'de> for CreateSpeechRequestInstructions {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+/**ISO 639-1 code for the language of the generated speech.
+Non-standard extension: OpenAI's speech API has no language field
+(the name matches its transcription API). Forwarded to the
+provider as-is; the gateway's built-in local engine
+(`local/qwen3-tts`) supports `zh`, `en`, `de`, `it`, `pt`, `es`,
+`ja`, `ko`, `fr` and `ru`, and rejects other codes.*/
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+///{
+///  "description": "ISO 639-1 code for the language of the generated speech.\nNon-standard extension: OpenAI's speech API has no language field\n(the name matches its transcription API). Forwarded to the\nprovider as-is; the gateway's built-in local engine\n(`local/qwen3-tts`) supports `zh`, `en`, `de`, `it`, `pt`, `es`,\n`ja`, `ko`, `fr` and `ru`, and rejects other codes.",
+///  "default": "en",
+///  "type": "string",
+///  "pattern": "^[a-z]{2}$"
+///}
+/// ```
+/// </details>
+#[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct CreateSpeechRequestLanguage(::std::string::String);
+impl ::std::ops::Deref for CreateSpeechRequestLanguage {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<CreateSpeechRequestLanguage> for ::std::string::String {
+    fn from(value: CreateSpeechRequestLanguage) -> Self {
+        value.0
+    }
+}
+impl ::std::default::Default for CreateSpeechRequestLanguage {
+    fn default() -> Self {
+        CreateSpeechRequestLanguage("en".to_string())
+    }
+}
+impl ::std::str::FromStr for CreateSpeechRequestLanguage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-z]{2}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-z]{2}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateSpeechRequestLanguage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<&::std::string::String> for CreateSpeechRequestLanguage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: &::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateSpeechRequestLanguage {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for CreateSpeechRequestLanguage {
     fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
     where
         D: ::serde::Deserializer<'de>,
@@ -6857,13 +6953,13 @@ pub struct Model {
     pub pricing: ::std::option::Option<Pricing>,
     pub served_by: Provider,
 }
-///The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` — when `output` carries `image` but not `text`, the model only generates images and cannot chat.
+///The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` - when `output` carries `image` but not `text`, the model only generates images and cannot chat.
 ///
 /// <details><summary>JSON schema</summary>
 ///
 /// ```json
 ///{
-///  "description": "The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` — when `output` carries `image` but not `text`, the model only generates images and cannot chat.",
+///  "description": "The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` - when `output` carries `image` but not `text`, the model only generates images and cannot chat.",
 ///  "type": "object",
 ///  "required": [
 ///    "input",
@@ -10984,6 +11080,9 @@ pub mod defaults {
     }
     pub(super) fn create_response_request_top_p() -> f32 {
         1_f32
+    }
+    pub(super) fn create_speech_request_language() -> super::CreateSpeechRequestLanguage {
+        super::CreateSpeechRequestLanguage("en".to_string())
     }
     pub(super) fn create_speech_request_response_format() -> super::CreateSpeechRequestResponseFormat
     {

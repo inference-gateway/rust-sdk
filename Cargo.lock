@@ -739,6 +739,7 @@ dependencies = [
  "chrono",
  "futures-util",
  "mockito",
+ "regress",
  "reqwest",
  "serde",
  "serde_json",
