@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.25.0](https://github.com/inference-gateway/rust-sdk/compare/0.24.0...0.25.0) (2026-09-01)
+
+### ✨ Features
+
+* add language support to tts ([#134](https://github.com/inference-gateway/rust-sdk/issues/134)) ([0ddda81](https://github.com/inference-gateway/rust-sdk/commit/0ddda819edf63857fdabf06c5c8048dba5be1886))
+
 ## [0.24.0](https://github.com/inference-gateway/rust-sdk/compare/0.23.0...0.24.0) (2026-08-31)
 
 ### ✨ Features
