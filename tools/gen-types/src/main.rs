@@ -147,10 +147,10 @@ fn rewrite_refs_in_place(value: &mut Value) {
         Value::Object(map) => {
             for (k, v) in map.iter_mut() {
                 if k == "$ref" {
-                    if let Some(s) = v.as_str() {
-                        if let Some(rest) = s.strip_prefix("#/components/schemas/") {
-                            *v = Value::String(format!("#/definitions/{rest}"));
-                        }
+                    if let Some(s) = v.as_str()
+                        && let Some(rest) = s.strip_prefix("#/components/schemas/")
+                    {
+                        *v = Value::String(format!("#/definitions/{rest}"));
                     }
                 } else {
                     rewrite_refs_in_place(v);
@@ -201,19 +201,19 @@ fn apply_known_patches(value: &mut Value) -> Result<()> {
         .as_object_mut()
         .ok_or_else(|| anyhow!("schemas not an object"))?;
 
-    if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamChoice") {
-        if let Some(Value::Array(req)) = s.get_mut("required") {
-            req.retain(|v| v.as_str() != Some("finish_reason"));
-        }
+    if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamChoice")
+        && let Some(Value::Array(req)) = s.get_mut("required")
+    {
+        req.retain(|v| v.as_str() != Some("finish_reason"));
     }
 
-    if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamResponseDelta") {
-        if let Some(Value::Array(req)) = s.get_mut("required") {
-            req.retain(|v| {
-                let s = v.as_str();
-                s != Some("content") && s != Some("role")
-            });
-        }
+    if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamResponseDelta")
+        && let Some(Value::Array(req)) = s.get_mut("required")
+    {
+        req.retain(|v| {
+            let s = v.as_str();
+            s != Some("content") && s != Some("role")
+        });
     }
 
     Ok(())
@@ -225,18 +225,18 @@ fn apply_known_patches(value: &mut Value) -> Result<()> {
 ///   a single `type` plus `nullable: true` (draft-07-ish).
 fn normalize_schemas(value: &mut Value) {
     if let Value::Object(map) = value {
-        if let Some(t) = map.get("type").cloned() {
-            if let Value::Array(types) = t {
-                let non_null: Vec<&Value> = types
-                    .iter()
-                    .filter(|v| v.as_str() != Some("null"))
-                    .collect();
-                let has_null = types.iter().any(|v| v.as_str() == Some("null"));
-                if non_null.len() == 1 {
-                    map.insert("type".into(), non_null[0].clone());
-                    if has_null {
-                        map.insert("nullable".into(), Value::Bool(true));
-                    }
+        if let Some(t) = map.get("type").cloned()
+            && let Value::Array(types) = t
+        {
+            let non_null: Vec<&Value> = types
+                .iter()
+                .filter(|v| v.as_str() != Some("null"))
+                .collect();
+            let has_null = types.iter().any(|v| v.as_str() == Some("null"));
+            if non_null.len() == 1 {
+                map.insert("type".into(), non_null[0].clone());
+                if has_null {
+                    map.insert("nullable".into(), Value::Bool(true));
                 }
             }
         }
