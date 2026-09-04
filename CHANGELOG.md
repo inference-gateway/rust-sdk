@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.25.1](https://github.com/inference-gateway/rust-sdk/compare/0.25.0...0.25.1) (2026-09-04)
+
+### ♻️ Improvements
+
+* change gateway env var ENABLE_IMAGES -> IMAGES_ENABLED ([#136](https://github.com/inference-gateway/rust-sdk/issues/136)) ([f455125](https://github.com/inference-gateway/rust-sdk/commit/f4551255b939e3aedfeaa0c3f4661c24cd4f7d22))
+
+### 👷 CI
+
+* **deps:** bump regress from 0.11.1 to 0.12.0 in the cargo group ([#137](https://github.com/inference-gateway/rust-sdk/issues/137)) ([e3cce7e](https://github.com/inference-gateway/rust-sdk/commit/e3cce7e47fe3aee4065fdc7f0ef652ed74615996))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.238 -> 2.1.245 ([#135](https://github.com/inference-gateway/rust-sdk/issues/135)) ([2fddde3](https://github.com/inference-gateway/rust-sdk/commit/2fddde3e7252b89c3b0e4785ed699220d953b3f1))
+* sync generated types with schemas v0.27.4 ([#138](https://github.com/inference-gateway/rust-sdk/issues/138)) ([e4ed689](https://github.com/inference-gateway/rust-sdk/commit/e4ed689fc1152668710941fbfdcaf45a36e8c0d7))
+
 ## [0.25.0](https://github.com/inference-gateway/rust-sdk/compare/0.24.0...0.25.0) (2026-09-01)
 
 ### ✨ Features
