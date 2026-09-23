@@ -1575,8 +1575,6 @@ pub struct Endpoints {
     pub images: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub images_edits: ::std::option::Option<::std::string::String>,
-    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
-    pub images_variations: ::std::option::Option<::std::string::String>,
     pub models: ::std::string::String,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub music: ::std::option::Option<::std::string::String>,
