@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.1](https://github.com/inference-gateway/rust-sdk/compare/0.26.0...0.26.1) (2026-09-23)
+
+### ♻️ Improvements
+
+* remove image variations and sync types with schemas v0.31.1 ([#150](https://github.com/inference-gateway/rust-sdk/issues/150)) ([d2ca34d](https://github.com/inference-gateway/rust-sdk/commit/d2ca34dcb14d6febc1dced469271a98c5e7a9292))
+
 ## [0.26.0](https://github.com/inference-gateway/rust-sdk/compare/0.25.1...0.26.0) (2026-09-23)
 
 ### ✨ Features
