@@ -5,13 +5,15 @@ use crate::{
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageEditRequest,
     CreateImageRequest, CreateImageRequestQuality, CreateImageVariationRequest,
-    CreateMessagesRequest, CreateSpeechRequest, FinishReason, FunctionObject, FunctionParameters,
-    GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent,
-    MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
-    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
-    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
-    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
-    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
+    CreateMessagesRequest, CreateMusicRequest, CreateMusicRequestResponseFormat, CreateSfxRequest,
+    CreateSfxRequestResponseFormat, CreateSpeechRequest, FinishReason, FunctionObject,
+    FunctionParameters, GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient,
+    Message, MessageContent, MessageRole, MessagesMessage, MessagesMessageContent,
+    MessagesMessageRole, MessagesResponseContentBlock, MessagesResponseStopReason,
+    MessagesStreamEvent, MessagesStreamEventType, PricingSource, Provider,
+    ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
+    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
+    ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1550,6 +1552,146 @@ async fn test_create_speech_error_response() -> Result<(), GatewayError> {
     if let GatewayError::BadRequest(msg) = error {
         assert_eq!(msg, "The Audio API is not supported by this provider yet.");
     }
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_sfx() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let audio_bytes: Vec<u8> = vec![0xFF, 0xFB, 0x90, 0x00, 0x0A, 0x0B];
+
+    let mock = server
+        .mock("POST", "/v1/audio/sfx?provider=elevenlabs")
+        .match_body(Matcher::JsonString(
+            r#"{"duration_seconds":3.0,"loop":true,"model":"elevenlabs/eleven_text_to_sound_v2","prompt":"distant thunder","response_format":"mp3"}"#
+                .to_string(),
+        ))
+        .with_status(200)
+        .with_header("content-type", "audio/mpeg")
+        .with_body(audio_bytes.clone())
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateSfxRequest {
+        model: "elevenlabs/eleven_text_to_sound_v2".to_string(),
+        prompt: "distant thunder".to_string(),
+        duration_seconds: Some(3.0),
+        loop_: Some(true),
+        prompt_influence: None,
+        response_format: CreateSfxRequestResponseFormat::Mp3,
+    };
+
+    let response = client
+        .create_sfx(Some(Provider::Elevenlabs), request)
+        .await?;
+
+    assert_eq!(response, audio_bytes);
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_sfx_error_response() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/audio/sfx?provider=openai")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error":"Sound effect generation is not supported by this provider yet."}"#)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateSfxRequest {
+        model: "elevenlabs/eleven_text_to_sound_v2".to_string(),
+        prompt: "distant thunder".to_string(),
+        duration_seconds: None,
+        loop_: None,
+        prompt_influence: None,
+        response_format: CreateSfxRequestResponseFormat::Mp3,
+    };
+
+    let error = client
+        .create_sfx(Some(Provider::Openai), request)
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, GatewayError::BadRequest(_)));
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_music() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let audio_bytes: Vec<u8> = vec![0xFF, 0xFB, 0x90, 0x00, 0x1A, 0x2B];
+
+    let mock = server
+        .mock("POST", "/v1/audio/music?provider=elevenlabs")
+        .match_body(Matcher::JsonString(
+            r#"{"instrumental":true,"model":"elevenlabs/music_v2_5","prompt":"lofi hip hop, rainy night","response_format":"mp3"}"#
+                .to_string(),
+        ))
+        .with_status(200)
+        .with_header("content-type", "audio/mpeg")
+        .with_body(audio_bytes.clone())
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateMusicRequest {
+        model: "elevenlabs/music_v2_5".to_string(),
+        prompt: "lofi hip hop, rainy night".to_string(),
+        duration_seconds: None,
+        instrumental: true,
+        response_format: CreateMusicRequestResponseFormat::Mp3,
+    };
+
+    let response = client
+        .create_music(Some(Provider::Elevenlabs), request)
+        .await?;
+
+    assert_eq!(response, audio_bytes);
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_music_error_response() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/audio/music?provider=openai")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error":"Music generation is not supported by this provider yet."}"#)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateMusicRequest {
+        model: "elevenlabs/music_v2_5".to_string(),
+        prompt: "lofi hip hop".to_string(),
+        duration_seconds: None,
+        instrumental: false,
+        response_format: CreateMusicRequestResponseFormat::Mp3,
+    };
+
+    let error = client
+        .create_music(Some(Provider::Openai), request)
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, GatewayError::BadRequest(_)));
     mock.assert();
     Ok(())
 }
