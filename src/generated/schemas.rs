@@ -995,6 +995,93 @@ impl ::std::convert::TryFrom<::std::string::String> for CreateMessagesRequestThi
         value.parse()
     }
 }
+/**Request body for composing a music clip from a text prompt.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateMusicRequest {
+    /**Length of the clip in seconds. Omit to let the provider pick a
+    length that fits the prompt.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub duration_seconds: ::std::option::Option<f64>,
+    ///Guarantee the generated clip has no vocals.
+    #[serde(default)]
+    pub instrumental: bool,
+    ///Model ID to use for music generation (e.g. `elevenlabs/music_v2_5`).
+    pub model: ::std::string::String,
+    ///Description of the music to compose - genre, mood, instruments, tempo.
+    pub prompt: ::std::string::String,
+    ///The audio format of the response.
+    #[serde(default = "defaults::create_music_request_response_format")]
+    pub response_format: CreateMusicRequestResponseFormat,
+}
+///The audio format of the response.
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateMusicRequestResponseFormat {
+    #[serde(rename = "mp3")]
+    Mp3,
+    #[serde(rename = "opus")]
+    Opus,
+    #[serde(rename = "aac")]
+    Aac,
+    #[serde(rename = "flac")]
+    Flac,
+    #[serde(rename = "pcm")]
+    Pcm,
+}
+impl ::std::fmt::Display for CreateMusicRequestResponseFormat {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Mp3 => f.write_str("mp3"),
+            Self::Opus => f.write_str("opus"),
+            Self::Aac => f.write_str("aac"),
+            Self::Flac => f.write_str("flac"),
+            Self::Pcm => f.write_str("pcm"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateMusicRequestResponseFormat {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "mp3" => Ok(Self::Mp3),
+            "opus" => Ok(Self::Opus),
+            "aac" => Ok(Self::Aac),
+            "flac" => Ok(Self::Flac),
+            "pcm" => Ok(Self::Pcm),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateMusicRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateMusicRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::default::Default for CreateMusicRequestResponseFormat {
+    fn default() -> Self {
+        CreateMusicRequestResponseFormat::Mp3
+    }
+}
 /**Request body for creating a model response via the Responses API.
 */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
@@ -1059,6 +1146,102 @@ pub struct CreateResponseRequest {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub user: ::std::option::Option<::std::string::String>,
 }
+/**Request body for generating a non-speech audio clip - a sound effect
+or ambience - from a text prompt.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateSfxRequest {
+    /**Length of the generated clip in seconds. Omit to let the provider
+    pick a length that fits the prompt.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub duration_seconds: ::std::option::Option<f64>,
+    ///Whether to generate a clip that loops seamlessly.
+    #[serde(
+        rename = "loop",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub loop_: ::std::option::Option<bool>,
+    ///Model ID to use for sound-effect generation (e.g. `elevenlabs/eleven_text_to_sound_v2`).
+    pub model: ::std::string::String,
+    ///Description of the sound to generate (e.g. `distant thunder rolling over a valley`).
+    pub prompt: ::std::string::String,
+    /**How closely the generation follows the prompt. Higher values stay
+    closer to the prompt, lower values allow more variation. Omit to
+    use the provider default.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt_influence: ::std::option::Option<f64>,
+    ///The audio format of the response.
+    #[serde(default = "defaults::create_sfx_request_response_format")]
+    pub response_format: CreateSfxRequestResponseFormat,
+}
+///The audio format of the response.
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateSfxRequestResponseFormat {
+    #[serde(rename = "mp3")]
+    Mp3,
+    #[serde(rename = "opus")]
+    Opus,
+    #[serde(rename = "aac")]
+    Aac,
+    #[serde(rename = "flac")]
+    Flac,
+    #[serde(rename = "pcm")]
+    Pcm,
+}
+impl ::std::fmt::Display for CreateSfxRequestResponseFormat {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Mp3 => f.write_str("mp3"),
+            Self::Opus => f.write_str("opus"),
+            Self::Aac => f.write_str("aac"),
+            Self::Flac => f.write_str("flac"),
+            Self::Pcm => f.write_str("pcm"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateSfxRequestResponseFormat {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "mp3" => Ok(Self::Mp3),
+            "opus" => Ok(Self::Opus),
+            "aac" => Ok(Self::Aac),
+            "flac" => Ok(Self::Flac),
+            "pcm" => Ok(Self::Pcm),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateSfxRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateSfxRequestResponseFormat {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::default::Default for CreateSfxRequestResponseFormat {
+    fn default() -> Self {
+        CreateSfxRequestResponseFormat::Mp3
+    }
+}
 /**Request body for generating speech audio via the OpenAI-compatible
 Audio API.
 */
@@ -1097,7 +1280,8 @@ pub struct CreateSpeechRequest {
     /**The voice to use when generating the audio. OpenAI built-in voices
     are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,
     `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. Other
-    providers accept their own voice identifiers.*/
+    providers accept their own voice identifiers - for ElevenLabs this
+    is a voice id, including the id of a previously cloned voice.*/
     pub voice: ::std::string::String,
 }
 ///The text to synthesize into audio (4096 characters maximum).
@@ -1335,6 +1519,54 @@ impl ::std::default::Default for CreateSpeechRequestResponseFormat {
         CreateSpeechRequestResponseFormat::Mp3
     }
 }
+/**Request body for creating a video generation job via the
+OpenAI-compatible Videos API. Sent as `multipart/form-data`.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateVideoRequest {
+    /**Non-standard extension (OpenAI's Videos API has no audio field):
+    an audio clip - `audio/wav` or `audio/mpeg` - that drives the
+    render. When present, the model lip-syncs `input_reference` to it
+    and the generated video lasts as long as the clip, so `seconds` is
+    ignored. Forwarded to the provider as-is; only providers with
+    talking-avatar support honor it (e.g. ElevenLabs
+    `creatify-aurora`), others ignore or reject it.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub audio: ::std::option::Option<::std::string::String>,
+    /**Optional image used as the first frame or, for avatar models, the
+    portrait to animate.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub input_reference: ::std::option::Option<::std::string::String>,
+    ///Model ID to use for video generation (e.g. `elevenlabs/creatify-aurora`).
+    pub model: ::std::string::String,
+    /**Text description of the video to generate. Optional for
+    audio-driven avatar models, where the dialogue comes from `audio`
+    and the prompt only describes framing, never the spoken words.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt: ::std::option::Option<::std::string::String>,
+    /**Non-standard extension (OpenAI's Videos API has no reference-images
+    field): optional reference images of the subject (e.g. the same
+    person from several angles), sent as repeated `reference_images`
+    parts. Used by providers that keep a character consistent across
+    shots (e.g. ElevenLabs `veo-3.1-*`, `bytedance-seedance-v2*`).
+    Distinct from `input_reference`, which stays the first frame or,
+    for avatar models, the portrait to animate - avatar models ignore
+    this field. Providers without reference-image support ignore or
+    reject it.*/
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub reference_images: ::std::vec::Vec<::std::string::String>,
+    /**Requested duration of the generated video in seconds, as a string
+    (e.g. `4`, `8`, `12`). Providers accept a limited set of values;
+    omit to use the provider default. Ignored when `audio` is present.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub seconds: ::std::option::Option<::std::string::String>,
+    /**Requested output resolution as `widthxheight` (e.g. `720x1280`).
+    Providers accept a limited set of values - ElevenLabs
+    `creatify-aurora` maps to `480p` and `720p`. Omit to use the
+    provider default.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub size: ::std::option::Option<::std::string::String>,
+}
 ///`Endpoints`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct Endpoints {
@@ -1347,9 +1579,17 @@ pub struct Endpoints {
     pub images_variations: ::std::option::Option<::std::string::String>,
     pub models: ::std::string::String,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub music: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub responses: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub sfx: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub speech: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub videos: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub videos_retrieve: ::std::option::Option<::std::string::String>,
 }
 ///`Error`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
@@ -3383,6 +3623,8 @@ pub enum Provider {
     Anthropic,
     #[serde(rename = "deepseek")]
     Deepseek,
+    #[serde(rename = "elevenlabs")]
+    Elevenlabs,
     #[serde(rename = "google")]
     Google,
     #[serde(rename = "mistral")]
@@ -3408,6 +3650,7 @@ impl ::std::fmt::Display for Provider {
             Self::Cohere => f.write_str("cohere"),
             Self::Anthropic => f.write_str("anthropic"),
             Self::Deepseek => f.write_str("deepseek"),
+            Self::Elevenlabs => f.write_str("elevenlabs"),
             Self::Google => f.write_str("google"),
             Self::Mistral => f.write_str("mistral"),
             Self::Minimax => f.write_str("minimax"),
@@ -3430,6 +3673,7 @@ impl ::std::str::FromStr for Provider {
             "cohere" => Ok(Self::Cohere),
             "anthropic" => Ok(Self::Anthropic),
             "deepseek" => Ok(Self::Deepseek),
+            "elevenlabs" => Ok(Self::Elevenlabs),
             "google" => Ok(Self::Google),
             "mistral" => Ok(Self::Mistral),
             "minimax" => Ok(Self::Minimax),
@@ -5431,6 +5675,107 @@ pub struct ToolCallExtraContentGoogle {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub thought_signature: ::std::option::Option<::std::string::String>,
 }
+/**A video generation job. Returned by `POST /videos` and
+`GET /videos/{video_id}`.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct VideoJob {
+    ///Unix timestamp (in seconds) of when the job finished, null while it is still running.
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub completed_at: ::std::option::Option<i64>,
+    ///Unix timestamp (in seconds) of when the job was created.
+    pub created_at: i64,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub error: ::std::option::Option<VideoJobError>,
+    /**Identifier of the video generation job. Opaque to clients - it may
+    encode the provider - and must be sent back verbatim to
+    `GET /videos/{video_id}`.*/
+    pub id: ::std::string::String,
+    ///The model used to generate the video.
+    pub model: ::std::string::String,
+    ///The object type, which is always `video`.
+    pub object: ::std::string::String,
+    ///Completion percentage of the render.
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub progress: ::std::option::Option<i64>,
+    ///Duration of the generated video in seconds, as a string.
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub seconds: ::std::option::Option<::std::string::String>,
+    ///Resolution of the generated video as `widthxheight`.
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub size: ::std::option::Option<::std::string::String>,
+    ///Current status of the job.
+    pub status: VideoJobStatus,
+}
+///The error that caused the job to fail, null otherwise.
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
+pub struct VideoJobError {
+    ///Machine-readable error code.
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub code: ::std::option::Option<::std::string::String>,
+    ///Human-readable error message.
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub message: ::std::option::Option<::std::string::String>,
+}
+///Current status of the job.
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum VideoJobStatus {
+    #[serde(rename = "queued")]
+    Queued,
+    #[serde(rename = "in_progress")]
+    InProgress,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "failed")]
+    Failed,
+}
+impl ::std::fmt::Display for VideoJobStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Queued => f.write_str("queued"),
+            Self::InProgress => f.write_str("in_progress"),
+            Self::Completed => f.write_str("completed"),
+            Self::Failed => f.write_str("failed"),
+        }
+    }
+}
+impl ::std::str::FromStr for VideoJobStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "queued" => Ok(Self::Queued),
+            "in_progress" => Ok(Self::InProgress),
+            "completed" => Ok(Self::Completed),
+            "failed" => Ok(Self::Failed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for VideoJobStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for VideoJobStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 /// Generation of default values for serde.
 pub mod defaults {
     pub(super) fn default_bool<const V: bool>() -> bool {
@@ -5466,11 +5811,18 @@ pub mod defaults {
     {
         super::CreateImageRequestResponseFormat::Url
     }
+    pub(super) fn create_music_request_response_format() -> super::CreateMusicRequestResponseFormat
+    {
+        super::CreateMusicRequestResponseFormat::Mp3
+    }
     pub(super) fn create_response_request_temperature() -> f32 {
         1_f32
     }
     pub(super) fn create_response_request_top_p() -> f32 {
         1_f32
+    }
+    pub(super) fn create_sfx_request_response_format() -> super::CreateSfxRequestResponseFormat {
+        super::CreateSfxRequestResponseFormat::Mp3
     }
     pub(super) fn create_speech_request_language() -> super::CreateSpeechRequestLanguage {
         super::CreateSpeechRequestLanguage("en".to_string())

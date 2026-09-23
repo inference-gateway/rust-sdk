@@ -12,6 +12,14 @@ mod generated;
 
 pub use generated::schemas::*;
 
+/// The spec calls this `CreateSFXRequest`; typify lower-cases the acronym when
+/// it camel-cases schema names, so the generated type is `CreateSfxRequest`.
+/// These aliases keep the spec spelling available - both names refer to the
+/// same type.
+pub type CreateSFXRequest = CreateSfxRequest;
+/// See [`CreateSFXRequest`].
+pub type CreateSFXRequestResponseFormat = CreateSfxRequestResponseFormat;
+
 use std::future::Future;
 
 use futures_util::{Stream, StreamExt};
@@ -227,6 +235,32 @@ pub trait InferenceGatewayAPI {
         request: CreateSpeechRequest,
     ) -> impl Future<Output = Result<Vec<u8>, GatewayError>> + Send;
 
+    /// Generates a sound effect from a text prompt via the Audio API
+    /// (`POST /audio/sfx`), returning the audio as raw bytes.
+    ///
+    /// The response format (and thus the bytes' encoding) is chosen via
+    /// `request.response_format`; it defaults to `mp3`.
+    ///
+    /// Providers without sound-effect support return [`GatewayError::BadRequest`].
+    fn create_sfx(
+        &self,
+        provider: Option<Provider>,
+        request: CreateSFXRequest,
+    ) -> impl Future<Output = Result<Vec<u8>, GatewayError>> + Send;
+
+    /// Composes music from a text prompt via the Audio API
+    /// (`POST /audio/music`), returning the audio as raw bytes.
+    ///
+    /// The response format (and thus the bytes' encoding) is chosen via
+    /// `request.response_format`; it defaults to `mp3`.
+    ///
+    /// Providers without music support return [`GatewayError::BadRequest`].
+    fn create_music(
+        &self,
+        provider: Option<Provider>,
+        request: CreateMusicRequest,
+    ) -> impl Future<Output = Result<Vec<u8>, GatewayError>> + Send;
+
     /// Health probe - returns true on HTTP 200, false otherwise.
     fn health_check(&self) -> impl Future<Output = Result<bool, GatewayError>> + Send;
 }
@@ -301,6 +335,30 @@ impl InferenceGatewayClient {
         match provider {
             Some(provider) => format!("{}/messages?provider={provider}", self.base_url),
             None => format!("{}/messages", self.base_url),
+        }
+    }
+
+    /// Posts `request` as JSON to an audio endpoint and returns the raw audio
+    /// bytes. Shared by `/audio/speech`, `/audio/sfx` and `/audio/music`, which
+    /// are identical apart from the path and the request body.
+    async fn post_audio(
+        &self,
+        path: &str,
+        provider: Option<Provider>,
+        request: &impl serde::Serialize,
+    ) -> Result<Vec<u8>, GatewayError> {
+        let mut url = format!("{}/audio/{path}", self.base_url);
+        if let Some(provider) = provider {
+            url = format!("{url}?provider={provider}");
+        }
+        let mut req = self.client.post(&url);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
+        }
+        let response = req.json(request).send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.bytes().await?.to_vec()),
+            status => Err(map_error_status(status, response).await),
         }
     }
 
@@ -621,19 +679,23 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         provider: Option<Provider>,
         request: CreateSpeechRequest,
     ) -> Result<Vec<u8>, GatewayError> {
-        let mut url = format!("{}/audio/speech", self.base_url);
-        if let Some(provider) = provider {
-            url = format!("{url}?provider={provider}");
-        }
-        let mut req = self.client.post(&url);
-        if let Some(token) = &self.token {
-            req = req.bearer_auth(token);
-        }
-        let response = req.json(&request).send().await?;
-        match response.status() {
-            StatusCode::OK => Ok(response.bytes().await?.to_vec()),
-            status => Err(map_error_status(status, response).await),
-        }
+        self.post_audio("speech", provider, &request).await
+    }
+
+    async fn create_sfx(
+        &self,
+        provider: Option<Provider>,
+        request: CreateSFXRequest,
+    ) -> Result<Vec<u8>, GatewayError> {
+        self.post_audio("sfx", provider, &request).await
+    }
+
+    async fn create_music(
+        &self,
+        provider: Option<Provider>,
+        request: CreateMusicRequest,
+    ) -> Result<Vec<u8>, GatewayError> {
+        self.post_audio("music", provider, &request).await
     }
 
     async fn health_check(&self) -> Result<bool, GatewayError> {
