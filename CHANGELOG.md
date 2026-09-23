@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.0](https://github.com/inference-gateway/rust-sdk/compare/0.25.1...0.26.0) (2026-09-23)
+
+### ✨ Features
+
+* sync schemas v0.31.0 and add create_sfx and create_music ([#145](https://github.com/inference-gateway/rust-sdk/issues/145)) ([2162a0b](https://github.com/inference-gateway/rust-sdk/commit/2162a0b374f78dbc3c2cb474fe287b1d711b19cc)), closes [#146](https://github.com/inference-gateway/rust-sdk/issues/146)
+
+### 👷 CI
+
+* **deps:** bump actions-rust-lang/setup-rust-toolchain ([#139](https://github.com/inference-gateway/rust-sdk/issues/139)) ([ef28726](https://github.com/inference-gateway/rust-sdk/commit/ef2872671984b003d85fce3bab5bf7628fd4c6ed))
+* **deps:** bump syn from 3.0.4 to 3.0.5 in the cargo group ([#140](https://github.com/inference-gateway/rust-sdk/issues/140)) ([1e8d142](https://github.com/inference-gateway/rust-sdk/commit/1e8d142c4ca4d12809e133a15b032b0311691c54))
+* **deps:** bump the cargo group with 2 updates ([#144](https://github.com/inference-gateway/rust-sdk/issues/144)) ([3c770d3](https://github.com/inference-gateway/rust-sdk/commit/3c770d3657677498035a2d7b18c79fe8db2407e5))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.245 -> 2.1.266 ([#142](https://github.com/inference-gateway/rust-sdk/issues/142)) ([b55dfbf](https://github.com/inference-gateway/rust-sdk/commit/b55dfbf7f5781e9825687586a226856be18939bd))
+* **deps:** bump claude-code 2.1.266 -> 2.1.278 ([#149](https://github.com/inference-gateway/rust-sdk/issues/149)) ([8f0ea89](https://github.com/inference-gateway/rust-sdk/commit/8f0ea896ffb70004202be75442a74908c9c2599e))
+* **deps:** bump infer CLI v0.183.0 -> v0.192.0 ([#143](https://github.com/inference-gateway/rust-sdk/issues/143)) ([d636ca7](https://github.com/inference-gateway/rust-sdk/commit/d636ca74653f5a65b5c27984b014f0b7b668073a))
+* sync generated types with schemas v0.28.0 ([#141](https://github.com/inference-gateway/rust-sdk/issues/141)) ([66a73a7](https://github.com/inference-gateway/rust-sdk/commit/66a73a739953554cd0ef0d02fdfed0eea3209920))
+
 ## [0.25.1](https://github.com/inference-gateway/rust-sdk/compare/0.25.0...0.25.1) (2026-09-04)
 
 ### ♻️ Improvements
