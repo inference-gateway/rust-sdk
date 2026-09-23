@@ -3,9 +3,8 @@ use std::num::NonZeroU64;
 use std::process::ExitCode;
 
 use inference_gateway_sdk::{
-    CreateImageEditRequest, CreateImageRequest, CreateImageRequestResponseFormat,
-    CreateImageVariationRequest, GatewayError, ImageSize, ImagesResponse, InferenceGatewayAPI,
-    InferenceGatewayClient, Provider,
+    CreateImageEditRequest, CreateImageRequest, CreateImageRequestResponseFormat, GatewayError,
+    ImageSize, ImagesResponse, InferenceGatewayAPI, InferenceGatewayClient, Provider,
 };
 
 const DEFAULT_PROVIDER: &str = "openai";
@@ -72,9 +71,9 @@ async fn run() -> Result<(), GatewayError> {
     print_images(&response);
     println!("---\n");
 
-    // Examples 2 and 3 need a local source image; set IMAGE_PATH to run them.
+    // Example 2 needs a local source image; set IMAGE_PATH to run it.
     let Ok(image_path) = env::var("IMAGE_PATH") else {
-        println!("IMAGE_PATH not set - skipping edit and variation examples.");
+        println!("IMAGE_PATH not set - skipping the edit example.");
         println!("Set IMAGE_PATH to a png/webp/jpg file to run them.");
         return Ok(());
     };
@@ -90,25 +89,9 @@ async fn run() -> Result<(), GatewayError> {
         .create_image_edit(
             Some(provider),
             CreateImageEditRequest {
-                image: image.clone(),
-                prompt: "Add a rustacean sticker to the laptop".to_string(),
-                model: Some(model.clone()),
-                ..Default::default()
-            },
-        )
-        .await?;
-    print_images(&response);
-    println!("---\n");
-
-    // Example 3: Image variation
-    println!("🔀 Example 3: Image Variation");
-    let response = client
-        .create_image_variation(
-            Some(provider),
-            CreateImageVariationRequest {
                 image,
+                prompt: "Add a rustacean sticker to the laptop".to_string(),
                 model: Some(model),
-                n: Some(2),
                 ..Default::default()
             },
         )
