@@ -12,6 +12,14 @@ mod generated;
 
 pub use generated::schemas::*;
 
+/// The spec calls this `CreateSFXRequest`; typify lower-cases the acronym when
+/// it camel-cases schema names, so the generated type is `CreateSfxRequest`.
+/// These aliases keep the spec spelling available - both names refer to the
+/// same type.
+pub type CreateSFXRequest = CreateSfxRequest;
+/// See [`CreateSFXRequest`].
+pub type CreateSFXRequestResponseFormat = CreateSfxRequestResponseFormat;
+
 use std::future::Future;
 
 use futures_util::{Stream, StreamExt};
@@ -237,7 +245,7 @@ pub trait InferenceGatewayAPI {
     fn create_sfx(
         &self,
         provider: Option<Provider>,
-        request: CreateSfxRequest,
+        request: CreateSFXRequest,
     ) -> impl Future<Output = Result<Vec<u8>, GatewayError>> + Send;
 
     /// Composes music from a text prompt via the Audio API
@@ -677,7 +685,7 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
     async fn create_sfx(
         &self,
         provider: Option<Provider>,
-        request: CreateSfxRequest,
+        request: CreateSFXRequest,
     ) -> Result<Vec<u8>, GatewayError> {
         self.post_audio("sfx", provider, &request).await
     }

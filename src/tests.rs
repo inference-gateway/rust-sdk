@@ -5,8 +5,8 @@ use crate::{
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageEditRequest,
     CreateImageRequest, CreateImageRequestQuality, CreateImageVariationRequest,
-    CreateMessagesRequest, CreateMusicRequest, CreateMusicRequestResponseFormat, CreateSfxRequest,
-    CreateSfxRequestResponseFormat, CreateSpeechRequest, FinishReason, FunctionObject,
+    CreateMessagesRequest, CreateMusicRequest, CreateMusicRequestResponseFormat, CreateSFXRequest,
+    CreateSFXRequestResponseFormat, CreateSpeechRequest, FinishReason, FunctionObject,
     FunctionParameters, GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient,
     Message, MessageContent, MessageRole, MessagesMessage, MessagesMessageContent,
     MessagesMessageRole, MessagesResponseContentBlock, MessagesResponseStopReason,
@@ -1576,13 +1576,13 @@ async fn test_create_sfx() -> Result<(), GatewayError> {
     let base_url = format!("{}/v1", server.url());
     let client = InferenceGatewayClient::new(&base_url);
 
-    let request = CreateSfxRequest {
+    let request = CreateSFXRequest {
         model: "elevenlabs/eleven_text_to_sound_v2".to_string(),
         prompt: "distant thunder".to_string(),
         duration_seconds: Some(3.0),
         loop_: Some(true),
         prompt_influence: None,
-        response_format: CreateSfxRequestResponseFormat::Mp3,
+        response_format: CreateSFXRequestResponseFormat::Mp3,
     };
 
     let response = client
@@ -1608,13 +1608,13 @@ async fn test_create_sfx_error_response() -> Result<(), GatewayError> {
     let base_url = format!("{}/v1", server.url());
     let client = InferenceGatewayClient::new(&base_url);
 
-    let request = CreateSfxRequest {
+    let request = CreateSFXRequest {
         model: "elevenlabs/eleven_text_to_sound_v2".to_string(),
         prompt: "distant thunder".to_string(),
         duration_seconds: None,
         loop_: None,
         prompt_influence: None,
-        response_format: CreateSfxRequestResponseFormat::Mp3,
+        response_format: CreateSFXRequestResponseFormat::Mp3,
     };
 
     let error = client
