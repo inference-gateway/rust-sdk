@@ -1985,6 +1985,176 @@ pub struct McpTool {
     ///The MCP server that provides this tool
     pub server: ::std::string::String,
 }
+///A JSON-RPC 2.0 error object
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct McpjsonrpcError {
+    /**JSON-RPC error code: `-32700` parse error, `-32600` invalid request,
+    `-32601` method not found, `-32602` invalid params, `-32603` internal
+    error (including upstream MCP server failures), `-32001` request
+    blocked by guardrails at any phase (`pre_call`, `tool_args`,
+    `tool_output`), answered with HTTP `403` and the policy message,
+    `-32020` header mismatch, `-32022` unsupported protocol version
+    (`data` carries `requested` and `supported`).
+    */
+    pub code: i64,
+    ///Optional additional error detail
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub data: ::std::option::Option<::serde_json::Value>,
+    ///Short description of the error
+    pub message: ::std::string::String,
+}
+/**A JSON-RPC 2.0 request sent to `POST /mcp`, MCP protocol version
+`2026-07-28`. A message without `id` is a notification; this protocol
+version defines none over HTTP, so the gateway acknowledges it with `202`
+and ignores it.
+
+`params` and the corresponding `result` follow the vendored MCP spec
+types in `mcp/mcp-schema.yaml`. Every request's `params._meta` is a
+`RequestMetaObject` (`io.modelcontextprotocol/protocolVersion`,
+`io.modelcontextprotocol/clientInfo`,
+`io.modelcontextprotocol/clientCapabilities`); `server/discover` takes
+nothing else, `tools/list` takes an optional `cursor` and `tools/call`
+takes `CallToolRequestParams`.
+
+Tool names are namespaced `mcp_<server alias>_<tool name>`, e.g.
+`mcp_deepwiki_ask_question`. The alias comes from the `alias=url` syntax
+in `MCP_SERVERS` and is derived from the URL host when omitted; it must
+match `^[a-z0-9_-]+$` so the resulting tool name stays valid across all
+LLM providers. The same namespacing applies to the tools injected into
+`/v1/chat/completions`. `mcp_tools_get` and `mcp_tools_execute` are
+reserved for the gateway's own selector meta-tools and cannot be used by
+a configured server.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct McpjsonrpcRequest {
+    /**Request identifier echoed back in the response. Absent for
+    notifications.
+    */
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub id: ::std::option::Option<McpjsonrpcRequestId>,
+    ///JSON-RPC protocol version, always "2.0"
+    pub jsonrpc: ::std::string::String,
+    ///The MCP method to invoke
+    pub method: McpjsonrpcRequestMethod,
+    ///Method parameters, as defined by the MCP specification
+    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+    pub params: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+}
+/**Request identifier echoed back in the response. Absent for
+notifications.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum McpjsonrpcRequestId {
+    String(::std::string::String),
+    Integer(i64),
+}
+impl ::std::fmt::Display for McpjsonrpcRequestId {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match self {
+            Self::String(x) => x.fmt(f),
+            Self::Integer(x) => x.fmt(f),
+        }
+    }
+}
+impl ::std::convert::From<i64> for McpjsonrpcRequestId {
+    fn from(value: i64) -> Self {
+        Self::Integer(value)
+    }
+}
+///The MCP method to invoke
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum McpjsonrpcRequestMethod {
+    #[serde(rename = "server/discover")]
+    ServerDiscover,
+    #[serde(rename = "tools/list")]
+    ToolsList,
+    #[serde(rename = "tools/call")]
+    ToolsCall,
+}
+impl ::std::fmt::Display for McpjsonrpcRequestMethod {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::ServerDiscover => f.write_str("server/discover"),
+            Self::ToolsList => f.write_str("tools/list"),
+            Self::ToolsCall => f.write_str("tools/call"),
+        }
+    }
+}
+impl ::std::str::FromStr for McpjsonrpcRequestMethod {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "server/discover" => Ok(Self::ServerDiscover),
+            "tools/list" => Ok(Self::ToolsList),
+            "tools/call" => Ok(Self::ToolsCall),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for McpjsonrpcRequestMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for McpjsonrpcRequestMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+/**A JSON-RPC 2.0 response envelope. Exactly one of `result` or `error` is
+present. `result` carries the MCP result type for the requested method
+(`DiscoverResult` for `server/discover`, `ListToolsResult` for
+`tools/list`, `CallToolResult` for `tools/call`) as defined in
+`mcp/mcp-schema.yaml`.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct McpjsonrpcResponse {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub error: ::std::option::Option<McpjsonrpcError>,
+    ///The `id` of the request this responds to
+    pub id: McpjsonrpcResponseId,
+    ///JSON-RPC protocol version, always "2.0"
+    pub jsonrpc: ::std::string::String,
+    ///The method result, present on success
+    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+    pub result: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+}
+///The `id` of the request this responds to
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum McpjsonrpcResponseId {
+    String(::std::string::String),
+    Integer(i64),
+}
+impl ::std::fmt::Display for McpjsonrpcResponseId {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match self {
+            Self::String(x) => x.fmt(f),
+            Self::Integer(x) => x.fmt(f),
+        }
+    }
+}
+impl ::std::convert::From<i64> for McpjsonrpcResponseId {
+    fn from(value: i64) -> Self {
+        Self::Integer(value)
+    }
+}
 ///Message structure for provider requests
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct Message {
@@ -3514,6 +3684,19 @@ pub struct Model {
 pub struct ModelModalities {
     pub input: ::std::vec::Vec<Modality>,
     pub output: ::std::vec::Vec<Modality>,
+}
+/**OAuth 2.0 Protected Resource Metadata (RFC 9728) for the gateway's MCP
+endpoint. Only the fields a client needs to find the authorization
+server are published.
+*/
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct OAuthProtectedResourceMetadata {
+    ///Issuer identifiers of the authorization servers that mint tokens for this resource
+    pub authorization_servers: ::std::vec::Vec<::std::string::String>,
+    ///How a bearer token may be sent; the gateway reads the Authorization header only
+    pub bearer_methods_supported: ::std::vec::Vec<::std::string::String>,
+    ///The canonical public URL of the protected resource
+    pub resource: ::std::string::String,
 }
 ///Pricing information for a model
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
