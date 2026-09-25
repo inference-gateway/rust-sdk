@@ -52,7 +52,7 @@ task lint
 1. Run static analysis:
 
 ```sh
-task analyze
+task analyse
 ```
 
 ## Pull Request Process
@@ -68,12 +68,14 @@ Types:
 
 - feat: new feature
 - fix: bug fix
+- impr: improvement to an existing feature
 - refactor: code change that neither fixes a bug nor adds a feature
 - docs: documentation
 - style: formatting, missing semi colons, etc; no code change
 - test: adding missing tests
 - chore: updating build tasks, package manager configs, etc; no production code change
 - ci: changes to CI configuration files and scripts
+- build: changes to the build system or external dependencies
 - perf: code change that improves performance
 
 1. Ensure your PR:
