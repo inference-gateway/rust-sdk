@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.1](https://github.com/inference-gateway/rust-sdk/compare/0.27.0...0.27.1) (2026-09-25)
+
+### ♻️ Improvements
+
+* sync types with schemas v0.34.2 and remove list_tools ([#155](https://github.com/inference-gateway/rust-sdk/issues/155)) ([33fa0a0](https://github.com/inference-gateway/rust-sdk/commit/33fa0a08bf4dbd71879b601836fea2a75778cb2e))
+
 ## [0.27.0](https://github.com/inference-gateway/rust-sdk/compare/0.26.1...0.27.0) (2026-09-25)
 
 ### ✨ Features
