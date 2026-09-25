@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.0](https://github.com/inference-gateway/rust-sdk/compare/0.26.1...0.27.0) (2026-09-25)
+
+### ✨ Features
+
+* sync types with schemas v0.34.0 and implement MCP endpoints ([#153](https://github.com/inference-gateway/rust-sdk/issues/153)) ([f613c0c](https://github.com/inference-gateway/rust-sdk/commit/f613c0c04dd9674513af4ef27d824c112d112550))
+
+### 👷 CI
+
+* **claude:** centralize claude.yml via reusable workflow ([#152](https://github.com/inference-gateway/rust-sdk/issues/152)) ([0617cef](https://github.com/inference-gateway/rust-sdk/commit/0617cefd29f5cf7e962378f9a6571383f54d9895))
+* **deps:** bump syn from 3.0.5 to 3.0.6 in the cargo group ([#154](https://github.com/inference-gateway/rust-sdk/issues/154)) ([b2930bf](https://github.com/inference-gateway/rust-sdk/commit/b2930bf423179f0e4066e4d5177ed1c289b9b540))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump infer CLI v0.192.0 -> v0.205.3 ([#151](https://github.com/inference-gateway/rust-sdk/issues/151)) ([96de6d4](https://github.com/inference-gateway/rust-sdk/commit/96de6d4b534bc2b9a0dfb0951ca23ae944f2d658))
+
 ## [0.26.1](https://github.com/inference-gateway/rust-sdk/compare/0.26.0...0.26.1) (2026-09-23)
 
 ### ♻️ Improvements
