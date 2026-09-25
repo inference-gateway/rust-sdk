@@ -24,7 +24,6 @@ Connect to multiple LLM providers through a unified interface • Stream respons
     - [Creating a Client](#creating-a-client)
     - [Listing Models](#listing-models)
     - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
-    - [Listing MCP Tools](#listing-mcp-tools)
     - [MCP JSON-RPC Endpoint](#mcp-json-rpc-endpoint)
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
@@ -51,7 +50,7 @@ Inference Gateway API:
 ```rust
 use inference_gateway_sdk::{
     CreateChatCompletionResponse, GatewayError, InferenceGatewayAPI,
-    InferenceGatewayClient, ListModelsResponse, ListToolsResponse, Message,
+    InferenceGatewayClient, ListModelsResponse, Message,
     MessageContent, MessageRole, Provider,
 };
 use log::info;
@@ -177,44 +176,6 @@ for model in response.data {
 
 // ...Rest of the main function
 ```
-
-### Listing MCP Tools
-
-To list all available MCP (Model Context Protocol) tools from all configured
-MCP servers, use the `list_tools` method:
-
-```rust
-use inference_gateway_sdk::{
-    GatewayError,
-    InferenceGatewayAPI,
-    InferenceGatewayClient,
-    ListToolsResponse,
-};
-use log::info;
-
-#[tokio::main]
-async fn main() -> Result<(), GatewayError> {
-    // ...Create a client
-
-    // List all MCP tools from all configured servers
-    let response: ListToolsResponse = client.list_tools().await?;
-    info!("Found {} MCP tools", response.data.len());
-
-    for tool in response.data {
-        info!("Tool: {} from server: {}", tool.name, tool.server);
-        info!("Description: {}", tool.description);
-        if !tool.input_schema.is_empty() {
-            info!("Input schema: {:?}", tool.input_schema);
-        }
-    }
-
-    Ok(())
-}
-```
-
-Note: This functionality requires that MCP servers are configured and exposed
-in your Inference Gateway instance. If MCP is not exposed, you'll receive a
-`403 Forbidden` error.
 
 ### MCP JSON-RPC Endpoint
 

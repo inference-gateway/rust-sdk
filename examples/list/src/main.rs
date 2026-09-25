@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 use std::env;
 
-use inference_gateway_sdk::{GatewayError, InferenceGatewayAPI, InferenceGatewayClient, Provider};
+use inference_gateway_sdk::{
+    GatewayError, InferenceGatewayAPI, InferenceGatewayClient, McpjsonrpcRequest, Provider,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), GatewayError> {
@@ -80,29 +82,48 @@ async fn main() -> Result<(), GatewayError> {
 
     println!("---\n");
 
-    // Example 3: List MCP tools (if available)
+    // Example 3: List MCP tools over the aggregated JSON-RPC endpoint (if available)
     println!("🛠️  Example 3: List MCP Tools");
-    match client.list_tools().await {
-        Ok(tools) => {
-            println!("Found {} MCP tools:", tools.data.len());
+    match client
+        .mcp_json_rpc(McpjsonrpcRequest::tools_list(None))
+        .await
+    {
+        Ok(response) => match response.error {
+            Some(error) => {
+                println!("  ❌ JSON-RPC error {}: {}", error.code, error.message);
+            }
+            None => {
+                let tools = response
+                    .result
+                    .get("tools")
+                    .and_then(|tools| tools.as_array())
+                    .map(Vec::as_slice)
+                    .unwrap_or_default();
+                println!("Found {} MCP tools:", tools.len());
 
-            if tools.data.is_empty() {
-                println!("  No MCP tools available. Make sure MCP_EXPOSE=true on the gateway.");
-            } else {
-                for tool in &tools.data {
-                    println!("\n  🔧 {}", tool.name);
-                    println!("     Description: {}", tool.description);
-                    println!("     Server: {}", tool.server);
-
-                    if !tool.input_schema.is_empty() {
-                        let schema_str =
-                            serde_json::to_string_pretty(&tool.input_schema).unwrap_or_default();
+                if tools.is_empty() {
+                    println!("  No MCP tools available. Make sure MCP_EXPOSE=true on the gateway.");
+                }
+                for tool in tools {
+                    println!(
+                        "\n  🔧 {}",
+                        tool.get("name")
+                            .and_then(|name| name.as_str())
+                            .unwrap_or("")
+                    );
+                    if let Some(description) =
+                        tool.get("description").and_then(|desc| desc.as_str())
+                    {
+                        println!("     Description: {description}");
+                    }
+                    if let Some(schema) = tool.get("inputSchema") {
+                        let schema_str = serde_json::to_string_pretty(schema).unwrap_or_default();
                         let preview: String = schema_str.chars().take(100).collect();
                         println!("     Input schema: {preview}...");
                     }
                 }
             }
-        }
+        },
         Err(e) => {
             println!("  ❌ MCP tools not available (MCP_EXPOSE might be disabled)");
             println!("     Error: {e}");
