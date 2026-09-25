@@ -173,9 +173,6 @@ pub trait InferenceGatewayAPI {
         request: CreateMessagesRequest,
     ) -> impl Stream<Item = Result<SSEvents, GatewayError>> + Send;
 
-    /// Lists available MCP tools (only when `EXPOSE_MCP=true` server-side)
-    fn list_tools(&self) -> impl Future<Output = Result<ListToolsResponse, GatewayError>> + Send;
-
     /// Calls the gateway's own MCP server over JSON-RPC (`POST /mcp`), which
     /// aggregates every configured MCP server behind one endpoint. Requires
     /// `MCP_ENABLED=true` and `MCP_EXPOSE=true` server-side, otherwise the
@@ -577,20 +574,6 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
             self.messages_url(provider),
             request,
         )
-    }
-
-    async fn list_tools(&self) -> Result<ListToolsResponse, GatewayError> {
-        let url = format!("{}/mcp/tools", self.base_url);
-        let mut request = self.client.get(&url);
-        if let Some(token) = &self.token {
-            request = request.bearer_auth(token);
-        }
-
-        let response = request.send().await?;
-        match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
-            status => Err(map_error_status(status, response).await),
-        }
     }
 
     async fn mcp_json_rpc(
