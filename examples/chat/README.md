@@ -69,11 +69,16 @@ This example works with any provider supported by the Inference Gateway:
 - `groq` - Groq's fast inference models
 - `anthropic` - Claude models
 - `ollama` - Local models via Ollama
+- `ollama_cloud` - Ollama Cloud-hosted models
+- `llamacpp` - llama.cpp OpenAI-compatible `llama-server`
 - `cohere` - Cohere models
 - `cloudflare` - Cloudflare Workers AI
 - `google` - Google Gemini models
 - `mistral` - Mistral AI models
+- `minimax` - MiniMax models
 - `moonshot` - Moonshot AI models
+- `nvidia` - NVIDIA NIM models
+- `zai` - Z.ai GLM models
 
 ## Notes
 
