@@ -50,10 +50,15 @@ To see MCP tools in action, ensure the gateway is started with MCP exposed:
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e MCP_ENABLE=true -e MCP_EXPOSE=true \
+  -e MCP_ENABLED=true -e MCP_EXPOSE=true \
+  -e MCP_SERVERS=deepwiki=https://mcp.deepwiki.com/mcp \
   --env-file .env \
   ghcr.io/inference-gateway/inference-gateway:latest
 ```
+
+`MCP_EXPOSE` requires `MCP_ENABLED`, and `MCP_SERVERS` has no default -
+`POST /mcp` only aggregates the servers listed there, so without it
+`tools/list` returns nothing.
 
 ## Supported Operations
 

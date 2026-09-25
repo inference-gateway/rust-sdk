@@ -5,7 +5,8 @@ This directory contains examples that demonstrate how to use the Rust SDK.
 ## Pre-requisites
 
 You should have Docker installed (to run the Inference Gateway) and a recent
-stable Rust toolchain (1.94+ recommended; the SDK uses `edition = "2024"`).
+stable Rust toolchain (the workspace pins Rust 1.95.0 in
+`rust-toolchain.toml`; the SDK uses `edition = "2024"`).
 
 ## Quick Start
 
@@ -96,7 +97,7 @@ root:
 # List example
 cargo run -p list-example
 
-# Chat example (requires PROVIDER and LLM env vars)
+# Chat example (defaults to PROVIDER=deepseek LLM=deepseek-v4-flash)
 PROVIDER=deepseek LLM=deepseek-v4-flash cargo run -p chat-example
 
 # Messages example (defaults to PROVIDER=anthropic LLM=claude-sonnet-5)
@@ -116,14 +117,14 @@ cargo run
 
 ## Environment Variables
 
-All examples support these environment variables:
-
+- `INFERENCE_GATEWAY_URL` - Override the gateway base URL (defaults to
+  `http://localhost:8080/v1`). Read by every example.
 - `PROVIDER` - AI provider to use (`groq`, `openai`, `anthropic`, `deepseek`,
   `google`, `cohere`, `cloudflare`, `ollama`, `ollama_cloud`, `mistral`,
-  `minimax`, `moonshot`)
-- `LLM` - Specific model to use (e.g. `meta-llama/llama-3.3-70b-versatile`)
-- `INFERENCE_GATEWAY_URL` - Override the gateway base URL (defaults to
-  `http://localhost:8080/v1`)
+  `minimax`, `moonshot`). Read by every example; optional everywhere.
+- `LLM` - Specific model to use (e.g. `meta-llama/llama-3.3-70b-versatile`).
+  Read by the chat, messages and images examples, each with its own default;
+  the list example ignores it.
 
 Provider-specific API keys should be set in the gateway's `.env` file (see
 `.env.example`).
