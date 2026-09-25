@@ -7,12 +7,12 @@ use crate::{
     CreateImageRequest, CreateImageRequestQuality, CreateMessagesRequest, CreateMusicRequest,
     CreateMusicRequestResponseFormat, CreateSFXRequest, CreateSFXRequestResponseFormat,
     CreateSpeechRequest, FinishReason, FunctionObject, FunctionParameters, GatewayError, ImageSize,
-    InferenceGatewayAPI, InferenceGatewayClient, Message, MessageContent, MessageRole,
-    MessagesMessage, MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
-    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
-    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
-    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
-    ResponseFormatTextType,
+    InferenceGatewayAPI, InferenceGatewayClient, MCP_PROTOCOL_VERSION, McpjsonrpcRequest, Message,
+    MessageContent, MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
+    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
+    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
+    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
+    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1158,6 +1158,108 @@ async fn test_list_tools_mcp_not_exposed() -> Result<(), GatewayError> {
         }
         _ => panic!("Expected Forbidden error for MCP not exposed"),
     }
+
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_mcp_json_rpc_tools_call() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/mcp")
+        .match_header("MCP-Protocol-Version", MCP_PROTOCOL_VERSION)
+        .match_header("Mcp-Method", "tools/call")
+        .match_header("Mcp-Name", "mcp_deepwiki_ask_question")
+        .match_header("authorization", "Bearer test-token")
+        .match_body(Matcher::PartialJson(json!({
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {
+                "name": "mcp_deepwiki_ask_question",
+                "arguments": {"repoName": "inference-gateway/inference-gateway"},
+                "_meta": {"io.modelcontextprotocol/protocolVersion": MCP_PROTOCOL_VERSION},
+            },
+        })))
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"jsonrpc":"2.0","id":1,"result":{"resultType":"complete"}}"#)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url).with_token("test-token");
+    let request = McpjsonrpcRequest::tools_call(
+        "mcp_deepwiki_ask_question",
+        json!({"repoName": "inference-gateway/inference-gateway"}),
+    );
+    assert!(request.id.is_some());
+
+    let response = client.mcp_json_rpc(request).await?;
+    assert_eq!(response.jsonrpc, "2.0");
+    assert!(response.error.is_none());
+    assert_eq!(response.result["resultType"], "complete");
+
+    mock.assert();
+    Ok(())
+}
+
+/// A `404` on `POST /mcp` is a JSON-RPC `method not found` envelope, not the
+/// gateway's `{"error": ...}` shape, so it must not become a `GatewayError`.
+#[tokio::test]
+async fn test_mcp_json_rpc_error_envelope() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/mcp")
+        .with_status(404)
+        .with_header("content-type", "application/json")
+        .with_body(
+            r#"{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"method not found"}}"#,
+        )
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+    let response = client
+        .mcp_json_rpc(McpjsonrpcRequest::tools_list(None))
+        .await?;
+
+    let error = response.error.expect("expected a JSON-RPC error envelope");
+    assert_eq!(error.code, -32601);
+    assert_eq!(error.message, "method not found");
+
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_mcp_protected_resource_metadata() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/.well-known/oauth-protected-resource/mcp")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(
+            r#"{
+                "resource": "https://gateway.example.com/mcp",
+                "authorization_servers": ["https://keycloak.example.com/realms/ig"],
+                "bearer_methods_supported": ["header"]
+            }"#,
+        )
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+    let metadata = client.mcp_protected_resource_metadata().await?;
+
+    assert_eq!(metadata.resource, "https://gateway.example.com/mcp");
+    assert_eq!(
+        metadata.authorization_servers,
+        vec!["https://keycloak.example.com/realms/ig"]
+    );
+    assert_eq!(metadata.bearer_methods_supported, vec!["header"]);
 
     mock.assert();
     Ok(())

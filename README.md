@@ -25,6 +25,7 @@ Connect to multiple LLM providers through a unified interface • Stream respons
     - [Listing Models](#listing-models)
     - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
     - [Listing MCP Tools](#listing-mcp-tools)
+    - [MCP JSON-RPC Endpoint](#mcp-json-rpc-endpoint)
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
     - [Messages API (Anthropic-compatible)](#messages-api-anthropic-compatible)
@@ -214,6 +215,67 @@ async fn main() -> Result<(), GatewayError> {
 Note: This functionality requires that MCP servers are configured and exposed
 in your Inference Gateway instance. If MCP is not exposed, you'll receive a
 `403 Forbidden` error.
+
+### MCP JSON-RPC Endpoint
+
+The gateway also exposes itself as an MCP server on `POST /mcp`, aggregating
+every configured MCP server behind one JSON-RPC endpoint. Use `mcp_json_rpc`
+with one of the `McpjsonrpcRequest` constructors - the required
+`MCP-Protocol-Version`, `Mcp-Method` and `Mcp-Name` headers are derived from the
+request body:
+
+```rust
+use inference_gateway_sdk::{
+    GatewayError,
+    InferenceGatewayAPI,
+    InferenceGatewayClient,
+    McpjsonrpcRequest,
+};
+use log::info;
+use serde_json::json;
+
+#[tokio::main]
+async fn main() -> Result<(), GatewayError> {
+    // ...Create a client
+
+    // The aggregated, namespaced tools of every healthy MCP server
+    let response = client
+        .mcp_json_rpc(McpjsonrpcRequest::tools_list(None))
+        .await?;
+    info!("tools/list result: {:?}", response.result);
+
+    // Call a namespaced tool: mcp_<server alias>_<tool name>
+    let response = client
+        .mcp_json_rpc(McpjsonrpcRequest::tools_call(
+            "mcp_deepwiki_ask_question",
+            json!({
+                "repoName": "inference-gateway/inference-gateway",
+                "question": "How is MCP wired up?",
+            }),
+        ))
+        .await?;
+
+    match response.error {
+        Some(error) => info!("JSON-RPC error {}: {}", error.code, error.message),
+        None => info!("tools/call result: {:?}", response.result),
+    }
+
+    Ok(())
+}
+```
+
+JSON-RPC-level failures come back as `response.error` rather than a
+`GatewayError`. The endpoint requires `MCP_ENABLED=true` and `MCP_EXPOSE=true`
+server-side, otherwise it answers `403 Forbidden`.
+
+When gateway auth is enabled, `mcp_protected_resource_metadata` fetches the
+OAuth 2.0 Protected Resource Metadata (RFC 9728) for the endpoint, which names
+the authorization servers that mint tokens for it:
+
+```rust
+let metadata = client.mcp_protected_resource_metadata().await?;
+info!("Authorization servers: {:?}", metadata.authorization_servers);
+```
 
 ### Generating Content
 
