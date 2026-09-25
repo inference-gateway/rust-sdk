@@ -119,8 +119,9 @@ cargo run
 All examples support these environment variables:
 
 - `PROVIDER` - AI provider to use (`groq`, `openai`, `anthropic`, `deepseek`,
-  `google`, `cohere`, `cloudflare`, `ollama`, `ollama_cloud`, `mistral`,
-  `minimax`, `moonshot`)
+  `google`, `cohere`, `cloudflare`, `ollama`, `ollama_cloud`, `llamacpp`,
+  `mistral`, `minimax`, `moonshot`, `nvidia`, `zai`; `elevenlabs` also parses,
+  but it only serves the audio and video endpoints no example calls)
 - `LLM` - Specific model to use (e.g. `meta-llama/llama-3.3-70b-versatile`)
 - `INFERENCE_GATEWAY_URL` - Override the gateway base URL (defaults to
   `http://localhost:8080/v1`)

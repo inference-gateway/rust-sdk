@@ -642,10 +642,14 @@ The Inference Gateway Rust SDK supports the following providers:
 - **Cohere** (`Provider::Cohere`) - Cohere language models
 - **Anthropic** (`Provider::Anthropic`) - Claude models
 - **DeepSeek** (`Provider::Deepseek`) - DeepSeek models
+- **ElevenLabs** (`Provider::Elevenlabs`) - Audio generation via `create_speech`,
+  `create_sfx` and `create_music` (no chat completions)
 - **Google** (`Provider::Google`) - Google Gemini models via Generative AI API
 - **Mistral** (`Provider::Mistral`) - Mistral AI models
 - **MiniMax** (`Provider::Minimax`) - MiniMax models
 - **Moonshot** (`Provider::Moonshot`) - Moonshot AI models
+- **NVIDIA** (`Provider::Nvidia`) - NVIDIA NIM models
+- **Z.ai** (`Provider::Zai`) - Z.ai GLM models
 
 Each provider may support different models and capabilities. Use the
 `list_models_by_provider()` method to discover available models for each
