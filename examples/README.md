@@ -120,8 +120,10 @@ cargo run
 - `INFERENCE_GATEWAY_URL` - Override the gateway base URL (defaults to
   `http://localhost:8080/v1`). Read by every example.
 - `PROVIDER` - AI provider to use (`groq`, `openai`, `anthropic`, `deepseek`,
-  `google`, `cohere`, `cloudflare`, `ollama`, `ollama_cloud`, `mistral`,
-  `minimax`, `moonshot`). Read by every example; optional everywhere.
+  `google`, `cohere`, `cloudflare`, `ollama`, `ollama_cloud`, `llamacpp`,
+  `mistral`, `minimax`, `moonshot`, `nvidia`, `zai`; `elevenlabs` also parses,
+  but it only serves the audio and video endpoints no example calls). Read by
+  every example; optional everywhere.
 - `LLM` - Specific model to use (e.g. `meta-llama/llama-3.3-70b-versatile`).
   Read by the chat, messages and images examples, each with its own default;
   the list example ignores it.

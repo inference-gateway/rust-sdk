@@ -54,14 +54,10 @@ use inference_gateway_sdk::{
     MessageContent, MessageRole, Provider,
 };
 use log::info;
-use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), GatewayError> {
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
-    }
-    env_logger::init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     // Create a client
     let client = InferenceGatewayClient::new("http://localhost:8080/v1");
@@ -121,7 +117,7 @@ To list all available models from all configured providers, use the
 
 ```rust
 use inference_gateway_sdk::{
-    GatewayError
+    GatewayError,
     InferenceGatewayAPI,
     InferenceGatewayClient,
     ListModelsResponse,
@@ -130,7 +126,7 @@ use inference_gateway_sdk::{
 use log::info;
 
 #[tokio::main]
-fn main() -> Result<(), GatewayError> {
+async fn main() -> Result<(), GatewayError> {
     // ...Create a client
 
     // List models from all providers
@@ -150,7 +146,7 @@ To list all available models from a specific provider, use the
 
 ```rust
 use inference_gateway_sdk::{
-    GatewayError
+    GatewayError,
     InferenceGatewayAPI,
     InferenceGatewayClient,
     ListModelsResponse,
@@ -303,7 +299,6 @@ use inference_gateway_sdk::{
     InferenceGatewayClient, Message, MessageContent, MessageRole, Provider,
 };
 use log::info;
-use std::env;
 
 fn message(role: MessageRole, text: &str) -> Message {
     Message {
@@ -318,10 +313,7 @@ fn message(role: MessageRole, text: &str) -> Message {
 
 #[tokio::main]
 async fn main() -> Result<(), GatewayError> {
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
-    }
-    env_logger::init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     let model = "deepseek-v4-flash";
 
@@ -400,6 +392,7 @@ async fn main() -> Result<(), GatewayError> {
         }],
         metadata: None,
         model: "claude-sonnet-5".to_string(),
+        output_config: None,
         stop_sequences: Vec::new(),
         stream: false,
         system: None,
@@ -455,7 +448,6 @@ use inference_gateway_sdk::{
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::env;
 
 fn message(role: MessageRole, text: &str) -> Message {
     Message {
@@ -471,10 +463,7 @@ fn message(role: MessageRole, text: &str) -> Message {
 #[tokio::main]
 async fn main() -> Result<(), GatewayError> {
     // Configure logging
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
-    }
-    env_logger::init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     // API endpoint - store as a variable so we can reuse it
     let api_endpoint = "http://localhost:8080/v1";
@@ -642,10 +631,14 @@ The Inference Gateway Rust SDK supports the following providers:
 - **Cohere** (`Provider::Cohere`) - Cohere language models
 - **Anthropic** (`Provider::Anthropic`) - Claude models
 - **DeepSeek** (`Provider::Deepseek`) - DeepSeek models
+- **ElevenLabs** (`Provider::Elevenlabs`) - Audio generation via `create_speech`,
+  `create_sfx` and `create_music` (no chat completions)
 - **Google** (`Provider::Google`) - Google Gemini models via Generative AI API
 - **Mistral** (`Provider::Mistral`) - Mistral AI models
 - **MiniMax** (`Provider::Minimax`) - MiniMax models
 - **Moonshot** (`Provider::Moonshot`) - Moonshot AI models
+- **NVIDIA** (`Provider::Nvidia`) - NVIDIA NIM models
+- **Z.ai** (`Provider::Zai`) - Z.ai GLM models
 
 Each provider may support different models and capabilities. Use the
 `list_models_by_provider()` method to discover available models for each
