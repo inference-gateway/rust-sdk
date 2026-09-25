@@ -7,5 +7,8 @@
 
 mod chat_request;
 pub mod image_request;
+mod mcp_request;
 mod speech_request;
 mod tool_call;
+
+pub use mcp_request::MCP_PROTOCOL_VERSION;

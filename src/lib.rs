@@ -10,6 +10,7 @@
 mod ext;
 mod generated;
 
+pub use ext::MCP_PROTOCOL_VERSION;
 pub use generated::schemas::*;
 
 /// The spec calls this `CreateSFXRequest`; typify lower-cases the acronym when
@@ -175,6 +176,37 @@ pub trait InferenceGatewayAPI {
     /// Lists available MCP tools (only when `EXPOSE_MCP=true` server-side)
     fn list_tools(&self) -> impl Future<Output = Result<ListToolsResponse, GatewayError>> + Send;
 
+    /// Calls the gateway's own MCP server over JSON-RPC (`POST /mcp`), which
+    /// aggregates every configured MCP server behind one endpoint. Requires
+    /// `MCP_ENABLED=true` and `MCP_EXPOSE=true` server-side, otherwise the
+    /// gateway answers [`GatewayError::Forbidden`].
+    ///
+    /// Build the request with [`McpjsonrpcRequest::server_discover`],
+    /// [`McpjsonrpcRequest::tools_list`] or
+    /// [`McpjsonrpcRequest::tools_call`]; the required `MCP-Protocol-Version`,
+    /// `Mcp-Method` and `Mcp-Name` headers are derived from it so they cannot
+    /// disagree with the body.
+    ///
+    /// JSON-RPC-level failures are returned as a response with
+    /// [`McpjsonrpcResponse::error`] set, not as a [`GatewayError`]. Only
+    /// requests with an `id` are supported - the gateway answers a
+    /// notification with `202` and no body, which surfaces as
+    /// [`GatewayError::Other`].
+    fn mcp_json_rpc(
+        &self,
+        request: McpjsonrpcRequest,
+    ) -> impl Future<Output = Result<McpjsonrpcResponse, GatewayError>> + Send;
+
+    /// Fetches the OAuth 2.0 Protected Resource Metadata (RFC 9728) for
+    /// `POST /mcp`, which points at the authorization servers that mint tokens
+    /// for it. Served without a token.
+    ///
+    /// Returns [`GatewayError::NotFound`] unless gateway auth is enabled and
+    /// the MCP endpoint is exposed.
+    fn mcp_protected_resource_metadata(
+        &self,
+    ) -> impl Future<Output = Result<OAuthProtectedResourceMetadata, GatewayError>> + Send;
+
     /// Generates images using a specified model via the OpenAI-compatible Images API.
     ///
     /// Providers without Images support return [`GatewayError::BadRequest`];
@@ -287,10 +319,10 @@ impl InferenceGatewayClient {
         self
     }
 
-    /// The gateway serves `/health` from the root server, not under the
-    /// versioned API prefix, so this strips a trailing `/v<digits>` segment
-    /// from the configured base URL before appending `/health`.
-    fn health_url(&self) -> String {
+    /// Builds a URL for a route served from the root server rather than the
+    /// versioned API prefix (`/health`, `/mcp`, the MCP OAuth metadata), by
+    /// stripping a trailing `/v<digits>` segment from the configured base URL.
+    fn root_url(&self, path: &str) -> String {
         let trimmed = self.base_url.trim_end_matches('/');
         let root = match trimmed.rsplit_once('/') {
             Some((prefix, last))
@@ -302,7 +334,11 @@ impl InferenceGatewayClient {
             }
             _ => trimmed,
         };
-        format!("{root}/health")
+        format!("{root}{path}")
+    }
+
+    fn health_url(&self) -> String {
+        self.root_url("/health")
     }
 
     fn messages_url(&self, provider: Option<Provider>) -> String {
@@ -551,6 +587,50 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         }
 
         let response = request.send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    async fn mcp_json_rpc(
+        &self,
+        request: McpjsonrpcRequest,
+    ) -> Result<McpjsonrpcResponse, GatewayError> {
+        let mut req = self
+            .client
+            .post(self.root_url("/mcp"))
+            .header("MCP-Protocol-Version", request.protocol_version())
+            .header("Mcp-Method", request.method.to_string());
+        // `Mcp-Name` is required for `tools/call` and must equal `params.name`.
+        // Namespaced tool names are `^[a-z0-9_-]+$`, so no base64 encoding of
+        // the header value is ever needed.
+        if request.method == McpjsonrpcRequestMethod::ToolsCall
+            && let Some(serde_json::Value::String(name)) = request.params.get("name")
+        {
+            req = req.header("Mcp-Name", name.clone());
+        }
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
+        }
+
+        let response = req.json(&request).send().await?;
+        match response.status() {
+            // `400` (`-32020`, `-32022`) and `404` (`-32601`) carry JSON-RPC
+            // error envelopes rather than the gateway's `{"error": ...}` shape,
+            // so they are handed back as a response instead of a `GatewayError`.
+            StatusCode::OK | StatusCode::BAD_REQUEST | StatusCode::NOT_FOUND => {
+                Ok(response.json().await?)
+            }
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    async fn mcp_protected_resource_metadata(
+        &self,
+    ) -> Result<OAuthProtectedResourceMetadata, GatewayError> {
+        let url = self.root_url("/.well-known/oauth-protected-resource/mcp");
+        let response = self.client.get(&url).send().await?;
         match response.status() {
             StatusCode::OK => Ok(response.json().await?),
             status => Err(map_error_status(status, response).await),
