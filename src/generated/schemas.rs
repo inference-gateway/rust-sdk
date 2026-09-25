@@ -1964,27 +1964,6 @@ pub struct ListModelsResponse {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub provider: ::std::option::Option<Provider>,
 }
-///Response structure for listing MCP tools
-#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-pub struct ListToolsResponse {
-    ///Array of available MCP tools
-    pub data: ::std::vec::Vec<McpTool>,
-    ///Always "list"
-    pub object: ::std::string::String,
-}
-///An MCP tool definition
-#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
-pub struct McpTool {
-    ///A description of what the tool does
-    pub description: ::std::string::String,
-    ///JSON schema for the tool's input parameters
-    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
-    pub input_schema: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
-    ///The name of the tool
-    pub name: ::std::string::String,
-    ///The MCP server that provides this tool
-    pub server: ::std::string::String,
-}
 ///A JSON-RPC 2.0 error object
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct McpjsonrpcError {
