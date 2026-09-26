@@ -1644,3 +1644,128 @@ async fn test_create_music_error_response() -> Result<(), GatewayError> {
     mock.assert();
     Ok(())
 }
+
+#[tokio::test]
+async fn test_generate_content_with_temperature() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/chat/completions?provider=deepseek")
+        .match_body(Matcher::PartialJson(json!({
+            "model": "deepseek-v4-flash",
+            "temperature": 0.25,
+            "max_tokens": 64,
+            "stream": false
+        })))
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(
+            r#"{
+                "id": "chatcmpl-456",
+                "object": "chat.completion",
+                "created": 1630000001,
+                "model": "deepseek-v4-flash",
+                "choices": [
+                    {
+                        "index": 0,
+                        "finish_reason": "stop",
+                        "logprobs": null,
+                        "message": {"role": "assistant", "content": "Hi"}
+                    }
+                ]
+            }"#,
+        )
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url)
+        .with_temperature(Some(0.25))
+        .with_max_tokens(Some(64));
+
+    client
+        .generate_content(
+            Provider::Deepseek,
+            "deepseek-v4-flash",
+            vec![user_message("Hello")],
+        )
+        .await?;
+
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_generate_content_stream_with_temperature() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    // Streaming still drops `tools`/`max_tokens` but must carry `temperature`.
+    let mock = server
+        .mock("POST", "/v1/chat/completions?provider=deepseek")
+        .match_body(Matcher::PartialJson(json!({
+            "model": "deepseek-v4-flash",
+            "temperature": 0.25,
+            "stream": true
+        })))
+        .with_status(200)
+        .with_header("content-type", "text/event-stream")
+        .with_body("data: [DONE]\n\n")
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url)
+        .with_temperature(Some(0.25))
+        .with_max_tokens(Some(64));
+
+    let stream = client.generate_content_stream(
+        Provider::Deepseek,
+        "deepseek-v4-flash",
+        vec![user_message("Hello")],
+    );
+    pin_mut!(stream);
+    while stream.next().await.is_some() {}
+
+    mock.assert();
+    Ok(())
+}
+
+#[test]
+fn test_build_chat_request_temperature() {
+    let client = InferenceGatewayClient::new("http://localhost:8080/v1");
+    let default = CreateChatCompletionRequest::default();
+
+    let request = client.build_chat_request("m", vec![user_message("Hello")], false);
+    assert_eq!(request.temperature, default.temperature);
+
+    let request = client.with_temperature(Some(1.75)).build_chat_request(
+        "m",
+        vec![user_message("Hello")],
+        true,
+    );
+    assert_eq!(request.temperature, 1.75);
+}
+
+#[tokio::test]
+async fn test_with_timeout_applies_to_requests() {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("GET", "/v1/models")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body_from_request(|_| {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            r#"{"object":"list","data":[]}"#.into()
+        })
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client =
+        InferenceGatewayClient::new(&base_url).with_timeout(std::time::Duration::from_millis(50));
+
+    let error = client.list_models().await.unwrap_err();
+    assert!(
+        matches!(&error, GatewayError::RequestError(err) if err.is_timeout()),
+        "expected a timeout, got {error:?}"
+    );
+    mock.assert();
+}

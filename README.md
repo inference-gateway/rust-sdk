@@ -110,6 +110,21 @@ async fn main() -> Result<(), GatewayError> {
 }
 ```
 
+The client is configured builder-style:
+
+```rust
+let client = InferenceGatewayClient::new("http://localhost:8080/v1")
+    .with_token("my-token")
+    .with_max_tokens(Some(512))
+    .with_temperature(Some(0.2))
+    .with_timeout(std::time::Duration::from_secs(30));
+```
+
+`with_temperature` applies to streaming and non-streaming chat completions;
+`None` leaves the API default. `with_timeout` bounds the whole request,
+response body included, so avoid a short timeout on a client used for
+streaming.
+
 ### Listing Models
 
 To list all available models from all configured providers, use the
