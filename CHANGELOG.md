@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.2](https://github.com/inference-gateway/rust-sdk/compare/0.27.1...0.27.2) (2026-09-26)
+
+### 📚 Documentation
+
+* align provider lists with Provider enum ([#163](https://github.com/inference-gateway/rust-sdk/issues/163)) ([cf2205a](https://github.com/inference-gateway/rust-sdk/commit/cf2205ac61a451ab55cd1f686eab9daf56d10225))
+* fix MCP env vars and stale run notes in examples ([#164](https://github.com/inference-gateway/rust-sdk/issues/164)) ([0841aa6](https://github.com/inference-gateway/rust-sdk/commit/0841aa6a2ff541c79243433450abfdd8a967bd1c))
+* fix README snippets to compile on edition 2024 ([#165](https://github.com/inference-gateway/rust-sdk/issues/165)) ([8c592c7](https://github.com/inference-gateway/rust-sdk/commit/8c592c71d07876d2f3080d24105e7ffbd191a925))
+* fix task analyse and add missing commit types ([#162](https://github.com/inference-gateway/rust-sdk/issues/162)) ([e15aaf8](https://github.com/inference-gateway/rust-sdk/commit/e15aaf8cf8e6f70a78a87e6d337bffffe32919d2))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.278 -> 2.1.280 ([#156](https://github.com/inference-gateway/rust-sdk/issues/156)) ([fdce11d](https://github.com/inference-gateway/rust-sdk/commit/fdce11dfb24cb93b3b47fc0b292d2b7428c8ebfe))
+* **deps:** bump infer CLI v0.205.3 -> v0.208.0 ([#157](https://github.com/inference-gateway/rust-sdk/issues/157)) ([189b128](https://github.com/inference-gateway/rust-sdk/commit/189b128a2b33b2b1b52ab619f0bfeac67626decf))
+
 ## [0.27.1](https://github.com/inference-gateway/rust-sdk/compare/0.27.0...0.27.1) (2026-09-25)
 
 ### ♻️ Improvements
