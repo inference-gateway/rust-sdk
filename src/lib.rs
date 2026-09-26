@@ -106,6 +106,7 @@ pub struct InferenceGatewayClient {
     token: Option<String>,
     tools: Option<Vec<ChatCompletionTool>>,
     max_tokens: Option<i64>,
+    temperature: Option<f64>,
 }
 
 impl std::fmt::Debug for InferenceGatewayClient {
@@ -277,6 +278,7 @@ impl InferenceGatewayClient {
             token: None,
             tools: None,
             max_tokens: None,
+            temperature: None,
         }
     }
 
@@ -285,13 +287,7 @@ impl InferenceGatewayClient {
         let base_url = std::env::var("INFERENCE_GATEWAY_URL")
             .unwrap_or_else(|_| "http://localhost:8080/v1".to_string());
 
-        Self {
-            base_url,
-            client: Client::new(),
-            token: None,
-            tools: None,
-            max_tokens: None,
-        }
+        Self::new(&base_url)
     }
 
     pub fn base_url(&self) -> &str {
@@ -313,6 +309,28 @@ impl InferenceGatewayClient {
     /// Sets an upper bound for tokens generated per request.
     pub fn with_max_tokens(mut self, max_tokens: Option<i64>) -> Self {
         self.max_tokens = max_tokens;
+        self
+    }
+
+    /// Sets the sampling temperature (0.0 - 2.0) sent with chat completions,
+    /// streaming and non-streaming alike. `None` leaves the schema default (1.0).
+    pub fn with_temperature(mut self, temperature: Option<f64>) -> Self {
+        self.temperature = temperature;
+        self
+    }
+
+    /// Sets a total timeout applied to every request made by this client.
+    ///
+    /// Without it `reqwest` waits indefinitely, so callers otherwise have to
+    /// wrap each call in their own timeout. The bound covers reading the
+    /// response body as well, so a streaming call is cut off once it elapses -
+    /// don't set a short timeout on a client used for
+    /// [`InferenceGatewayAPI::generate_content_stream`].
+    pub fn with_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.client = Client::builder()
+            .timeout(timeout)
+            .build()
+            .unwrap_or_else(|_| Client::new());
         self
     }
 
@@ -378,7 +396,7 @@ impl InferenceGatewayClient {
         // `tools` and `max_tokens` are deliberately omitted from streaming
         // requests; every other field falls back to the schema defaults via
         // `Default`. See CLAUDE.md for the streaming asymmetry.
-        CreateChatCompletionRequest {
+        let mut request = CreateChatCompletionRequest {
             model: model.to_string(),
             messages,
             stream,
@@ -389,7 +407,13 @@ impl InferenceGatewayClient {
             },
             max_tokens: if stream { None } else { self.max_tokens },
             ..Default::default()
+        };
+        // `temperature` is not optional in the schema, so it is only overwritten
+        // when configured - otherwise the schema default stands.
+        if let Some(temperature) = self.temperature {
+            request.temperature = temperature;
         }
+        request
     }
 }
 
