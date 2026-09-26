@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.28.0](https://github.com/inference-gateway/rust-sdk/compare/0.27.2...0.28.0) (2026-09-26)
+
+### ✨ Features
+
+* expose temperature and request timeout on client ([#167](https://github.com/inference-gateway/rust-sdk/issues/167)) ([b17aab2](https://github.com/inference-gateway/rust-sdk/commit/b17aab29e60e0a7a15cbfcd0ea566215e6215e87))
+
 ## [0.27.2](https://github.com/inference-gateway/rust-sdk/compare/0.27.1...0.27.2) (2026-09-26)
 
 ### 📚 Documentation
