@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Guidance for coding agents working in this repository. For user-facing usage docs see
-`README.md`; for the human contributor workflow see `CONTRIBUTING.md`.
+`README.md`. For the human contributor workflow see `CONTRIBUTING.md`.
 
 ## What this is
 
@@ -16,12 +16,12 @@ Hand-written code lives in `src/lib.rs` (`InferenceGatewayClient` plus the
 
 ## Commands
 
-The Task commands are what CI runs; use them locally to match.
+The Task commands are what CI runs - use them locally to match.
 
 - `task test` - `cargo test --all-targets --all-features`
 - `task lint` - `cargo fmt --all -- --check` + markdownlint
 - `task analyse` - `cargo clippy --all-targets --all-features -- -D warnings`
-  (British spelling; `task analyze` does not exist even though `CONTRIBUTING.md` says so)
+  (British spelling - `task analyze` does not exist even though `CONTRIBUTING.md` says so)
 - `task generate-types` - regenerate `src/generated/schemas.rs` from `openapi.yaml`
 - `task oas-sync` - fetch the upstream OpenAPI spec (pin with `SCHEMAS_REF`) and
   regenerate types
@@ -29,7 +29,7 @@ The Task commands are what CI runs; use them locally to match.
 Run one test with `cargo test --all-targets --all-features <name-substring>`. Examples
 run via `-p`, e.g. `cargo run -p list-example` or
 `PROVIDER=deepseek LLM=deepseek-v4-flash cargo run -p chat-example`. Toolchain is pinned
-to Rust 1.95.0 in `rust-toolchain.toml`; the dev environment is managed with flox
+to Rust 1.95.0 in `rust-toolchain.toml` and the dev environment is managed with flox
 (`flox activate`).
 
 ## Generated code boundary
@@ -38,23 +38,23 @@ to Rust 1.95.0 in `rust-toolchain.toml`; the dev environment is managed with flo
   (banner `// @generated - DO NOT EDIT.`). Never edit it by hand: change the spec or
   `tools/gen-types/src/main.rs` and re-run `task generate-types`. CI fails if
   regeneration produces a diff.
-- `openapi.yaml` is a copy of the upstream spec at `inference-gateway/schemas`; treat it
+- `openapi.yaml` is a copy of the upstream spec at `inference-gateway/schemas` - treat it
   as read-only. Fix divergences upstream and pull them in with `task oas-sync`. If a
   hand-patch here is unavoidable, add it to `apply_known_patches` in
   `tools/gen-types/src/main.rs` with a comment.
 - The generator runs `rustfmt` repeatedly until idempotent so `cargo fmt --check` and
   the codegen output stay aligned - don't disable that loop.
-- The generator emits `Display`, `FromStr`, and `TryFrom<&str>` for enums; don't
+- The generator emits `Display`, `FromStr`, and `TryFrom<&str>` for enums - do not
   reimplement them.
 
 ## Client invariants
 
-- `InferenceGatewayAPI` is the public API trait; `InferenceGatewayClient` is its only
+- `InferenceGatewayAPI` is the public API trait and `InferenceGatewayClient` is its only
   implementation. A new endpoint goes into both.
 - Builder-style configuration (`with_tools`, `with_token`, `with_max_tokens`, ...)
   consumes and returns `self`.
-- `build_chat_request` deliberately omits `tools` and `max_tokens` when `stream = true`;
-  keep that asymmetry - streaming requests must not carry those fields.
+- `build_chat_request` deliberately omits `tools` and `max_tokens` when `stream = true`.
+  Keep that asymmetry - streaming requests must not carry those fields.
 - `health_url()` strips a trailing `/v<digits>` segment from `base_url` because
   `/health` is served from the root, not under the versioned API prefix. Don't append
   `/health` to `base_url` directly.
@@ -80,16 +80,18 @@ logic.
 - No comments above modules, packages, or files.
 - Tool directives are not comments and stay where the tool needs them (lint suppressions, build
   tags, compiler pragmas, code generation markers).
+- No semicolons in documentation prose (Markdown files, doc comments): split the sentence or use
+  a dash instead.
 
 ## Commits & releases
 
 Conventional Commits drive semantic-release (`.releaserc.yaml`). Allowed types: `feat`,
 `fix`, `refactor`, `perf`, `impr`, `docs`, `style`, `test`, `chore`, `ci`, `build`.
-`feat` bumps minor; the others bump patch. Semantic-release rewrites `CHANGELOG.md` and
+`feat` bumps minor and the others bump patch. Semantic-release rewrites `CHANGELOG.md` and
 the `version` in `Cargo.toml` on merge to `main` - do not hand-edit either.
 
 ## Security & configuration
 
-Never commit real credentials; `.env.example` is the template for local configuration.
+Never commit real credentials - `.env.example` is the template for local configuration.
 `InferenceGatewayClient::new_default()` reads `INFERENCE_GATEWAY_URL` and falls back to
 `http://localhost:8080/v1`.
