@@ -186,7 +186,7 @@ pub trait InferenceGatewayAPI {
     /// disagree with the body.
     ///
     /// JSON-RPC error envelopes sent with `200`, `400` or `404` are returned as
-    /// a response with [`McpjsonrpcResponse::error`] set; a guardrail refusal
+    /// a response with [`McpjsonrpcResponse::error`] set - a guardrail refusal
     /// (`-32001`, HTTP `403`) instead surfaces as [`GatewayError::Forbidden`]
     /// with the policy message. Only requests with an `id` are supported - the
     /// gateway answers a notification with `202` and no body, which surfaces as
