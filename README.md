@@ -236,9 +236,14 @@ async fn main() -> Result<(), GatewayError> {
 }
 ```
 
-JSON-RPC-level failures come back as `response.error` rather than a
-`GatewayError`. The endpoint requires `MCP_ENABLED=true` and `MCP_EXPOSE=true`
-server-side, otherwise it answers `403 Forbidden`.
+JSON-RPC error envelopes returned with HTTP `200`, `400` (`-32020`, `-32022`) or
+`404` (`-32601`) come back as `response.error` rather than a `GatewayError`. A
+guardrail refusal is the exception: the gateway answers it with `403 Forbidden`
+and a `-32001` envelope, which surfaces as `GatewayError::Forbidden` carrying
+the policy message, so `response.error` never sees it. A
+`GatewayError::Forbidden` from `mcp_json_rpc` therefore means either the
+endpoint is not exposed (`MCP_ENABLED=true` and `MCP_EXPOSE=true` are required
+server-side) or the request was blocked by guardrails.
 
 When gateway auth is enabled, `mcp_protected_resource_metadata` fetches the
 OAuth 2.0 Protected Resource Metadata (RFC 9728) for the endpoint, which names

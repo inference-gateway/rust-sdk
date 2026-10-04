@@ -185,10 +185,11 @@ pub trait InferenceGatewayAPI {
     /// `Mcp-Method` and `Mcp-Name` headers are derived from it so they cannot
     /// disagree with the body.
     ///
-    /// JSON-RPC-level failures are returned as a response with
-    /// [`McpjsonrpcResponse::error`] set, not as a [`GatewayError`]. Only
-    /// requests with an `id` are supported - the gateway answers a
-    /// notification with `202` and no body, which surfaces as
+    /// JSON-RPC error envelopes sent with `200`, `400` or `404` are returned as
+    /// a response with [`McpjsonrpcResponse::error`] set; a guardrail refusal
+    /// (`-32001`, HTTP `403`) instead surfaces as [`GatewayError::Forbidden`]
+    /// with the policy message. Only requests with an `id` are supported - the
+    /// gateway answers a notification with `202` and no body, which surfaces as
     /// [`GatewayError::Other`].
     fn mcp_json_rpc(
         &self,
