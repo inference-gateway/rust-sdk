@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.0](https://github.com/inference-gateway/rust-sdk/compare/0.28.0...0.29.0) (2026-10-09)
+
+### ✨ Features
+
+* sync generated types with schemas v0.34.4 ([#171](https://github.com/inference-gateway/rust-sdk/issues/171)) ([df92f2a](https://github.com/inference-gateway/rust-sdk/commit/df92f2a9a93f4f35185817cde9b8485f76c6cb18))
+* sync generated types with schemas v1.2.0 ([#178](https://github.com/inference-gateway/rust-sdk/issues/178)) ([7783abf](https://github.com/inference-gateway/rust-sdk/commit/7783abf41a8054f9787b257f2fe66c458ce165f5))
+
+### 👷 CI
+
+* **deps:** bump thiserror from 2.0.20 to 2.0.21 in the cargo group ([#173](https://github.com/inference-gateway/rust-sdk/issues/173)) ([f97dac3](https://github.com/inference-gateway/rust-sdk/commit/f97dac33bf3f2e6aa3363da9eeda9991eedb74a0))
+* **deps:** bump tokio from 1.53.1 to 1.53.2 in the cargo group ([#181](https://github.com/inference-gateway/rust-sdk/issues/181)) ([9fe73f1](https://github.com/inference-gateway/rust-sdk/commit/9fe73f179ae79d5603b930124f0e9a7d50bf5baf))
+
+### 📚 Documentation
+
+* **agents:** add code readability guidelines ([#168](https://github.com/inference-gateway/rust-sdk/issues/168)) ([7e0b486](https://github.com/inference-gateway/rust-sdk/commit/7e0b4868574234c3a1cb605474aed0e474a19a6d))
+* **agents:** add code readability guidelines ([#177](https://github.com/inference-gateway/rust-sdk/issues/177)) ([f16fc37](https://github.com/inference-gateway/rust-sdk/commit/f16fc37188387ccf763e84a55cfffb1f8e9937d7))
+* note guardrail 403 from mcp_json_rpc ([#176](https://github.com/inference-gateway/rust-sdk/issues/176)) ([5bcf9cb](https://github.com/inference-gateway/rust-sdk/commit/5bcf9cb5b7a51d5de0ed430c53b5d0dcbb8bd3d7))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.280 -> 2.1.283 ([#169](https://github.com/inference-gateway/rust-sdk/issues/169)) ([099714c](https://github.com/inference-gateway/rust-sdk/commit/099714c2395621e46ceaab35999430697062a063))
+* **deps:** bump claude-code 2.1.283 -> 2.1.285 ([#174](https://github.com/inference-gateway/rust-sdk/issues/174)) ([e2ba209](https://github.com/inference-gateway/rust-sdk/commit/e2ba2097f51b9981cef6774d8c432e4872a60f1d))
+* **deps:** bump claude-code 2.1.285 -> 2.1.289 ([#179](https://github.com/inference-gateway/rust-sdk/issues/179)) ([33547f0](https://github.com/inference-gateway/rust-sdk/commit/33547f09d0fa3c7f5fdc5785a3478377711f4f6d))
+* **deps:** bump infer CLI v0.208.0 -> v0.218.0 ([#170](https://github.com/inference-gateway/rust-sdk/issues/170)) ([0aa77e4](https://github.com/inference-gateway/rust-sdk/commit/0aa77e4f2772cd8b903f9db7e7fe51381360fc3b))
+* **deps:** bump infer CLI v0.218.0 -> v0.221.1 ([#172](https://github.com/inference-gateway/rust-sdk/issues/172)) ([aff950f](https://github.com/inference-gateway/rust-sdk/commit/aff950f600eb262c6c725b3ff3783a3f43ad3617))
+* **deps:** bump infer CLI v0.221.1 -> v0.226.0 ([#180](https://github.com/inference-gateway/rust-sdk/issues/180)) ([9a08a71](https://github.com/inference-gateway/rust-sdk/commit/9a08a71d85b9612afca6dd4edd42d4a5d24c1e84))
+
 ## [0.28.0](https://github.com/inference-gateway/rust-sdk/compare/0.27.2...0.28.0) (2026-09-26)
 
 ### ✨ Features
