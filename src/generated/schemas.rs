@@ -3797,6 +3797,8 @@ pub enum Provider {
     Nvidia,
     #[serde(rename = "zai")]
     Zai,
+    #[serde(rename = "webwright")]
+    Webwright,
 }
 impl ::std::fmt::Display for Provider {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -3817,6 +3819,7 @@ impl ::std::fmt::Display for Provider {
             Self::Moonshot => f.write_str("moonshot"),
             Self::Nvidia => f.write_str("nvidia"),
             Self::Zai => f.write_str("zai"),
+            Self::Webwright => f.write_str("webwright"),
         }
     }
 }
@@ -3840,6 +3843,7 @@ impl ::std::str::FromStr for Provider {
             "moonshot" => Ok(Self::Moonshot),
             "nvidia" => Ok(Self::Nvidia),
             "zai" => Ok(Self::Zai),
+            "webwright" => Ok(Self::Webwright),
             _ => Err("invalid value".into()),
         }
     }
