@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.0](https://github.com/inference-gateway/rust-sdk/compare/0.29.0...0.30.0) (2026-10-21)
+
+### ✨ Features
+
+* add deprecated include filter to model listing (sync schemas v1.4.1) ([#185](https://github.com/inference-gateway/rust-sdk/issues/185)) ([6c7d817](https://github.com/inference-gateway/rust-sdk/commit/6c7d817c2bed09b91d43bd25d1b85f64125c6e27))
+* add WebWright provider with schemas v1.5.0 ([#188](https://github.com/inference-gateway/rust-sdk/issues/188)) ([4a2366c](https://github.com/inference-gateway/rust-sdk/commit/4a2366c83ae86e9801db4ae7563f42dcc0d8a043))
+
+### 👷 CI
+
+* **deps:** bump the cargo group with 2 updates ([#184](https://github.com/inference-gateway/rust-sdk/issues/184)) ([8dc64b9](https://github.com/inference-gateway/rust-sdk/commit/8dc64b985011206f6739d9a67b2804ef2117fca6))
+* **deps:** bump the github-actions group with 2 updates ([#183](https://github.com/inference-gateway/rust-sdk/issues/183)) ([8e78f75](https://github.com/inference-gateway/rust-sdk/commit/8e78f75e3803d42fb15db1b974c7a23937f3be8e))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.289 -> 2.1.296 ([#186](https://github.com/inference-gateway/rust-sdk/issues/186)) ([8e7aee9](https://github.com/inference-gateway/rust-sdk/commit/8e7aee939f201ea5cb8b38813664b106bdc09fd3))
+* **deps:** bump infer CLI v0.226.0 -> v0.231.1 ([#187](https://github.com/inference-gateway/rust-sdk/issues/187)) ([c34499a](https://github.com/inference-gateway/rust-sdk/commit/c34499a61cffbc5f9daa5503a43000817564ee80))
+* sync generated types with schemas v1.2.2 ([#182](https://github.com/inference-gateway/rust-sdk/issues/182)) ([57a2de2](https://github.com/inference-gateway/rust-sdk/commit/57a2de24571613b8100f6440b97328107981d9fa))
+
 ## [0.29.0](https://github.com/inference-gateway/rust-sdk/compare/0.28.0...0.29.0) (2026-10-09)
 
 ### ✨ Features
