@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.1](https://github.com/inference-gateway/rust-sdk/compare/0.30.0...0.30.1) (2026-10-28)
+
+### 👷 CI
+
+* **deps:** bump tokio from 1.53.2 to 1.53.3 in the cargo group ([#189](https://github.com/inference-gateway/rust-sdk/issues/189)) ([296525f](https://github.com/inference-gateway/rust-sdk/commit/296525f2cfed826eb924310fbc8776b02777ddd2))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.296 -> 2.1.308 ([#190](https://github.com/inference-gateway/rust-sdk/issues/190)) ([e1941ff](https://github.com/inference-gateway/rust-sdk/commit/e1941ff94975fddfff280dcfc106e98ee2ee7d22))
+
 ## [0.30.0](https://github.com/inference-gateway/rust-sdk/compare/0.29.0...0.30.0) (2026-10-21)
 
 ### ✨ Features
