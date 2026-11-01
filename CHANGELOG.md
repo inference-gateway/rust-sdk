@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.2](https://github.com/inference-gateway/rust-sdk/compare/0.30.1...0.30.2) (2026-11-01)
+
+### 👷 CI
+
+* **deps:** bump the github-actions group with 2 updates ([#191](https://github.com/inference-gateway/rust-sdk/issues/191)) ([5db1a52](https://github.com/inference-gateway/rust-sdk/commit/5db1a52cfbcfa578a98c22b6a95be3f212a266d6))
+* **deps:** bump tokio from 1.53.3 to 1.54.1 in the cargo group ([#192](https://github.com/inference-gateway/rust-sdk/issues/192)) ([ec2f552](https://github.com/inference-gateway/rust-sdk/commit/ec2f5521bdeb76bbe01ec6942cbed8a62e87f660))
+* **release:** label issues and PRs shipped in an rc with rc ([#193](https://github.com/inference-gateway/rust-sdk/issues/193)) ([4a6fc71](https://github.com/inference-gateway/rust-sdk/commit/4a6fc71f0d2ac0a58af7ddbfd8f1949bfa5e45ee))
+
+### 🔧 Miscellaneous
+
+* sync generated types with schemas v1.6.0 ([#194](https://github.com/inference-gateway/rust-sdk/issues/194)) ([7728ee3](https://github.com/inference-gateway/rust-sdk/commit/7728ee3ee63accf80fc85f492d79996167a9fcb0))
+
 ## [0.30.1](https://github.com/inference-gateway/rust-sdk/compare/0.30.0...0.30.1) (2026-10-28)
 
 ### 👷 CI
