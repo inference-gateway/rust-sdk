@@ -34,6 +34,8 @@ stable Rust toolchain (the workspace pins Rust 1.95.0 in
      non-streaming and streaming.
    - [Images](./images): Shows the OpenAI-compatible Images API - generation
      and edits.
+   - [Decisions](./decisions): Shows the OpenAI Decisions API - structured
+     answers about shared evidence.
 
 ## Examples Overview
 
@@ -88,6 +90,17 @@ support
 **Best for**: Image generation workflows with providers that support the
 Images API
 
+### [Decisions Example](./decisions)
+
+**Purpose**: Use the OpenAI Decisions API
+
+**Features**:
+
+- A predicate question answered from a single text input
+
+**Best for**: Classification and moderation checks with providers that
+support the Decisions API
+
 ## Running Examples
 
 Each example is a standalone binary crate in this workspace. From the SDK
@@ -106,6 +119,9 @@ PROVIDER=anthropic LLM=claude-sonnet-5 cargo run -p messages-example
 # Images example (defaults to PROVIDER=openai LLM=dall-e-2; set IMAGE_PATH
 # to a local png/webp/jpg to also run the edit example)
 PROVIDER=openai LLM=dall-e-2 IMAGE_PATH=./photo.png cargo run -p images-example
+
+# Decisions example (defaults to PROVIDER=openai LLM=gpt-6-luna)
+PROVIDER=openai LLM=gpt-6-luna cargo run -p decisions-example
 ```
 
 Or, from inside an example directory:
@@ -125,7 +141,7 @@ cargo run
   but it only serves the audio and video endpoints no example calls). Read by
   every example; optional everywhere.
 - `LLM` - Specific model to use (e.g. `meta-llama/llama-3.3-70b-versatile`).
-  Read by the chat, messages and images examples, each with its own default;
+  Read by the chat, messages, images and decisions examples, each with its own default;
   the list example ignores it.
 
 Provider-specific API keys should be set in the gateway's `.env` file (see

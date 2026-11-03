@@ -216,6 +216,16 @@ pub trait InferenceGatewayAPI {
         request: CreateImageRequest,
     ) -> impl Future<Output = Result<ImagesResponse, GatewayError>> + Send;
 
+    /// Answers structured questions about shared evidence via the OpenAI
+    /// Decisions API (`POST /decisions`), relayed unchanged.
+    ///
+    /// Providers without Decisions support return [`GatewayError::BadRequest`].
+    fn create_decision(
+        &self,
+        provider: Provider,
+        request: CreateDecisionRequest,
+    ) -> impl Future<Output = Result<Decision, GatewayError>> + Send;
+
     /// Edits or extends an image via the OpenAI-compatible Images API
     /// (`POST /images/edits`, multipart/form-data).
     ///
@@ -651,6 +661,23 @@ impl InferenceGatewayAPI for InferenceGatewayClient {
         request: CreateImageRequest,
     ) -> Result<ImagesResponse, GatewayError> {
         let url = format!("{}/images/generations?provider={}", self.base_url, provider);
+        let mut req = self.client.post(&url);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token);
+        }
+        let response = req.json(&request).send().await?;
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            status => Err(map_error_status(status, response).await),
+        }
+    }
+
+    async fn create_decision(
+        &self,
+        provider: Provider,
+        request: CreateDecisionRequest,
+    ) -> Result<Decision, GatewayError> {
+        let url = format!("{}/decisions?provider={}", self.base_url, provider);
         let mut req = self.client.post(&url);
         if let Some(token) = &self.token {
             req = req.bearer_auth(token);
