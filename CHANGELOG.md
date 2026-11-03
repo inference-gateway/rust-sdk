@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.31.0](https://github.com/inference-gateway/rust-sdk/compare/0.30.2...0.31.0) (2026-11-03)
+
+### ✨ Features
+
+* **client:** add create_decision for the OpenAI Decisions API (schemas v1.7.0) ([#195](https://github.com/inference-gateway/rust-sdk/issues/195)) ([694ec41](https://github.com/inference-gateway/rust-sdk/commit/694ec41a8747a953de16f6194214af021a073066))
+
 ## [0.30.2](https://github.com/inference-gateway/rust-sdk/compare/0.30.1...0.30.2) (2026-11-01)
 
 ### 👷 CI
