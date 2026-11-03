@@ -3751,6 +3751,8 @@ pub enum Modality {
     Audio,
     #[serde(rename = "video")]
     Video,
+    #[serde(rename = "decisions")]
+    Decisions,
 }
 impl ::std::fmt::Display for Modality {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -3759,6 +3761,7 @@ impl ::std::fmt::Display for Modality {
             Self::Image => f.write_str("image"),
             Self::Audio => f.write_str("audio"),
             Self::Video => f.write_str("video"),
+            Self::Decisions => f.write_str("decisions"),
         }
     }
 }
@@ -3770,6 +3773,7 @@ impl ::std::str::FromStr for Modality {
             "image" => Ok(Self::Image),
             "audio" => Ok(Self::Audio),
             "video" => Ok(Self::Video),
+            "decisions" => Ok(Self::Decisions),
             _ => Err("invalid value".into()),
         }
     }
@@ -3806,7 +3810,7 @@ pub struct Model {
     pub pricing: ::std::option::Option<Pricing>,
     pub served_by: Provider,
 }
-///The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` - when `output` carries `image` but not `text`, the model only generates images and cannot chat.
+///The input and output modalities of a model, mirroring the models.dev dataset shape. Vision models accept `image` in `input`; image-generation models list `image` in `output` - when `output` carries `image` but not `text`, the model only generates images and cannot chat. Decision models list `decisions` in `output`: they answer the Decisions API (`POST /decisions`) with typed, probability-weighted answers, the same value llama.cpp advertises as `output_modalities` on its models listing.
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ModelModalities {
     pub input: ::std::vec::Vec<Modality>,
