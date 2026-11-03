@@ -3,16 +3,18 @@ use crate::{
     ChatCompletionToolChoiceOption, ChatCompletionToolChoiceOptionString, ChatCompletionToolType,
     ContextWindowSource, CreateChatCompletionRequest, CreateChatCompletionRequestReasoningEffort,
     CreateChatCompletionRequestResponseFormat, CreateChatCompletionRequestStop,
-    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateImageEditRequest,
-    CreateImageRequest, CreateImageRequestQuality, CreateMessagesRequest, CreateMusicRequest,
+    CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateDecisionRequest,
+    CreateDecisionRequestInput, CreateImageEditRequest, CreateImageRequest,
+    CreateImageRequestQuality, CreateMessagesRequest, CreateMusicRequest,
     CreateMusicRequestResponseFormat, CreateSFXRequest, CreateSFXRequestResponseFormat,
-    CreateSpeechRequest, FinishReason, FunctionObject, FunctionParameters, GatewayError, ImageSize,
-    InferenceGatewayAPI, InferenceGatewayClient, MCP_PROTOCOL_VERSION, McpjsonrpcRequest, Message,
-    MessageContent, MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
-    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
-    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
-    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
-    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
+    CreateSpeechRequest, DecisionQuestion, DecisionQuestionType, FinishReason, FunctionObject,
+    FunctionParameters, GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient,
+    MCP_PROTOCOL_VERSION, McpjsonrpcRequest, Message, MessageContent, MessageRole, MessagesMessage,
+    MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
+    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
+    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
+    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
+    ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1385,6 +1387,94 @@ async fn test_generate_image_error_response() -> Result<(), GatewayError> {
     assert!(matches!(error, GatewayError::BadRequest(_)));
     if let GatewayError::BadRequest(msg) = error {
         assert_eq!(msg, "The Images API is not supported by this provider yet.");
+    }
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_decision() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let raw_json_response = r#"{
+        "answers": [
+            {"name": "is_spam", "type": "predicate", "value": true}
+        ],
+        "usage": {
+            "input_tokens": 42,
+            "input_tokens_details": {"cached_tokens": 0, "cache_write_tokens": 0}
+        }
+    }"#;
+
+    let mock = server
+        .mock("POST", "/v1/decisions?provider=openai")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(raw_json_response)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateDecisionRequest {
+        model: "gpt-6-luna".to_string(),
+        input: CreateDecisionRequestInput::String("Buy now!!!".to_string()),
+        questions: vec![DecisionQuestion {
+            name: "is_spam".to_string(),
+            type_: DecisionQuestionType::Predicate,
+            instructions: "Is this message spam?".to_string(),
+            choices: vec![],
+            levels: vec![],
+        }],
+        prompt_cache_breakpoint: None,
+        prompt_cache_key: None,
+        prompt_cache_options: None,
+    };
+
+    let response = client.create_decision(Provider::Openai, request).await?;
+
+    assert_eq!(response.answers.len(), 1);
+    assert_eq!(response.answers[0]["name"], "is_spam");
+    assert_eq!(response.answers[0]["value"], true);
+    assert_eq!(response.usage.unwrap().input_tokens, Some(42));
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_decision_error_response() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let mock = server
+        .mock("POST", "/v1/decisions?provider=openai")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error":"The Decisions API is not supported by this provider yet."}"#)
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateDecisionRequest {
+        model: "gpt-6-luna".to_string(),
+        input: CreateDecisionRequestInput::String("Buy now!!!".to_string()),
+        questions: vec![],
+        prompt_cache_breakpoint: None,
+        prompt_cache_key: None,
+        prompt_cache_options: None,
+    };
+
+    let error = client
+        .create_decision(Provider::Openai, request)
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, GatewayError::BadRequest(_)));
+    if let GatewayError::BadRequest(msg) = error {
+        assert_eq!(
+            msg,
+            "The Decisions API is not supported by this provider yet."
+        );
     }
     mock.assert();
     Ok(())
