@@ -709,6 +709,45 @@ pub struct CreateChatCompletionStreamResponse {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub usage: ::std::option::Option<CompletionUsage>,
 }
+///Request body for the OpenAI Decisions API, relayed unchanged.
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct CreateDecisionRequest {
+    ///Shared evidence, a string or an ordered array of message and tool items.
+    pub input: CreateDecisionRequestInput,
+    ///Model to use, optionally prefixed with the provider (`openai/gpt-6-luna`).
+    pub model: ::std::string::String,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt_cache_breakpoint: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt_cache_key: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt_cache_options: ::std::option::Option<CreateDecisionRequestPromptCacheOptions>,
+    pub questions: ::std::vec::Vec<DecisionQuestion>,
+}
+///Shared evidence, a string or an ordered array of message and tool items.
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum CreateDecisionRequestInput {
+    String(::std::string::String),
+    Array(::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>),
+}
+impl
+    ::std::convert::From<
+        ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+    > for CreateDecisionRequestInput
+{
+    fn from(
+        value: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+    ) -> Self {
+        Self::Array(value)
+    }
+}
+///`CreateDecisionRequestPromptCacheOptions`
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
+pub struct CreateDecisionRequestPromptCacheOptions {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub mode: ::std::option::Option<::std::string::String>,
+}
 /**Request body for creating an image via the OpenAI-compatible Images API.
 */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
@@ -1567,10 +1606,119 @@ pub struct CreateVideoRequest {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub size: ::std::option::Option<::std::string::String>,
 }
+///Response of the OpenAI Decisions API, relayed unchanged.
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
+pub struct Decision {
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub answers: ::std::vec::Vec<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub usage: ::std::option::Option<DecisionUsage>,
+}
+///`DecisionQuestion`
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+pub struct DecisionQuestion {
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub choices: ::std::vec::Vec<DecisionQuestionChoicesItem>,
+    pub instructions: ::std::string::String,
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub levels: ::std::vec::Vec<DecisionQuestionLevelsItem>,
+    pub name: ::std::string::String,
+    #[serde(rename = "type")]
+    pub type_: DecisionQuestionType,
+}
+///`DecisionQuestionChoicesItem`
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
+pub struct DecisionQuestionChoicesItem {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub description: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub value: ::std::option::Option<::std::string::String>,
+}
+///`DecisionQuestionLevelsItem`
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
+pub struct DecisionQuestionLevelsItem {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub description: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub label: ::std::option::Option<::std::string::String>,
+}
+///`DecisionQuestionType`
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum DecisionQuestionType {
+    #[serde(rename = "predicate")]
+    Predicate,
+    #[serde(rename = "choice")]
+    Choice,
+    #[serde(rename = "score")]
+    Score,
+}
+impl ::std::fmt::Display for DecisionQuestionType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Predicate => f.write_str("predicate"),
+            Self::Choice => f.write_str("choice"),
+            Self::Score => f.write_str("score"),
+        }
+    }
+}
+impl ::std::str::FromStr for DecisionQuestionType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "predicate" => Ok(Self::Predicate),
+            "choice" => Ok(Self::Choice),
+            "score" => Ok(Self::Score),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for DecisionQuestionType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DecisionQuestionType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+///`DecisionUsage`
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
+pub struct DecisionUsage {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub input_tokens: ::std::option::Option<i64>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub input_tokens_details: ::std::option::Option<DecisionUsageInputTokensDetails>,
+}
+///`DecisionUsageInputTokensDetails`
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
+pub struct DecisionUsageInputTokensDetails {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub cache_write_tokens: ::std::option::Option<i64>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub cached_tokens: ::std::option::Option<i64>,
+}
 ///`Endpoints`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct Endpoints {
     pub chat: ::std::string::String,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub decisions: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub images: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
