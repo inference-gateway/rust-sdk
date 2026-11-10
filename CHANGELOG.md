@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.1](https://github.com/inference-gateway/rust-sdk/compare/0.32.0...0.32.1) (2026-11-10)
+
+### 👷 CI
+
+* **deps:** bump actions-rust-lang/setup-rust-toolchain ([#197](https://github.com/inference-gateway/rust-sdk/issues/197)) ([16ee7a7](https://github.com/inference-gateway/rust-sdk/commit/16ee7a793d87e71b83e414088028beb55151836a))
+
 ## [0.32.0](https://github.com/inference-gateway/rust-sdk/compare/0.31.0...0.32.0) (2026-11-03)
 
 ### ✨ Features
