@@ -1186,32 +1186,132 @@ pub struct CreateResponseRequest {
     pub user: ::std::option::Option<::std::string::String>,
 }
 /**Request body for generating a non-speech audio clip - a sound effect
-or ambience - from a text prompt.
+or ambience - from a text prompt, or from a video when `video` is
+set.
 */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct CreateSfxRequest {
-    /**Length of the generated clip in seconds. Omit to let the provider
-    pick a length that fits the prompt.*/
+    /**Length of the generated audio in seconds - at least 0.5 for a
+    text prompt and at least 1 for a video. The ceiling depends on
+    the model (30 for ElevenLabs text-to-sfx), and a longer value is
+    rejected with `400 Bad Request`. For a text prompt it is the
+    length of the generated clip. With a video it is the length of
+    the scored window, counted from `start_offset_seconds`. Omit to
+    let the provider pick a length that fits the prompt or the
+    clip, up to its ceiling.*/
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub duration_seconds: ::std::option::Option<f64>,
-    ///Whether to generate a clip that loops seamlessly.
+    ///Text prompt only. Whether to generate a clip that loops seamlessly.
     #[serde(
         rename = "loop",
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub loop_: ::std::option::Option<bool>,
-    ///Model ID to use for sound-effect generation (e.g. `elevenlabs/eleven_text_to_sound_v2`).
+    ///Model ID to use for sound-effect generation (e.g. `elevenlabs/eleven_text_to_sound_v2`, `mirelo/sfx-2.0`, or `elevenlabs/music_v2_5` to score a video).
     pub model: ::std::string::String,
-    ///Description of the sound to generate (e.g. `distant thunder rolling over a valley`).
-    pub prompt: ::std::string::String,
-    /**How closely the generation follows the prompt. Higher values stay
-    closer to the prompt, lower values allow more variation. Omit to
-    use the provider default.*/
+    /**Video input only. Which track to return. `mix` is the generated
+    sound with any preserved speech, `sfx` is the generated sound
+    alone and `speech` is the clip's own speech separated out. A
+    clip without speech has no `speech` track.*/
+    #[serde(default = "defaults::create_sfx_request_output")]
+    pub output: CreateSfxRequestOutput,
+    /**Video input only. Keep the speech already in the clip under the
+    generated sound. Omit to use the provider default.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub preserve_speech: ::std::option::Option<bool>,
+    /**Description of the sound to generate (e.g. `distant thunder
+    rolling over a valley`). Required unless `video` is given:
+    without a video the prompt drives the result, with a video the
+    clip drives it and the prompt is only optional guidance on the
+    sound to generate.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub prompt: ::std::option::Option<::std::string::String>,
+    /**Text prompt only. How closely the generation follows the prompt.
+    Higher values stay closer to the prompt, lower values allow more
+    variation. Omit to use the provider default. Only models with
+    prompt-influence support honor it - a model that cannot honor it
+    rejects the request with `400 Bad Request`.*/
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub prompt_influence: ::std::option::Option<f64>,
     ///The audio format of the response.
     #[serde(default = "defaults::create_sfx_request_response_format")]
     pub response_format: CreateSfxRequestResponseFormat,
+    /**Video input only. Where in the clip the scored window starts,
+    in seconds.*/
+    #[serde(default = "defaults::create_sfx_request_start_offset_seconds")]
+    pub start_offset_seconds: f64,
+    /**Optional video to score: the provider watches the clip and
+    generates the sound that fits it. Either an https URL or a
+    base64 data URI (`data:video/...`). Prefer a URL for large
+    clips: a data URI is about a third larger than the file and
+    counts against the gateway's request body limit. A provider
+    that cannot take the given form answers `400 Bad Request`. The
+    gateway never downloads the URL itself.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub video: ::std::option::Option<::std::string::String>,
+}
+/**Video input only. Which track to return. `mix` is the generated
+sound with any preserved speech, `sfx` is the generated sound
+alone and `speech` is the clip's own speech separated out. A
+clip without speech has no `speech` track.*/
+#[derive(
+    ::serde::Deserialize,
+    ::serde::Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateSfxRequestOutput {
+    #[serde(rename = "mix")]
+    Mix,
+    #[serde(rename = "sfx")]
+    Sfx,
+    #[serde(rename = "speech")]
+    Speech,
+}
+impl ::std::fmt::Display for CreateSfxRequestOutput {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Mix => f.write_str("mix"),
+            Self::Sfx => f.write_str("sfx"),
+            Self::Speech => f.write_str("speech"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateSfxRequestOutput {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "mix" => Ok(Self::Mix),
+            "sfx" => Ok(Self::Sfx),
+            "speech" => Ok(Self::Speech),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateSfxRequestOutput {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateSfxRequestOutput {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::default::Default for CreateSfxRequestOutput {
+    fn default() -> Self {
+        CreateSfxRequestOutput::Mix
+    }
 }
 ///The audio format of the response.
 #[derive(
@@ -1307,7 +1407,10 @@ pub struct CreateSpeechRequest {
     a clean mono recording between 1 and 30 seconds; WAV is the safest
     container. Forwarded to the provider as-is - only providers with
     voice-cloning support honor it (e.g. Qwen3-TTS-compatible
-    backends); others ignore or reject it. Not supported by OpenAI.*/
+    backends); others ignore or reject it. Not supported by OpenAI.
+    ElevenLabs has no per-request sample, so the gateway adds the
+    sample to the account of the API key as an instant voice clone,
+    once per sample, and speaks in that voice instead of `voice`.*/
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub reference_audio: ::std::option::Option<::std::string::String>,
     ///The audio format of the response.
@@ -1558,8 +1661,8 @@ impl ::std::default::Default for CreateSpeechRequestResponseFormat {
         CreateSpeechRequestResponseFormat::Mp3
     }
 }
-/**Request body for creating a video generation job via the
-OpenAI-compatible Videos API. Sent as `multipart/form-data`.
+/**Request body for creating a video generation job, shaped like the
+Videos API OpenAI retired. Sent as `multipart/form-data`.
 */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct CreateVideoRequest {
@@ -1567,9 +1670,9 @@ pub struct CreateVideoRequest {
     an audio clip - `audio/wav` or `audio/mpeg` - that drives the
     render. When present, the model lip-syncs `input_reference` to it
     and the generated video lasts as long as the clip, so `seconds` is
-    ignored. Forwarded to the provider as-is; only providers with
-    talking-avatar support honor it (e.g. ElevenLabs
-    `creatify-aurora`), others ignore or reject it.*/
+    ignored. Only models with talking-avatar support honor it (e.g.
+    ElevenLabs `creatify-aurora`). A model known to render from a
+    prompt is refused with `400 Bad Request`.*/
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub audio: ::std::option::Option<::std::string::String>,
     /**Optional image used as the first frame or, for avatar models, the
@@ -1578,6 +1681,10 @@ pub struct CreateVideoRequest {
     pub input_reference: ::std::option::Option<::std::string::String>,
     ///Model ID to use for video generation (e.g. `elevenlabs/creatify-aurora`).
     pub model: ::std::string::String,
+    /**Video input only. Keep the speech already in the clip under the
+    generated sound. Omit to use the provider default.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub preserve_speech: ::std::option::Option<bool>,
     /**Text description of the video to generate. Optional for
     audio-driven avatar models, where the dialogue comes from `audio`
     and the prompt only describes framing, never the spoken words.*/
@@ -1596,7 +1703,9 @@ pub struct CreateVideoRequest {
     pub reference_images: ::std::vec::Vec<::std::string::String>,
     /**Requested duration of the generated video in seconds, as a string
     (e.g. `4`, `8`, `12`). Providers accept a limited set of values;
-    omit to use the provider default. Ignored when `audio` is present.*/
+    omit to use the provider default. Ignored when `audio` is present.
+    With `video` it is the length of the dubbed window, at least 1,
+    counted from `start_offset_seconds`.*/
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub seconds: ::std::option::Option<::std::string::String>,
     /**Requested output resolution as `widthxheight` (e.g. `720x1280`).
@@ -1605,6 +1714,22 @@ pub struct CreateVideoRequest {
     provider default.*/
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub size: ::std::option::Option<::std::string::String>,
+    /**Video input only. Where in the clip the dubbed window starts, in
+    seconds.*/
+    #[serde(default = "defaults::create_video_request_start_offset_seconds")]
+    pub start_offset_seconds: f64,
+    /**Non-standard extension (OpenAI's Videos API has no video field):
+    a clip to dub - the provider generates the sound that fits it and
+    re-renders the clip with that sound as its new soundtrack, so the
+    job returns a video downloadable from
+    `GET /videos/{video_id}/content`. Mutually exclusive with
+    `input_reference` and `reference_images`. Only providers with
+    video-to-sfx support honor it (e.g. Mirelo `sfx-2.0`), where only
+    the generated mix is laid onto the clip - the separated tracks come
+    back as audio from `POST /audio/sfx` - and `sfx-1.6` with
+    `preserve_speech` caps the scored window at 60 seconds.*/
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub video: ::std::option::Option<::std::string::String>,
 }
 ///Response of the OpenAI Decisions API, relayed unchanged.
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
@@ -1716,6 +1841,8 @@ pub struct DecisionUsageInputTokensDetails {
 ///`Endpoints`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct Endpoints {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub assets: ::std::option::Option<::std::string::String>,
     pub chat: ::std::string::String,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub decisions: ::std::option::Option<::std::string::String>,
@@ -1723,6 +1850,8 @@ pub struct Endpoints {
     pub images: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub images_edits: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub images_retrieve: ::std::option::Option<::std::string::String>,
     pub models: ::std::string::String,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub music: ::std::option::Option<::std::string::String>,
@@ -1731,11 +1860,17 @@ pub struct Endpoints {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub sfx: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub sfx_video: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub speech: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub videos: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub videos_retrieve: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub voices: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub voices_create: ::std::option::Option<::std::string::String>,
 }
 ///`Error`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
@@ -3951,6 +4086,8 @@ pub enum Provider {
     Zai,
     #[serde(rename = "webwright")]
     Webwright,
+    #[serde(rename = "mirelo")]
+    Mirelo,
 }
 impl ::std::fmt::Display for Provider {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -3972,6 +4109,7 @@ impl ::std::fmt::Display for Provider {
             Self::Nvidia => f.write_str("nvidia"),
             Self::Zai => f.write_str("zai"),
             Self::Webwright => f.write_str("webwright"),
+            Self::Mirelo => f.write_str("mirelo"),
         }
     }
 }
@@ -3996,6 +4134,7 @@ impl ::std::str::FromStr for Provider {
             "nvidia" => Ok(Self::Nvidia),
             "zai" => Ok(Self::Zai),
             "webwright" => Ok(Self::Webwright),
+            "mirelo" => Ok(Self::Mirelo),
             _ => Err("invalid value".into()),
         }
     }
@@ -6137,8 +6276,14 @@ pub mod defaults {
     pub(super) fn create_response_request_top_p() -> f32 {
         1_f32
     }
+    pub(super) fn create_sfx_request_output() -> super::CreateSfxRequestOutput {
+        super::CreateSfxRequestOutput::Mix
+    }
     pub(super) fn create_sfx_request_response_format() -> super::CreateSfxRequestResponseFormat {
         super::CreateSfxRequestResponseFormat::Mp3
+    }
+    pub(super) fn create_sfx_request_start_offset_seconds() -> f64 {
+        0_f64
     }
     pub(super) fn create_speech_request_language() -> super::CreateSpeechRequestLanguage {
         super::CreateSpeechRequestLanguage("en".to_string())
@@ -6149,6 +6294,9 @@ pub mod defaults {
     }
     pub(super) fn create_speech_request_speed() -> f64 {
         1_f64
+    }
+    pub(super) fn create_video_request_start_offset_seconds() -> f64 {
+        0_f64
     }
     pub(super) fn image_url_detail() -> super::ImageUrlDetail {
         super::ImageUrlDetail::Auto
