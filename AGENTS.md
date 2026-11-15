@@ -29,7 +29,7 @@ The Task commands are what CI runs - use them locally to match.
 Run one test with `cargo test --all-targets --all-features <name-substring>`. Examples
 run via `-p`, e.g. `cargo run -p list-example` or
 `PROVIDER=deepseek LLM=deepseek-v4-flash cargo run -p chat-example`. Toolchain is pinned
-to Rust 1.95.0 in `rust-toolchain.toml` and the dev environment is managed with flox
+to Rust 1.100.0 in `rust-toolchain.toml` and the dev environment is managed with flox
 (`flox activate`).
 
 ## Generated code boundary

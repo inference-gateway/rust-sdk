@@ -120,7 +120,7 @@ pub struct ChatCompletionMessageToolCallFunction {
     pub name: ::std::string::String,
 }
 /**Specifies a tool the model should use. Use to force the model to call a specific function.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ChatCompletionNamedToolChoice {
     pub function: ChatCompletionNamedToolChoiceFunction,
@@ -153,7 +153,7 @@ pub struct ChatCompletionStreamChoiceLogprobs {
     pub refusal: ::std::vec::Vec<ChatCompletionTokenLogprob>,
 }
 /**Options for streaming response. Only set this when you set `stream: true`.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ChatCompletionStreamOptions {
     /**If set, an additional chunk will be streamed before the `data: [DONE]` message. The `usage` field on this chunk shows the token usage statistics for the entire request, and the `choices` field will always be an empty array. All other chunks will also include a `usage` field, but with a null value.
@@ -229,7 +229,7 @@ impl ::std::convert::From<ChatCompletionNamedToolChoice> for ChatCompletionToolC
     }
 }
 /**`none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools.
-*/
+ */
 #[derive(
     ::serde::Deserialize,
     ::serde::Serialize,
@@ -565,7 +565,7 @@ pub struct CreateChatCompletionRequest {
     pub user: ::std::option::Option<::std::string::String>,
 }
 /**Constrains effort on reasoning for reasoning models. Currently supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.
-*/
+ */
 #[derive(
     ::serde::Deserialize,
     ::serde::Serialize,
@@ -625,7 +625,7 @@ impl ::std::convert::TryFrom<::std::string::String> for CreateChatCompletionRequ
     }
 }
 /**An object specifying the format that the model must output. Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured Outputs which guarantees the model will match your supplied JSON schema. Setting to `{ "type": "json_object" }` enables the older JSON mode, which ensures the message the model generates is valid JSON.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum CreateChatCompletionRequestResponseFormat {
@@ -649,7 +649,7 @@ impl ::std::convert::From<ResponseFormatJsonObject> for CreateChatCompletionRequ
     }
 }
 /**Up to 4 sequences where the API will stop generating further tokens.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum CreateChatCompletionRequestStop {
@@ -749,7 +749,7 @@ pub struct CreateDecisionRequestPromptCacheOptions {
     pub mode: ::std::option::Option<::std::string::String>,
 }
 /**Request body for creating an image via the OpenAI-compatible Images API.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct CreateImageRequest {
     ///Model ID to use for image generation.
@@ -976,7 +976,7 @@ impl ::std::convert::From<::std::vec::Vec<MessagesTextBlock>> for CreateMessages
     }
 }
 /**Configuration for extended thinking.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct CreateMessagesRequestThinking {
     /**The maximum number of tokens the model is allowed to use
@@ -1035,7 +1035,7 @@ impl ::std::convert::TryFrom<::std::string::String> for CreateMessagesRequestThi
     }
 }
 /**Request body for composing a music clip from a text prompt.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct CreateMusicRequest {
     /**Length of the clip in seconds. Omit to let the provider pick a
@@ -1122,7 +1122,7 @@ impl ::std::default::Default for CreateMusicRequestResponseFormat {
     }
 }
 /**Request body for creating a model response via the Responses API.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct CreateResponseRequest {
     /**Whether to run the model response in the background. Useful for long-running or batched requests.
@@ -1477,7 +1477,7 @@ impl<'de> ::serde::Deserialize<'de> for CreateSpeechRequestInput {
     }
 }
 /**Control the voice of your generated audio with additional instructions. Does not work with `tts-1` or `tts-1-hd`.
-*/
+ */
 #[derive(::serde::Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[serde(transparent)]
 pub struct CreateSpeechRequestInstructions(::std::string::String);
@@ -2635,7 +2635,7 @@ impl ::std::convert::TryFrom<::std::string::String> for MessagesDocumentSourceTy
     }
 }
 /**An error response in the Anthropic error format.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct MessagesError {
     pub error: MessagesErrorError,
@@ -2912,7 +2912,7 @@ pub struct MessagesMetadata {
     pub user_id: ::std::option::Option<::std::string::String>,
 }
 /**Output configuration for a Messages API request.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
 pub struct MessagesOutputConfig {
     /**Constrains how much effort the model spends on reasoning.
@@ -3095,7 +3095,7 @@ impl ::std::convert::From<MessagesRedactedThinkingBlock> for MessagesRequestCont
     }
 }
 /**A message response from the Anthropic-compatible Messages API.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct MessagesResponse {
     ///The content blocks generated by the model.
@@ -3195,7 +3195,7 @@ impl ::std::convert::TryFrom<::std::string::String> for MessagesResponseRole {
     }
 }
 /**The reason the model stopped generating.
-*/
+ */
 #[derive(
     ::serde::Deserialize,
     ::serde::Serialize,
@@ -3727,7 +3727,7 @@ pub struct MessagesToolResultBlock {
     pub type_: MessagesToolResultBlockType,
 }
 /**The result content. Can be a string or an array of content blocks.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum MessagesToolResultBlockContent {
@@ -4329,7 +4329,7 @@ pub struct ResponseError {
     pub message: ::std::string::String,
 }
 /**JSON object response format. An older method of generating JSON responses. Using `json_schema` is recommended for models that support it. Note that the model will not generate JSON without a system or user message instructing it to do so.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ResponseFormatJsonObject {
     ///The type of response format being defined. Always `json_object`.
@@ -4384,7 +4384,7 @@ impl ::std::convert::TryFrom<::std::string::String> for ResponseFormatJsonObject
     }
 }
 /**JSON Schema response format. Used to generate structured JSON responses.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ResponseFormatJsonSchema {
     pub json_schema: ResponseFormatJsonSchemaJsonSchema,
@@ -4410,7 +4410,7 @@ pub struct ResponseFormatJsonSchemaJsonSchema {
     pub strict: bool,
 }
 /**The schema for the response format, described as a JSON Schema object.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(transparent)]
 pub struct ResponseFormatJsonSchemaSchema(
@@ -4667,7 +4667,7 @@ pub struct ResponseIncompleteDetails {
     pub reason: ::std::option::Option<::std::string::String>,
 }
 /**Text, image, or file inputs to the model. Either a single text prompt or a list of input items representing a (possibly batched) conversation.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum ResponseInput {
@@ -4817,7 +4817,7 @@ impl ::std::convert::TryFrom<::std::string::String> for ResponseInputImageType {
     }
 }
 /**A single input item. Most commonly an input message with a role and content.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ResponseInputItem {
     pub content: ResponseInputMessageContent,
@@ -4827,7 +4827,7 @@ pub struct ResponseInputItem {
     pub type_: ::std::string::String,
 }
 /**Text or multimodal content for an input message. Either a string or a list of content parts.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum ResponseInputMessageContent {
@@ -4915,7 +4915,7 @@ impl ::std::convert::From<ResponseOutputRefusal> for ResponseOutputContent {
     }
 }
 /**An output item generated by the model: an output message, a function tool call, or a reasoning item.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum ResponseOutputItem {
@@ -5235,7 +5235,7 @@ impl ::std::default::Default for ResponseReasoning {
     }
 }
 /**Constrains the effort on reasoning for reasoning models. Reducing effort can result in faster responses and fewer reasoning tokens.
-*/
+ */
 #[derive(
     ::serde::Deserialize,
     ::serde::Serialize,
@@ -5416,7 +5416,7 @@ impl ::std::convert::TryFrom<::std::string::String> for ResponseReasoningItemTyp
     }
 }
 /**A summary of the reasoning performed by the model, useful for debugging and understanding the model's reasoning process.
-*/
+ */
 #[derive(
     ::serde::Deserialize,
     ::serde::Serialize,
@@ -5654,7 +5654,7 @@ impl ::std::convert::TryFrom<::std::string::String> for ResponseStatus {
     }
 }
 /**A server-sent event emitted while streaming a response. The Responses API emits a sequence of typed events (for example `response.created`, `response.output_text.delta`, and `response.completed`). This schema models the common event envelope; which fields are populated depends on the event `type`.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ResponseStreamEvent {
     ///The index of the content part within the output item.
@@ -5683,7 +5683,7 @@ pub struct ResponseStreamEvent {
     pub type_: ::std::string::String,
 }
 /**Configuration options for a text response from the model. Can be plain text or structured JSON data.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
 pub struct ResponseTextConfig {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
@@ -5760,7 +5760,7 @@ impl ::std::convert::TryFrom<::std::string::String> for ResponseTextConfigFormat
     }
 }
 /**A tool the model may call. Only function tools are modeled here. Note the Responses API uses a flattened function tool shape (`name`, `description`, and `parameters` at the top level) rather than nesting them under a `function` object as `/chat/completions` does.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ResponseTool {
     /**A description of the function, used by the model to decide when and how to call it.
@@ -5779,7 +5779,7 @@ pub struct ResponseTool {
     pub type_: ResponseToolType,
 }
 /**How the model should select which tool (or tools) to use. Either a mode string (`none`, `auto`, `required`) or an object forcing a specific tool.
-*/
+ */
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum ResponseToolChoice {
