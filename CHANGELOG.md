@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.0](https://github.com/inference-gateway/rust-sdk/compare/0.32.1...0.33.0) (2026-11-15)
+
+### ✨ Features
+
+* sync schemas v1.14.0 and score a video with create_sfx ([#200](https://github.com/inference-gateway/rust-sdk/issues/200)) ([74329e3](https://github.com/inference-gateway/rust-sdk/commit/74329e36c09cee59c3f20903f9a92d7ffd121e49))
+
+### 👷 CI
+
+* **deps:** bump syn from 3.0.9 to 3.0.10 in the cargo group ([#199](https://github.com/inference-gateway/rust-sdk/issues/199)) ([b499e77](https://github.com/inference-gateway/rust-sdk/commit/b499e775c3b57a458b8b64b41df7d85266dcf281))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump claude-code 2.1.308 -> 2.1.318 ([#198](https://github.com/inference-gateway/rust-sdk/issues/198)) ([f0e208a](https://github.com/inference-gateway/rust-sdk/commit/f0e208a3091ec11982678f8fbf6770d2b0d9add7))
+
 ## [0.32.1](https://github.com/inference-gateway/rust-sdk/compare/0.32.0...0.32.1) (2026-11-10)
 
 ### 👷 CI
