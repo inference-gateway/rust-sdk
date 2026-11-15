@@ -6,15 +6,15 @@ use crate::{
     CreateChatCompletionResponse, CreateChatCompletionStreamResponse, CreateDecisionRequest,
     CreateDecisionRequestInput, CreateImageEditRequest, CreateImageRequest,
     CreateImageRequestQuality, CreateMessagesRequest, CreateMusicRequest,
-    CreateMusicRequestResponseFormat, CreateSFXRequest, CreateSFXRequestResponseFormat,
-    CreateSpeechRequest, DecisionQuestion, DecisionQuestionType, FinishReason, FunctionObject,
-    FunctionParameters, GatewayError, ImageSize, InferenceGatewayAPI, InferenceGatewayClient,
-    MCP_PROTOCOL_VERSION, McpjsonrpcRequest, Message, MessageContent, MessageRole, MessagesMessage,
-    MessagesMessageContent, MessagesMessageRole, MessagesResponseContentBlock,
-    MessagesResponseStopReason, MessagesStreamEvent, MessagesStreamEventType, PricingSource,
-    Provider, ResponseFormatJsonObject, ResponseFormatJsonObjectType, ResponseFormatJsonSchema,
-    ResponseFormatJsonSchemaJsonSchema, ResponseFormatJsonSchemaType, ResponseFormatText,
-    ResponseFormatTextType,
+    CreateMusicRequestResponseFormat, CreateSFXRequest, CreateSFXRequestOutput,
+    CreateSFXRequestResponseFormat, CreateSpeechRequest, DecisionQuestion, DecisionQuestionType,
+    FinishReason, FunctionObject, FunctionParameters, GatewayError, ImageSize, InferenceGatewayAPI,
+    InferenceGatewayClient, MCP_PROTOCOL_VERSION, McpjsonrpcRequest, Message, MessageContent,
+    MessageRole, MessagesMessage, MessagesMessageContent, MessagesMessageRole,
+    MessagesResponseContentBlock, MessagesResponseStopReason, MessagesStreamEvent,
+    MessagesStreamEventType, PricingSource, Provider, ResponseFormatJsonObject,
+    ResponseFormatJsonObjectType, ResponseFormatJsonSchema, ResponseFormatJsonSchemaJsonSchema,
+    ResponseFormatJsonSchemaType, ResponseFormatText, ResponseFormatTextType,
 };
 use futures_util::{StreamExt, pin_mut};
 use mockito::{Matcher, Server};
@@ -1604,7 +1604,7 @@ async fn test_create_sfx() -> Result<(), GatewayError> {
     let mock = server
         .mock("POST", "/v1/audio/sfx?provider=elevenlabs")
         .match_body(Matcher::JsonString(
-            r#"{"duration_seconds":3.0,"loop":true,"model":"elevenlabs/eleven_text_to_sound_v2","prompt":"distant thunder","response_format":"mp3"}"#
+            r#"{"duration_seconds":3.0,"loop":true,"model":"elevenlabs/eleven_text_to_sound_v2","output":"mix","prompt":"distant thunder","response_format":"mp3","start_offset_seconds":0.0}"#
                 .to_string(),
         ))
         .with_status(200)
@@ -1617,8 +1617,12 @@ async fn test_create_sfx() -> Result<(), GatewayError> {
 
     let request = CreateSFXRequest {
         model: "elevenlabs/eleven_text_to_sound_v2".to_string(),
-        prompt: "distant thunder".to_string(),
+        prompt: Some("distant thunder".to_string()),
+        video: None,
         duration_seconds: Some(3.0),
+        start_offset_seconds: 0.0,
+        preserve_speech: None,
+        output: CreateSFXRequestOutput::Mix,
         loop_: Some(true),
         prompt_influence: None,
         response_format: CreateSFXRequestResponseFormat::Mp3,
@@ -1627,6 +1631,46 @@ async fn test_create_sfx() -> Result<(), GatewayError> {
     let response = client
         .create_sfx(Some(Provider::Elevenlabs), request)
         .await?;
+
+    assert_eq!(response, audio_bytes);
+    mock.assert();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_create_sfx_scores_a_video() -> Result<(), GatewayError> {
+    let mut server = Server::new_async().await;
+
+    let audio_bytes: Vec<u8> = vec![0xFF, 0xFB, 0x90, 0x00];
+
+    let mock = server
+        .mock("POST", "/v1/audio/sfx?provider=mirelo")
+        .match_body(Matcher::JsonString(
+            r#"{"model":"mirelo/sfx-2.0","output":"speech","preserve_speech":true,"response_format":"mp3","start_offset_seconds":2.5,"video":"https://cdn.example.com/scene.mov"}"#
+                .to_string(),
+        ))
+        .with_status(200)
+        .with_header("content-type", "audio/mpeg")
+        .with_body(audio_bytes.clone())
+        .create();
+
+    let base_url = format!("{}/v1", server.url());
+    let client = InferenceGatewayClient::new(&base_url);
+
+    let request = CreateSFXRequest {
+        model: "mirelo/sfx-2.0".to_string(),
+        prompt: None,
+        video: Some("https://cdn.example.com/scene.mov".to_string()),
+        duration_seconds: None,
+        start_offset_seconds: 2.5,
+        preserve_speech: Some(true),
+        output: CreateSFXRequestOutput::Speech,
+        loop_: None,
+        prompt_influence: None,
+        response_format: CreateSFXRequestResponseFormat::Mp3,
+    };
+
+    let response = client.create_sfx(Some(Provider::Mirelo), request).await?;
 
     assert_eq!(response, audio_bytes);
     mock.assert();
@@ -1649,8 +1693,12 @@ async fn test_create_sfx_error_response() -> Result<(), GatewayError> {
 
     let request = CreateSFXRequest {
         model: "elevenlabs/eleven_text_to_sound_v2".to_string(),
-        prompt: "distant thunder".to_string(),
+        prompt: Some("distant thunder".to_string()),
+        video: None,
         duration_seconds: None,
+        start_offset_seconds: 0.0,
+        preserve_speech: None,
+        output: CreateSFXRequestOutput::Mix,
         loop_: None,
         prompt_influence: None,
         response_format: CreateSFXRequestResponseFormat::Mp3,

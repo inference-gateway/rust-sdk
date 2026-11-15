@@ -20,6 +20,8 @@ pub use generated::schemas::*;
 pub type CreateSFXRequest = CreateSfxRequest;
 /// See [`CreateSFXRequest`].
 pub type CreateSFXRequestResponseFormat = CreateSfxRequestResponseFormat;
+/// See [`CreateSFXRequest`].
+pub type CreateSFXRequestOutput = CreateSfxRequestOutput;
 
 use std::future::Future;
 
@@ -250,13 +252,16 @@ pub trait InferenceGatewayAPI {
         request: CreateSpeechRequest,
     ) -> impl Future<Output = Result<Vec<u8>, GatewayError>> + Send;
 
-    /// Generates a sound effect from a text prompt via the Audio API
-    /// (`POST /audio/sfx`), returning the audio as raw bytes.
+    /// Generates a sound effect from a text prompt, or scores a video when
+    /// `request.video` is set to an https URL or a base64 data URI, via the
+    /// Audio API (`POST /audio/sfx`), returning the audio as raw bytes.
     ///
     /// The response format (and thus the bytes' encoding) is chosen via
-    /// `request.response_format`; it defaults to `mp3`.
+    /// `request.response_format` and defaults to `mp3`. `prompt` is required
+    /// unless `video` is given.
     ///
-    /// Providers without sound-effect support return [`GatewayError::BadRequest`].
+    /// Providers without sound-effect support, or that cannot honor a field,
+    /// return [`GatewayError::BadRequest`].
     fn create_sfx(
         &self,
         provider: Option<Provider>,
