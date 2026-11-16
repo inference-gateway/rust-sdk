@@ -78,6 +78,7 @@ This example works with any provider supported by the Inference Gateway:
 - `minimax` - MiniMax models
 - `moonshot` - Moonshot AI models
 - `nvidia` - NVIDIA NIM models
+- `webwright` - Webwright AI models
 - `zai` - Z.ai GLM models
 
 ## Notes
