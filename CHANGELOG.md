@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.1](https://github.com/inference-gateway/rust-sdk/compare/0.33.0...0.33.1) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **deps:** bump rustls to 0.23.46 to resolve security advisories ([#204](https://github.com/inference-gateway/rust-sdk/issues/204)) ([15e9e2e](https://github.com/inference-gateway/rust-sdk/commit/15e9e2e620e22a4d76b4d2357784a3cacc876338))
+
+### 👷 CI
+
+* align Dependabot schedule and grouping ([#205](https://github.com/inference-gateway/rust-sdk/issues/205)) ([e94a1d1](https://github.com/inference-gateway/rust-sdk/commit/e94a1d1ad013bd77136ee55f98bbc418ba7210b9))
+
+### 📚 Documentation
+
+* add Webwright and Mirelo providers to provider lists ([#207](https://github.com/inference-gateway/rust-sdk/issues/207)) ([7777e99](https://github.com/inference-gateway/rust-sdk/commit/7777e9960f8017a98352f79afb82602e02e60faf))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump flox dependencies to latest ([#201](https://github.com/inference-gateway/rust-sdk/issues/201)) ([c47b377](https://github.com/inference-gateway/rust-sdk/commit/c47b377de12b469faaa23f9067ce7e4c32bbaca8))
+* **deps:** bump flox dependencies to latest ([#203](https://github.com/inference-gateway/rust-sdk/issues/203)) ([873065d](https://github.com/inference-gateway/rust-sdk/commit/873065d10fa4799b22be1feea225d66112bb1f02))
+* **deps:** bump rust-toolchain 1.95.0 -> 1.99.1 ([#202](https://github.com/inference-gateway/rust-sdk/issues/202)) ([2163460](https://github.com/inference-gateway/rust-sdk/commit/216346050da6028bfed83baaae53836c1c438791))
+
 ## [0.33.0](https://github.com/inference-gateway/rust-sdk/compare/0.32.1...0.33.0) (2026-11-15)
 
 ### ✨ Features
