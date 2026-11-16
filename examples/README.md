@@ -137,9 +137,9 @@ cargo run
   `http://localhost:8080/v1`). Read by every example.
 - `PROVIDER` - AI provider to use (`groq`, `openai`, `anthropic`, `deepseek`,
   `google`, `cohere`, `cloudflare`, `ollama`, `ollama_cloud`, `llamacpp`,
-  `mistral`, `minimax`, `moonshot`, `nvidia`, `zai`; `elevenlabs` also parses,
-  but it only serves the audio and video endpoints no example calls). Read by
-  every example; optional everywhere.
+  `webwright`, `mistral`, `minimax`, `moonshot`, `nvidia`, `zai`; every `Provider`
+  value parses, but `elevenlabs` and `mirelo` only serve the audio, video and
+  assets endpoints no example calls). Read by every example; optional everywhere.
 - `LLM` - Specific model to use (e.g. `meta-llama/llama-3.3-70b-versatile`).
   Read by the chat, messages, images and decisions examples, each with its own default;
   the list example ignores it.

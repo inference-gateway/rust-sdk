@@ -659,6 +659,9 @@ The Inference Gateway Rust SDK supports the following providers:
 - **Moonshot** (`Provider::Moonshot`) - Moonshot AI models
 - **NVIDIA** (`Provider::Nvidia`) - NVIDIA NIM models
 - **Z.ai** (`Provider::Zai`) - Z.ai GLM models
+- **Webwright** (`Provider::Webwright`) - Webwright models via chat completions
+- **Mirelo** (`Provider::Mirelo`) - Sound-effect generation via `create_sfx` (no
+  chat completions)
 
 Each provider may support different models and capabilities. Use the
 `list_models_by_provider()` method to discover available models for each
