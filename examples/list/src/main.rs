@@ -48,7 +48,7 @@ async fn main() -> Result<(), GatewayError> {
     println!("\n---\n");
 
     // Example 2: List models from a specific provider (if PROVIDER is set)
-    match env::var("PROVIDER") {
+    let selected_provider = match env::var("PROVIDER") {
         Ok(provider_str) => {
             let provider: Provider = provider_str.parse().map_err(|e| {
                 GatewayError::Other(Box::new(std::io::Error::other(format!(
@@ -73,17 +73,83 @@ async fn main() -> Result<(), GatewayError> {
                 println!("    Created: {}", model.created);
                 println!("    Served by: {}\n", model.served_by);
             }
+
+            Some(provider)
         }
         Err(_) => {
             println!("📋 Example 2: Skipped (no PROVIDER specified)");
             println!("Set PROVIDER environment variable to see provider-specific models");
+            None
         }
+    };
+
+    println!("---\n");
+
+    // Example 3: Model metadata via include (if PROVIDER is set)
+    match selected_provider {
+        Some(provider) => {
+            println!("📋 Example 3: Model Metadata from {}", provider);
+            let enriched = client
+                .list_models_with_include(
+                    Some(provider),
+                    &["pricing", "context_window", "modalities"],
+                )
+                .await?;
+            println!(
+                "Found {} models with metadata, first few:",
+                enriched.data.len()
+            );
+
+            for model in enriched.data.iter().take(5) {
+                println!("  • {}", model.id);
+                if let Some(pricing) = &model.pricing {
+                    println!(
+                        "    Pricing: {} {} input / {} output per token",
+                        pricing.currency, pricing.input_per_token, pricing.output_per_token
+                    );
+                }
+                if let Some(window) = &model.context_window {
+                    println!("    Context window: {} tokens", window.tokens);
+                }
+                if let Some(modalities) = &model.modalities {
+                    let inputs: Vec<String> =
+                        modalities.input.iter().map(|m| m.to_string()).collect();
+                    let outputs: Vec<String> =
+                        modalities.output.iter().map(|m| m.to_string()).collect();
+                    println!(
+                        "    Modalities: input {}, output {}",
+                        inputs.join(", "),
+                        outputs.join(", ")
+                    );
+                }
+            }
+        }
+        None => println!("📋 Example 3: Skipped (no PROVIDER specified)"),
     }
 
     println!("---\n");
 
-    // Example 3: List MCP tools over the aggregated JSON-RPC endpoint (if available)
-    println!("🛠️  Example 3: List MCP Tools");
+    // Example 4: Deprecated models are hidden unless requested (if PROVIDER is set)
+    match selected_provider {
+        Some(provider) => {
+            println!("📋 Example 4: Deprecated Models from {}", provider);
+            let default_models = client.list_models_by_provider(provider).await?;
+            let deprecated = client
+                .list_models_with_include(Some(provider), &["deprecated"])
+                .await?;
+            println!(
+                "{} models by default, {} when include=deprecated",
+                default_models.data.len(),
+                deprecated.data.len()
+            );
+        }
+        None => println!("📋 Example 4: Skipped (no PROVIDER specified)"),
+    }
+
+    println!("---\n");
+
+    // Example 5: List MCP tools over the aggregated JSON-RPC endpoint (if available)
+    println!("🛠️  Example 5: List MCP Tools");
     match client
         .mcp_json_rpc(McpjsonrpcRequest::tools_list(None))
         .await
@@ -132,8 +198,8 @@ async fn main() -> Result<(), GatewayError> {
 
     println!("\n---\n");
 
-    // Example 4: Health check
-    println!("❤️  Example 4: Health Check");
+    // Example 6: Health check
+    println!("❤️  Example 6: Health Check");
     let is_healthy = client.health_check().await?;
     println!(
         "Gateway health status: {}",

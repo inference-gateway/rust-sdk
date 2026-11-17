@@ -8,8 +8,12 @@ responses using the Rust SDK.
 
 1. **List All Models** - Retrieve all available models across providers
 2. **List Provider-Specific Models** - Filter models by provider
-3. **List MCP Tools** - Discover available Model Context Protocol tools
-4. **Health Check** - Verify gateway connectivity
+3. **Model Metadata** - Fetch pricing, context window and modality data with
+   `list_models_with_include` (requires `PROVIDER`)
+4. **Deprecated Models** - Compare the default listing against
+   `include=deprecated` (requires `PROVIDER`)
+5. **List MCP Tools** - Discover available Model Context Protocol tools
+6. **Health Check** - Verify gateway connectivity
 
 ## Getting Started
 
@@ -41,6 +45,10 @@ The example will show:
 
 - Complete list of models grouped by provider
 - Provider-specific model details (if `PROVIDER` is set)
+- Pricing, context window and modality metadata for the first few models
+  (if `PROVIDER` is set)
+- How many models the default listing hides until `include=deprecated`
+  (if `PROVIDER` is set)
 - Available MCP tools (if `MCP_EXPOSE=true` on the gateway)
 - Gateway health status
 
@@ -64,5 +72,7 @@ docker run --rm -p 8080:8080 \
 
 - **Model Discovery** - Find all available models
 - **Provider Filtering** - Get models from specific providers
+- **Model Metadata** - Pricing, context window and modality data via
+  `list_models_with_include`, plus the `deprecated` include value
 - **Tool Discovery** - List available MCP tools and their schemas
 - **Health Monitoring** - Check gateway status

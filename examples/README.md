@@ -27,7 +27,8 @@ stable Rust toolchain (the workspace pins Rust 1.95.0 in
 
 4. Review the different examples in the specific directories:
 
-   - [List](./list): Demonstrates listing models, MCP tools, and health checks.
+   - [List](./list): Demonstrates listing models, model metadata, deprecated
+     models, MCP tools, and health checks.
    - [Chat](./chat): Shows chat completions, streaming responses, multi-turn
      conversations, and function calling.
    - [Messages](./messages): Shows the Anthropic-compatible Messages API,
@@ -47,6 +48,10 @@ stable Rust toolchain (the workspace pins Rust 1.95.0 in
 
 - List all available models across providers
 - Filter models by specific provider
+- Fetch pricing, context window and modality metadata with
+  `list_models_with_include`
+- Show deprecated models hidden by the default listing with
+  `include=deprecated`
 - Discover MCP tools and their schemas
 - Health check validation
 
