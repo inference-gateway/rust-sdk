@@ -197,25 +197,9 @@ fn strip_vendor_extensions(value: &mut Value) {
 /// hand-maintenance can creep back in, so keep it auditable. Prefer fixing the
 /// spec upstream over adding patches here.
 fn apply_known_patches(value: &mut Value) -> Result<()> {
-    let schemas = value
+    value
         .as_object_mut()
         .ok_or_else(|| anyhow!("schemas not an object"))?;
-
-    if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamChoice")
-        && let Some(Value::Array(req)) = s.get_mut("required")
-    {
-        req.retain(|v| v.as_str() != Some("finish_reason"));
-    }
-
-    if let Some(Value::Object(s)) = schemas.get_mut("ChatCompletionStreamResponseDelta")
-        && let Some(Value::Array(req)) = s.get_mut("required")
-    {
-        req.retain(|v| {
-            let s = v.as_str();
-            s != Some("content") && s != Some("role")
-        });
-    }
-
     Ok(())
 }
 
@@ -223,8 +207,11 @@ fn apply_known_patches(value: &mut Value) -> Result<()> {
 ///
 /// - OpenAPI 3.1 may use `type: ["string", "null"]`. schemars 0.8 expects
 ///   a single `type` plus `nullable: true` (draft-07-ish).
+/// - typify ignores `nullable`, so a required nullable property is dropped from
+///   `required` to make it an `Option` that accepts an explicit `null`.
 fn normalize_schemas(value: &mut Value) {
     if let Value::Object(map) = value {
+        unrequire_nullable_properties(map);
         if let Some(t) = map.get("type").cloned()
             && let Value::Array(types) = t
         {
@@ -247,5 +234,19 @@ fn normalize_schemas(value: &mut Value) {
         for v in arr.iter_mut() {
             normalize_schemas(v);
         }
+    }
+}
+
+fn unrequire_nullable_properties(map: &mut serde_json::Map<String, Value>) {
+    let Some(Value::Object(props)) = map.get("properties") else {
+        return;
+    };
+    let nullable: Vec<String> = props
+        .iter()
+        .filter(|(_, schema)| schema.get("nullable") == Some(&Value::Bool(true)))
+        .map(|(name, _)| name.clone())
+        .collect();
+    if let Some(Value::Array(req)) = map.get_mut("required") {
+        req.retain(|v| !v.as_str().is_some_and(|s| nullable.iter().any(|n| n == s)));
     }
 }

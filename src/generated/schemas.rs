@@ -137,6 +137,7 @@ pub struct ChatCompletionNamedToolChoiceFunction {
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
 pub struct ChatCompletionStreamChoice {
     pub delta: ChatCompletionStreamResponseDelta,
+    ///The reason the model stopped generating tokens - null on every chunk except the last one of the choice.
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub finish_reason: ::std::option::Option<FinishReason>,
     ///The index of the choice in the list of choices.
@@ -145,11 +146,13 @@ pub struct ChatCompletionStreamChoice {
     pub logprobs: ::std::option::Option<ChatCompletionStreamChoiceLogprobs>,
 }
 ///Log probability information for the choice.
-#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
 pub struct ChatCompletionStreamChoiceLogprobs {
     ///A list of message content tokens with log probability information.
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
     pub content: ::std::vec::Vec<ChatCompletionTokenLogprob>,
     ///A list of message refusal tokens with log probability information.
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
     pub refusal: ::std::vec::Vec<ChatCompletionTokenLogprob>,
 }
 /**Options for streaming response. Only set this when you set `stream: true`.
@@ -3106,9 +3109,13 @@ pub struct MessagesResponse {
     pub model: ::std::string::String,
     ///Always `assistant`.
     pub role: MessagesResponseRole,
-    /**The reason the model stopped generating.
-     */
-    pub stop_reason: MessagesResponseStopReason,
+    /**The reason the model stopped generating. Always non-null in
+    non-streaming responses. In streaming mode it is null in the
+    `message_start` event and is delivered in the `message_delta`
+    event.
+    */
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub stop_reason: ::std::option::Option<MessagesResponseStopReason>,
     /**The stop sequence that caused the model to stop, if any.
      */
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
@@ -3194,7 +3201,10 @@ impl ::std::convert::TryFrom<::std::string::String> for MessagesResponseRole {
         value.parse()
     }
 }
-/**The reason the model stopped generating.
+/**The reason the model stopped generating. Always non-null in
+non-streaming responses. In streaming mode it is null in the
+`message_start` event and is delivered in the `message_delta`
+event.
 */
 #[derive(
     ::serde::Deserialize,
@@ -3221,6 +3231,8 @@ pub enum MessagesResponseStopReason {
     PauseTurn,
     #[serde(rename = "refusal")]
     Refusal,
+    #[serde(rename = "model_context_window_exceeded")]
+    ModelContextWindowExceeded,
 }
 impl ::std::fmt::Display for MessagesResponseStopReason {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -3231,6 +3243,7 @@ impl ::std::fmt::Display for MessagesResponseStopReason {
             Self::ToolUse => f.write_str("tool_use"),
             Self::PauseTurn => f.write_str("pause_turn"),
             Self::Refusal => f.write_str("refusal"),
+            Self::ModelContextWindowExceeded => f.write_str("model_context_window_exceeded"),
         }
     }
 }
@@ -3244,6 +3257,7 @@ impl ::std::str::FromStr for MessagesResponseStopReason {
             "tool_use" => Ok(Self::ToolUse),
             "pause_turn" => Ok(Self::PauseTurn),
             "refusal" => Ok(Self::Refusal),
+            "model_context_window_exceeded" => Ok(Self::ModelContextWindowExceeded),
             _ => Err("invalid value".into()),
         }
     }
