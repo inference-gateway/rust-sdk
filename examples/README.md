@@ -4,18 +4,23 @@ This directory contains examples that demonstrate how to use the Rust SDK.
 
 ## Pre-requisites
 
-You should have Docker installed (to run the Inference Gateway) and a recent
-stable Rust toolchain (the workspace pins Rust 1.95.0 in
-`rust-toolchain.toml`; the SDK uses `edition = "2024"`).
+You should have Docker installed (to run the Inference Gateway). The
+workspace pins its Rust toolchain in `rust-toolchain.toml` and rustup
+honors it automatically (the SDK uses `edition = "2024"`).
 
 ## Quick Start
 
 1. Copy the `.env.example` file to `.env` and fill in your API key(s).
 
-2. Start the Inference Gateway locally:
+2. Start the Inference Gateway locally. The Images and Decisions endpoints
+   are off by default (`IMAGES_ENABLED=false` / `DECISIONS_ENABLED=false`
+   both answer `404`), so enable them to run those examples:
 
    ```bash
-   docker run --rm -p 8080:8080 --env-file .env ghcr.io/inference-gateway/inference-gateway:latest
+   docker run --rm -p 8080:8080 \
+     -e IMAGES_ENABLED=true -e DECISIONS_ENABLED=true \
+     --env-file .env \
+     ghcr.io/inference-gateway/inference-gateway:latest
    ```
 
 3. On another terminal, export the provider and the LLM you intend to use:
@@ -90,6 +95,12 @@ support
 **Best for**: Image generation workflows with providers that support the
 Images API
 
+**Note**: the gateway disables the Images API by default
+(`IMAGES_ENABLED=false`), so `cargo run -p images-example` fails with
+`Not found: ...` against it - start the gateway with
+`-e IMAGES_ENABLED=true` (see [Quick Start](#quick-start)); spec support is
+currently limited to OpenAI.
+
 ### [Decisions Example](./decisions)
 
 **Purpose**: Use the OpenAI Decisions API
@@ -100,6 +111,11 @@ Images API
 
 **Best for**: Classification and moderation checks with providers that
 support the Decisions API
+
+**Note**: the gateway disables the Decisions API by default
+(`DECISIONS_ENABLED=false`), so `cargo run -p decisions-example` fails with
+`Not found: ...` against it - start the gateway with
+`-e DECISIONS_ENABLED=true` (see [Quick Start](#quick-start)).
 
 ## Running Examples
 
@@ -123,6 +139,10 @@ PROVIDER=openai LLM=dall-e-2 IMAGE_PATH=./photo.png cargo run -p images-example
 # Decisions example (defaults to PROVIDER=openai LLM=gpt-6-luna)
 PROVIDER=openai LLM=gpt-6-luna cargo run -p decisions-example
 ```
+
+Run them against the gateway started in [Quick Start](#quick-start) - the
+images example needs `IMAGES_ENABLED=true` and the decisions example
+`DECISIONS_ENABLED=true`, otherwise the gateway answers `404`.
 
 Or, from inside an example directory:
 
