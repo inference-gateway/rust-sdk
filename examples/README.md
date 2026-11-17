@@ -40,6 +40,8 @@ honors it automatically (the SDK uses `edition = "2024"`).
      non-streaming and streaming.
    - [Images](./images): Shows the OpenAI-compatible Images API - generation
      and edits.
+   - [Audio](./audio): Shows the audio generation endpoints - text to
+     speech, sound effects, video scoring and music.
    - [Decisions](./decisions): Shows the OpenAI Decisions API - structured
      answers about shared evidence.
 
@@ -106,6 +108,20 @@ Images API
 `-e IMAGES_ENABLED=true` (see [Quick Start](#quick-start)); spec support is
 currently limited to OpenAI.
 
+### [Audio Example](./audio)
+
+**Purpose**: Use the audio generation endpoints
+
+**Features**:
+
+- Text to speech written to an `.mp3` file
+- Sound effects from a text prompt, written to an `.mp3` file
+- Video scoring from a `VIDEO_URL` (skipped when unset)
+- Music composed from a text prompt, written to an `.mp3` file
+
+**Best for**: Audio generation with ElevenLabs. Start the gateway with
+`AUDIO_ENABLED=true` - the audio endpoints answer 404 otherwise.
+
 ### [Decisions Example](./decisions)
 
 **Purpose**: Use the OpenAI Decisions API
@@ -143,6 +159,12 @@ PROVIDER=openai LLM=dall-e-2 IMAGE_PATH=./photo.png cargo run -p images-example
 
 # Decisions example (defaults to PROVIDER=openai LLM=gpt-6-luna)
 PROVIDER=openai LLM=gpt-6-luna cargo run -p decisions-example
+
+# Audio example (defaults to PROVIDER=elevenlabs
+# LLM=elevenlabs/eleven_multilingual_v2). The gateway must run with
+# AUDIO_ENABLED=true, and setting VIDEO_URL to an https video also runs the
+# video-scoring example.
+PROVIDER=elevenlabs LLM=elevenlabs/eleven_multilingual_v2 cargo run -p audio-example
 ```
 
 Run them against the gateway started in [Quick Start](#quick-start) - the
@@ -163,11 +185,13 @@ cargo run
 - `PROVIDER` - AI provider to use (`groq`, `openai`, `anthropic`, `deepseek`,
   `google`, `cohere`, `cloudflare`, `ollama`, `ollama_cloud`, `llamacpp`,
   `webwright`, `mistral`, `minimax`, `moonshot`, `nvidia`, `zai`; every `Provider`
-  value parses, but `elevenlabs` and `mirelo` only serve the audio, video and
-  assets endpoints no example calls). Read by every example; optional everywhere.
+  value parses, but `elevenlabs` and `mirelo` serve no chat completions - they
+  power the audio endpoints, which the [audio example](./audio) calls, and
+  `mirelo` only answers `create_sfx`). Read by every example; optional
+  everywhere.
 - `LLM` - Specific model to use (e.g. `meta-llama/llama-3.3-70b-versatile`).
-  Read by the chat, messages, images and decisions examples, each with its own default;
-  the list example ignores it.
+  Read by the chat, messages, images, audio and decisions examples, each with
+  its own default; the list example ignores it.
 
 Provider-specific API keys should be set in the gateway's `.env` file (see
 `.env.example`).

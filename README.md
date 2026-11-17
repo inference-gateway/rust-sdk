@@ -31,6 +31,7 @@ Connect to multiple LLM providers through a unified interface • Stream respons
     - [Messages API (Anthropic-compatible)](#messages-api-anthropic-compatible)
     - [Tool-Use](#tool-use)
     - [Health Check](#health-check)
+    - [Audio Generation](#audio-generation)
   - [Examples](#examples)
   - [Supported Providers](#supported-providers)
   - [Documentation](#documentation)
@@ -704,6 +705,37 @@ use log::info;
 let is_healthy = client.health_check().await?;
 info!("API is healthy: {}", is_healthy);
 ```
+
+### Audio Generation
+
+Start the gateway with `AUDIO_ENABLED=true` - the audio endpoints answer 404
+otherwise. The calls return the raw audio bytes rather than a typed
+response, so write them to a file:
+
+```rust
+use inference_gateway_sdk::{
+    CreateSpeechRequest, GatewayError, InferenceGatewayAPI, InferenceGatewayClient, Provider,
+};
+
+let client = InferenceGatewayClient::new("http://localhost:8080/v1");
+
+let request = CreateSpeechRequest {
+    model: "elevenlabs/eleven_multilingual_v2".to_string(),
+    input: "Hello from the Inference Gateway".parse().expect("short text"),
+    voice: "Sarah".to_string(),
+    ..Default::default()
+};
+
+let audio: Vec<u8> = client
+    .create_speech(Some(Provider::Elevenlabs), request)
+    .await?;
+
+std::fs::write("speech.mp3", audio)?;
+```
+
+`create_sfx` generates a sound effect from a text prompt or, given a video
+URL, scores the clip, and `create_music` composes music from a prompt. See
+the [audio example](./examples/audio) for the full requests.
 
 ## Examples
 
