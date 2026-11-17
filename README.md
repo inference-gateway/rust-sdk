@@ -38,7 +38,18 @@ Connect to multiple LLM providers through a unified interface • Stream respons
 
 ## Installation
 
-Run `cargo add inference-gateway-sdk`.
+Run `cargo add inference-gateway-sdk`. The snippets below use companion
+crates the SDK does not re-export, so a fresh crate needs them too -
+add each one your snippet imports:
+
+```bash
+cargo add inference-gateway-sdk
+cargo add tokio --features macros,rt-multi-thread
+cargo add log env_logger
+cargo add futures-util
+cargo add serde --features derive
+cargo add serde_json
+```
 
 ## Usage
 

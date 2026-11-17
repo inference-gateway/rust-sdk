@@ -102,7 +102,9 @@ async fn main() -> Result<(), GatewayError> {
                 println!("Found {} MCP tools:", tools.len());
 
                 if tools.is_empty() {
-                    println!("  No MCP tools available. Make sure MCP_EXPOSE=true on the gateway.");
+                    println!(
+                        "  No MCP tools available. Make sure MCP_SERVERS is set on the gateway."
+                    );
                 }
                 for tool in tools {
                     println!(
