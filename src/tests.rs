@@ -1213,7 +1213,10 @@ async fn test_create_message() -> Result<(), GatewayError> {
         )
         .await?;
 
-    assert_eq!(response.stop_reason, MessagesResponseStopReason::EndTurn);
+    assert_eq!(
+        response.stop_reason,
+        Some(MessagesResponseStopReason::EndTurn)
+    );
     assert!(matches!(
         response.content[0],
         MessagesResponseContentBlock::TextBlock(ref block) if block.text == "Hello!"
@@ -1264,7 +1267,7 @@ async fn test_create_message_stream() -> Result<(), GatewayError> {
             let events = [
                 format!(
                     "event: message_start\ndata: {}\n\n",
-                    r#"{"type":"message_start","message":{"id":"msg_123","type":"message","role":"assistant","model":"claude-sonnet-5","content":[],"stop_reason":"end_turn","usage":{"input_tokens":10,"output_tokens":0}}}"#
+                    r#"{"type":"message_start","message":{"id":"msg_123","type":"message","role":"assistant","model":"claude-sonnet-5","content":[],"stop_reason":null,"usage":{"input_tokens":10,"output_tokens":0}}}"#
                 ),
                 format!(
                     "event: content_block_delta\ndata: {}\n\n",
@@ -1297,6 +1300,9 @@ async fn test_create_message_stream() -> Result<(), GatewayError> {
             result.event.as_deref(),
             Some(event.type_.to_string().as_str())
         );
+        if let Some(message) = &event.message {
+            assert_eq!(message.stop_reason, None);
+        }
         event_types.push(event.type_);
     }
 

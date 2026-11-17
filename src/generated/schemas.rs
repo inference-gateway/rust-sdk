@@ -146,11 +146,13 @@ pub struct ChatCompletionStreamChoice {
     pub logprobs: ::std::option::Option<ChatCompletionStreamChoiceLogprobs>,
 }
 ///Log probability information for the choice.
-#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Debug, Default)]
 pub struct ChatCompletionStreamChoiceLogprobs {
     ///A list of message content tokens with log probability information.
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
     pub content: ::std::vec::Vec<ChatCompletionTokenLogprob>,
     ///A list of message refusal tokens with log probability information.
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
     pub refusal: ::std::vec::Vec<ChatCompletionTokenLogprob>,
 }
 /**Options for streaming response. Only set this when you set `stream: true`.
@@ -3112,7 +3114,8 @@ pub struct MessagesResponse {
     `message_start` event and is delivered in the `message_delta`
     event.
     */
-    pub stop_reason: MessagesResponseStopReason,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub stop_reason: ::std::option::Option<MessagesResponseStopReason>,
     /**The stop sequence that caused the model to stop, if any.
      */
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
