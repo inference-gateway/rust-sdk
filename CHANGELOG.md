@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.34.0](https://github.com/inference-gateway/rust-sdk/compare/0.33.1...0.34.0) (2026-11-17)
+
+### ✨ Features
+
+* **examples:** add audio example for speech, sfx and music ([#214](https://github.com/inference-gateway/rust-sdk/issues/214)) ([0332f35](https://github.com/inference-gateway/rust-sdk/commit/0332f355e7349d617ff4268f5612fceb6c958ca0))
+* sync types with schemas v1.14.1 (nullable stop_reason, new stop reason) ([#215](https://github.com/inference-gateway/rust-sdk/issues/215)) ([1ce447a](https://github.com/inference-gateway/rust-sdk/commit/1ce447ad5c28d9da1ceb032e5ba0d1bbed5323fb))
+
+### 🐛 Bug Fixes
+
+* **examples:** correct gateway flag docs, stale toolchain pin, and MCP tool hint ([#212](https://github.com/inference-gateway/rust-sdk/issues/212)) ([55cfbcb](https://github.com/inference-gateway/rust-sdk/commit/55cfbcb622bcb8b82694ecc859bab087b2f3753a))
+
+### 👷 CI
+
+* set up orchestrators from repos.yaml ([#208](https://github.com/inference-gateway/rust-sdk/issues/208)) ([765cb19](https://github.com/inference-gateway/rust-sdk/commit/765cb1928dd2cc6da545503cb5028a0bbc17a1a6))
+
+### 📚 Documentation
+
+* **examples:** demonstrate list_models_with_include metadata in the list example ([#213](https://github.com/inference-gateway/rust-sdk/issues/213)) ([8ae6c86](https://github.com/inference-gateway/rust-sdk/commit/8ae6c86ef47d31bd3fef33d9fd396b540ac17cc2)), closes [#211](https://github.com/inference-gateway/rust-sdk/issues/211)
+
 ## [0.33.1](https://github.com/inference-gateway/rust-sdk/compare/0.33.0...0.33.1) (2026-11-16)
 
 ### 🐛 Bug Fixes
