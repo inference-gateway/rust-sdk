@@ -24,6 +24,7 @@ Connect to multiple LLM providers through a unified interface • Stream respons
     - [Creating a Client](#creating-a-client)
     - [Listing Models](#listing-models)
     - [Listing Models from a specific provider](#listing-models-from-a-specific-provider)
+    - [Listing Models with metadata](#listing-models-with-metadata)
     - [MCP JSON-RPC Endpoint](#mcp-json-rpc-endpoint)
     - [Generating Content](#generating-content)
     - [Streaming Content](#streaming-content)
@@ -39,7 +40,18 @@ Connect to multiple LLM providers through a unified interface • Stream respons
 
 ## Installation
 
-Run `cargo add inference-gateway-sdk`.
+Run `cargo add inference-gateway-sdk`. The snippets below use companion
+crates the SDK does not re-export, so a fresh crate needs them too -
+add each one your snippet imports:
+
+```bash
+cargo add inference-gateway-sdk
+cargo add tokio --features macros,rt-multi-thread
+cargo add log env_logger
+cargo add futures-util
+cargo add serde --features derive
+cargo add serde_json
+```
 
 ## Usage
 
@@ -187,6 +199,65 @@ for model in response.data {
 }
 
 // ...Rest of the main function
+```
+
+### Listing Models with metadata
+
+To fetch models together with their pricing, context window and modality
+data, use `list_models_with_include`. Supported `include` values are
+`"pricing"`, `"context_window"` and `"modalities"` - they populate the
+optional `Model::pricing`, `Model::context_window` and
+`Model::modalities` fields (pass `None` as provider to include every
+provider):
+
+```rust
+use inference_gateway_sdk::{
+        GatewayError,
+        InferenceGatewayAPI,
+        InferenceGatewayClient,
+        ListModelsResponse,
+        Provider,
+};
+use log::info;
+
+// ...Open main function
+
+// Models with pricing, context window and modality metadata
+let response: ListModelsResponse = client
+        .list_models_with_include(Some(Provider::Groq), &["pricing", "context_window", "modalities"])
+        .await?;
+for model in response.data {
+        if let Some(pricing) = &model.pricing {
+            info!(
+                "{}: {} {} per input token, {} per output token",
+                model.id, pricing.currency, pricing.input_per_token, pricing.output_per_token
+            );
+        }
+        if let Some(window) = &model.context_window {
+            info!("{}: context window of {} tokens", model.id, window.tokens);
+        }
+        if let Some(modalities) = &model.modalities {
+            info!("{}: accepts {:?}, returns {:?}", model.id, modalities.input, modalities.output);
+        }
+}
+
+// ...Rest of the main function
+```
+
+Deprecated models are hidden from every listing unless requested - pass
+`"deprecated"` in the `include` list to see how many models the default
+listing leaves out:
+
+```rust
+let default_models: ListModelsResponse = client.list_models_by_provider(Provider::Groq).await?;
+let with_deprecated: ListModelsResponse = client
+        .list_models_with_include(Some(Provider::Groq), &["deprecated"])
+        .await?;
+info!(
+        "{} models by default, {} with deprecated models included",
+        default_models.data.len(),
+        with_deprecated.data.len()
+);
 ```
 
 ### MCP JSON-RPC Endpoint

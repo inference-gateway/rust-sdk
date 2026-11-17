@@ -4,18 +4,23 @@ This directory contains examples that demonstrate how to use the Rust SDK.
 
 ## Pre-requisites
 
-You should have Docker installed (to run the Inference Gateway) and a recent
-stable Rust toolchain (the workspace pins Rust 1.95.0 in
-`rust-toolchain.toml`; the SDK uses `edition = "2024"`).
+You should have Docker installed (to run the Inference Gateway). The
+workspace pins its Rust toolchain in `rust-toolchain.toml` and rustup
+honors it automatically (the SDK uses `edition = "2024"`).
 
 ## Quick Start
 
 1. Copy the `.env.example` file to `.env` and fill in your API key(s).
 
-2. Start the Inference Gateway locally:
+2. Start the Inference Gateway locally. The Images and Decisions endpoints
+   are off by default (`IMAGES_ENABLED=false` / `DECISIONS_ENABLED=false`
+   both answer `404`), so enable them to run those examples:
 
    ```bash
-   docker run --rm -p 8080:8080 --env-file .env ghcr.io/inference-gateway/inference-gateway:latest
+   docker run --rm -p 8080:8080 \
+     -e IMAGES_ENABLED=true -e DECISIONS_ENABLED=true \
+     --env-file .env \
+     ghcr.io/inference-gateway/inference-gateway:latest
    ```
 
 3. On another terminal, export the provider and the LLM you intend to use:
@@ -27,7 +32,8 @@ stable Rust toolchain (the workspace pins Rust 1.95.0 in
 
 4. Review the different examples in the specific directories:
 
-   - [List](./list): Demonstrates listing models, MCP tools, and health checks.
+   - [List](./list): Demonstrates listing models, model metadata, deprecated
+     models, MCP tools, and health checks.
    - [Chat](./chat): Shows chat completions, streaming responses, multi-turn
      conversations, and function calling.
    - [Messages](./messages): Shows the Anthropic-compatible Messages API,
@@ -49,6 +55,10 @@ stable Rust toolchain (the workspace pins Rust 1.95.0 in
 
 - List all available models across providers
 - Filter models by specific provider
+- Fetch pricing, context window and modality metadata with
+  `list_models_with_include`
+- Show deprecated models hidden by the default listing with
+  `include=deprecated`
 - Discover MCP tools and their schemas
 - Health check validation
 
@@ -92,6 +102,12 @@ support
 **Best for**: Image generation workflows with providers that support the
 Images API
 
+**Note**: the gateway disables the Images API by default
+(`IMAGES_ENABLED=false`), so `cargo run -p images-example` fails with
+`Not found: ...` against it - start the gateway with
+`-e IMAGES_ENABLED=true` (see [Quick Start](#quick-start)); spec support is
+currently limited to OpenAI.
+
 ### [Audio Example](./audio)
 
 **Purpose**: Use the audio generation endpoints
@@ -116,6 +132,11 @@ Images API
 
 **Best for**: Classification and moderation checks with providers that
 support the Decisions API
+
+**Note**: the gateway disables the Decisions API by default
+(`DECISIONS_ENABLED=false`), so `cargo run -p decisions-example` fails with
+`Not found: ...` against it - start the gateway with
+`-e DECISIONS_ENABLED=true` (see [Quick Start](#quick-start)).
 
 ## Running Examples
 
@@ -145,6 +166,10 @@ PROVIDER=openai LLM=gpt-6-luna cargo run -p decisions-example
 # video-scoring example.
 PROVIDER=elevenlabs LLM=elevenlabs/eleven_multilingual_v2 cargo run -p audio-example
 ```
+
+Run them against the gateway started in [Quick Start](#quick-start) - the
+images example needs `IMAGES_ENABLED=true` and the decisions example
+`DECISIONS_ENABLED=true`, otherwise the gateway answers `404`.
 
 Or, from inside an example directory:
 
